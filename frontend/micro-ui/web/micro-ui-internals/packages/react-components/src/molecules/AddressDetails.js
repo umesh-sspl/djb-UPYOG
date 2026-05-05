@@ -57,11 +57,11 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
   );
   const [addressLine1, setAddressLine1] = useState(
     formData?.addressLine1 ||
-      formData?.subLocality ||
-      formData?.address?.addressLine1 ||
-      formData?.address?.subLocality ||
-      formData?.infodetails?.existingDataSet?.address?.addressline1 ||
-      ""
+    formData?.subLocality ||
+    formData?.address?.addressLine1 ||
+    formData?.address?.subLocality ||
+    formData?.infodetails?.existingDataSet?.address?.addressline1 ||
+    ""
   );
   const [addressLine2, setAddressLine2] = useState(
     formData?.addressLine2 || formData?.address?.addressLine2 || formData?.infodetails?.existingDataSet?.address?.addressline2 || ""
@@ -72,16 +72,16 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
   const [addressType, setAddressType] = useState(
     convertToObject(formData?.addressType) || formData?.address?.addressType || formData?.infodetails?.existingDataSet?.address?.addressType
       ? allOptions.find(
-          (a) =>
-            a.code ===
-            (formData?.addressType?.code ||
-              formData?.addressType ||
-              formData?.address?.addressType ||
-              formData?.infodetails?.existingDataSet?.address?.addressType)
-        ) ||
-          convertToObject(formData?.addressType) ||
-          formData?.address?.addressType ||
-          formData?.infodetails?.existingDataSet?.address?.addressType
+        (a) =>
+          a.code ===
+          (formData?.addressType?.code ||
+            formData?.addressType ||
+            formData?.address?.addressType ||
+            formData?.infodetails?.existingDataSet?.address?.addressType)
+      ) ||
+      convertToObject(formData?.addressType) ||
+      formData?.address?.addressType ||
+      formData?.infodetails?.existingDataSet?.address?.addressType
       : allOptions.find((a) => a.code === "PERMANENT")
   );
   const [showPincodeSuggestions, setShowPincodeSuggestions] = useState(false);
@@ -124,7 +124,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
     // Otherwise, show whatever is not used
     return allOptions.filter((opt) => !usedAddressTypes.includes(opt.code));
   }, [usedAddressTypes]);
-  const { data: egovLocationData } = Digit.Hooks.useCommonMDMS("dl.djb", "egov-location", ["TenantBoundary"]);
+  const { data: egovLocationData } = Digit.Hooks.useCommonMDMS(tenantId, "egov-location", ["TenantBoundary"]);
 
   const boundaryData = useMemo(() => {
     const tenantBoundary = egovLocationData?.["egov-location"]?.TenantBoundary || [];
@@ -248,40 +248,57 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
     }
   };
 
+  const addressUpdateRef = React.useRef(null);
   useEffect(() => {
     if (formData?.address && structuredLocalityData?.length > 0) {
       const addressData = formData.address;
 
+      const addressStr = JSON.stringify(addressData);
+      if (addressUpdateRef.current === addressStr) return;
+      addressUpdateRef.current = addressStr;
+
       const cityObj =
         allCities?.find((c) => c.code === addressData.cityCode || c.code === addressData.city || c.name === addressData.city) || addressData.city;
-      if (cityObj) setCity(cityObj);
+      if (cityObj && JSON.stringify(cityObj) !== JSON.stringify(city)) setCity(cityObj);
 
-      setPincode(addressData.pincode?.toString().split(".")[0] || "");
-      setHouseNo(addressData.houseNo || "");
-      setstreetName(addressData.streetName || "");
-      setLandmark(addressData.landmark || "");
-      setAddressLine1(addressData.addressLine1 || addressData.subLocality || "");
-      setAddressLine2(addressData.addressLine2 || "");
-      setLatitude(addressData.latitude || "");
-      setLongitude(addressData.longitude || "");
-      setZro(addressData.zro || "");
+      const newPincode = addressData.pincode?.toString().split(".")[0] || "";
+      if (newPincode !== pincode) setPincode(newPincode);
+
+      if ((addressData.houseNo || "") !== houseNo) setHouseNo(addressData.houseNo || "");
+      if ((addressData.streetName || "") !== streetName) setstreetName(addressData.streetName || "");
+      if ((addressData.landmark || "") !== landmark) setLandmark(addressData.landmark || "");
+      
+      const newAddr1 = addressData.addressLine1 || addressData.subLocality || "";
+      if (newAddr1 !== addressLine1) setAddressLine1(newAddr1);
+      
+      if ((addressData.addressLine2 || "") !== addressLine2) setAddressLine2(addressData.addressLine2 || "");
+      if ((addressData.latitude || "") !== latitude) setLatitude(addressData.latitude || "");
+      if ((addressData.longitude || "") !== longitude) setLongitude(addressData.longitude || "");
+      if ((addressData.zro || "") !== zro) setZro(addressData.zro || "");
+      
       if (addressData.doorImageId) {
-        setDoorImage(addressData.doorImage);
-        setDoorImageId(addressData.doorImageId);
+        if (addressData.doorImage !== doorImage) setDoorImage(addressData.doorImage);
+        if (addressData.doorImageId !== doorImageId) setDoorImageId(addressData.doorImageId);
       }
 
       const localityObj = structuredLocalityData.find(
         (l) => l.code === addressData.localityCode || l.code === addressData.locality || l.i18nKey === addressData.locality
       );
-      setLocality(localityObj || addressData.locality || null);
+      const targetLocality = localityObj || addressData.locality || null;
+      if (JSON.stringify(targetLocality) !== JSON.stringify(locality)) setLocality(targetLocality);
 
       // Derive Zone/Block/Assembly from Locality if missing
-      setZone(addressData.zone || localityObj?.zone || "");
-      setBlock(addressData.block || localityObj?.ward || "");
-      setAssembly(addressData.assembly || localityObj?.assembly || "");
+      const newZone = addressData.zone || localityObj?.zone || "";
+      if (newZone !== zone) setZone(newZone);
+      
+      const newBlock = addressData.block || localityObj?.ward || "";
+      if (newBlock !== block) setBlock(newBlock);
+      
+      const newAssembly = addressData.assembly || localityObj?.assembly || "";
+      if (newAssembly !== assembly) setAssembly(newAssembly);
 
       const typeObj = allOptions.find((a) => a.code === addressData.addressType);
-      if (typeObj) setAddressType(typeObj);
+      if (typeObj && JSON.stringify(typeObj) !== JSON.stringify(addressType)) setAddressType(typeObj);
     }
   }, [formData?.address, allCities, structuredLocalityData]);
 
@@ -314,6 +331,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
   /* If `config` is undefined and all required address fields are filled, it creates an `addressStep` object
     containing the address details and calls the `onSelect` function with it.
    **/
+  const lastBroadcastRef = React.useRef(null);
   useEffect(() => {
     const isEkyc = config?.doorImage;
     const addressStep = {
@@ -497,7 +515,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         isDisabled={
           config?.doorImage
             ? !houseNo || !locality || !pincode || !addressLine1 || !streetName || !doorImageId
-            : !houseNo || !city || !locality || !pincode || !addressLine1 || !streetName || !addressLine2 || (showZRO && !zro)
+            : !houseNo || !city || !locality || !pincode || !addressLine1 || (showZRO && !zro)
         }
       >
         {userDetails?.addresses?.length && (
