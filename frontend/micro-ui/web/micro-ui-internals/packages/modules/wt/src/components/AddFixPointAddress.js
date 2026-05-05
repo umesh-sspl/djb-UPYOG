@@ -45,6 +45,8 @@ const AddFixPointAddress = () => {
             ...data.address,
             addressId: data.address?.addressId,
             applicantId: data.address?.applicantId,
+            block: data.address?.ward || data.address?.block,
+            assembly: data.address?.constituency || data.address?.assembly,
           },
           bookingId: data.bookingId,
           bookingNo: data.bookingNo,
@@ -116,7 +118,7 @@ const AddFixPointAddress = () => {
 
   return (
     <div className="employee-form-section-wrapper">
-      <VerticalTimeline config={[{ timeLine: [{ actions: "Add Fixed Point", currentStep: 1 }] }]} showFinalStep={false} />
+      <VerticalTimeline config={[{ timeLine: [{ actions: editId ? "Update Fixed Point" : "Add Fixed Point", currentStep: 1 }] }]} showFinalStep={false} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px" }}>
         <CollapsibleCardPage title={t("WT_FIXING_POINT_APPLICANT_DETAILS")} defaultOpen={true}>
