@@ -114,8 +114,6 @@ const AddFillingPointAddress = () => {
     !formData?.owner?.eeName ||
     !formData?.owner?.eeMobile ||
     !formData?.owner?.eeEmail ||
-    !formData?.address?.houseNo ||
-    !formData?.address?.streetName ||
     !formData?.address?.addressLine1 ||
     !formData?.address?.addressLine2 ||
     !formData?.address?.city ||
@@ -128,7 +126,7 @@ const AddFillingPointAddress = () => {
 
   return (
     <div className="employee-form-section-wrapper">
-      <VerticalTimeline config={[{ timeLine: [{ actions: "Add Filling Point", currentStep: 1 }] }]} showFinalStep={false} />
+      <VerticalTimeline config={[{ timeLine: [{ actions: editId ? "Update Filling Point" : "Add Filling Point", currentStep: 1 }] }]} showFinalStep={false} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px" }}>
         <AddFillingPointMetaData

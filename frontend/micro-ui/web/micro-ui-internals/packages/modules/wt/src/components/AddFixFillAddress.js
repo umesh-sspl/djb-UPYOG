@@ -194,8 +194,8 @@ const AddFixFillAddress = ({ t, config, formData, onSelect, isEdit, userDetails 
         allOptions.find((a) => a.code === addressData.addressType) || addressData.addressType || allOptions.find((a) => a.code === "PERMANENT")
       );
       setZone(addressData.zone || "");
-      setBlock(addressData.block || "");
-      setAssembly(addressData.assembly || "");
+      setBlock(addressData.block || addressData.ward || "");
+      setAssembly(addressData.assembly || addressData.constituency || "");
       setLatitude(addressData.latitude || "");
       setLongitude(addressData.longitude || "");
 
@@ -364,16 +364,12 @@ const AddFixFillAddress = ({ t, config, formData, onSelect, isEdit, userDetails 
         </div>
 
         <div>
-          <CardLabel>
-            {t("CITY")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("CITY")}</CardLabel>
           <Dropdown selected={city} select={setCity} option={allCities || []} optionKey="i18nKey" t={t} disable={true} />
         </div>
 
         <div style={{ position: "relative" }}>
-          <CardLabel>
-            {t("PINCODE")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("PINCODE")}</CardLabel>
           <TextInput
             value={pincode}
             onChange={(e) => {
@@ -431,9 +427,7 @@ const AddFixFillAddress = ({ t, config, formData, onSelect, isEdit, userDetails 
         </div>
 
         <div>
-          <CardLabel>
-            {t("LOCALITY")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("LOCALITY")}</CardLabel>
           <Dropdown
             selected={locality}
             select={(val) => {
@@ -450,31 +444,25 @@ const AddFixFillAddress = ({ t, config, formData, onSelect, isEdit, userDetails 
             optionKey="i18nkey"
             t={t}
             style={{ width: "100%" }}
+            isSearchable={true}
           />
         </div>
 
         {/* House No */}
         <div>
-          <CardLabel>
-            {t("HOUSE_NO")}
-            <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("HOUSE_NO")}</CardLabel>
           <TextInput value={houseNo} onChange={(e) => setHouseNo(e.target.value)} style={{ width: "100%" }} />
         </div>
 
         {/* Street */}
         <div>
-          <CardLabel>
-            {t("STREET_NAME")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("STREET_NAME")}</CardLabel>
           <TextInput value={streetName} onChange={(e) => setStreetName(e.target.value)} style={{ width: "100%" }} />
         </div>
 
         {/* Address Line 1 */}
         <div>
-          <CardLabel>
-            {t("ADDRESS_LINE1")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("ADDRESS_LINE1")}</CardLabel>
           <TextInput value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} style={{ width: "100%" }} />
         </div>
 
@@ -485,37 +473,27 @@ const AddFixFillAddress = ({ t, config, formData, onSelect, isEdit, userDetails 
         </div>
 
         <div>
-          <CardLabel>
-            {t("BLOCK")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("BLOCK")}</CardLabel>
           <TextInput value={block} onChange={(e) => setBlock(e.target.value)} style={{ width: "100%" }} />
         </div>
 
         <div>
-          <CardLabel>
-            {t("ZONE")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("ZONE")}</CardLabel>
           <TextInput value={zone} onChange={(e) => setZone(e.target.value)} style={{ width: "100%" }} />
         </div>
         {/* Latitude */}
         <div>
-          <CardLabel>
-            {t("LATITUDE")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("LATITUDE")}</CardLabel>
           <TextInput value={latitude} onChange={(e) => setLatitude(e.target.value)} style={{ width: "100%" }} />
         </div>
 
         {/* Longitude */}
         <div>
-          <CardLabel>
-            {t("LONGITUDE")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("LONGITUDE")}</CardLabel>
           <TextInput value={longitude} onChange={(e) => setLongitude(e.target.value)} style={{ width: "100%" }} />
         </div>
         <div>
-          <CardLabel>
-            {t("ASSEMBLY_CONSTITUENCY")} <span className="astericColor">*</span>
-          </CardLabel>
+          <CardLabel>{t("ASSEMBLY_CONSTITUENCY")}</CardLabel>
           <TextInput value={assembly} onChange={(e) => setAssembly(e.target.value)} style={{ width: "100%" }} />
         </div>
         <div>
