@@ -135,7 +135,6 @@ const EmployeeApp = ({ path }) => {
     <Switch>
       <AppContainer>
         <div className="ground-container employee-app-container form-container">
-          {/* -------------------------- MODULE HEADER -------------------------- */}
           <ModuleHeader
             leftContent={
               <React.Fragment>

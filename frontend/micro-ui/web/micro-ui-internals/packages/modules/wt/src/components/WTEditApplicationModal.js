@@ -38,7 +38,16 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
         waterQuantity: applicationData?.waterQuantity || "",
         description: applicationData?.description || "",
         deliveryDate: applicationData?.deliveryDate || "",
-        deliveryTime: applicationData?.deliveryTime || ""
+        deliveryTime: applicationData?.deliveryTime || "",
+        vendorName: applicationData?.vendorDetail?.name || "",
+        vendorMobileNumber: applicationData?.vendorDetail?.mobileNumber || "",
+        vendorAlternateNumber: applicationData?.vendorDetail?.alternateNumber || "",
+        vendorEmailId: applicationData?.vendorDetail?.emailId || "",
+        driverName: applicationData?.driverDetail?.name || "",
+        driverMobileNumber: applicationData?.driverDetail?.mobileNumber || "",
+        driverAlternateNumber: applicationData?.driverDetail?.alternateNumber || "",
+        driverEmailId: applicationData?.driverDetail?.emailId || "",
+        fillingPoints: applicationData?.vehicleDetail?.fillingPoints || ""
       });
     }
   }, [applicationData]);
@@ -86,6 +95,30 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
         { label: "WT_DELIVERY_DATE", key: "deliveryDate", type: "date" },
         { label: "WT_DELIVERY_TIME", key: "deliveryTime", type: "time" },
         { label: "WT_DESCRIPTION", key: "description", fullWidth: true },
+      ]
+    },
+    {
+      title: "WT_VENDOR_DETAILS",
+      fields: [
+        { label: "WT_VENDOR_NAME", key: "vendorName" },
+        { label: "WT_MOBILE_NUMBER", key: "vendorMobileNumber" },
+        { label: "WT_ALT_MOBILE_NUMBER", key: "vendorAlternateNumber" },
+        { label: "WT_EMAIL_ID", key: "vendorEmailId" },
+      ]
+    },
+    {
+      title: "WT_DRIVER_DETAILS",
+      fields: [
+        { label: "WT_DRIVER_NAME", key: "driverName" },
+        { label: "WT_MOBILE_NUMBER", key: "driverMobileNumber" },
+        { label: "WT_ALT_MOBILE_NUMBER", key: "driverAlternateNumber" },
+        { label: "WT_EMAIL_ID", key: "driverEmailId" },
+      ]
+    },
+    {
+      title: "WT_VEHICLE_DETAILS",
+      fields: [
+        { label: "WT_FILLING_POINTS", key: "fillingPoints" },
       ]
     }
   ];
