@@ -39,7 +39,6 @@ import javax.annotation.processing.Generated;
 
 @Controller
 @Slf4j
-@CrossOrigin("*")
 public class RequestServiceController {
 	
 	@Autowired
