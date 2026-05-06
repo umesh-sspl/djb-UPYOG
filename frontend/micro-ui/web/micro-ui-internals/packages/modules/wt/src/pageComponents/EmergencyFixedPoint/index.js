@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "react-query";
 import { Redirect, Route, Switch, useHistory, useLocation, useRouteMatch } from "react-router-dom";
@@ -29,15 +29,17 @@ const WTEmergencyFixedPointCreate = () => {
   config.indexRoute = "fp-info";
 
   // Clear params if navigating back to info page
-  if (
-    params &&
-    Object.keys(params).length > 0 &&
-    window.location.href.includes("/fp-info") &&
-    sessionStorage.getItem("docReqScreenByBack") !== "true"
-  ) {
-    clearParams();
-    queryClient.invalidateQueries("FP_Create");
-  }
+  useEffect(() => {
+    if (
+      params &&
+      Object.keys(params).length > 0 &&
+      window.location.href.includes("/fp-info") &&
+      sessionStorage.getItem("docReqScreenByBack") !== "true"
+    ) {
+      clearParams();
+      queryClient.invalidateQueries("FP_Create");
+    }
+  }, [params, clearParams, queryClient]);
 
   /* ------------------------------------------------------------------ */
   /*                            NAVIGATION                               */
@@ -93,6 +95,20 @@ const WTEmergencyFixedPointCreate = () => {
   /* ------------------------------------------------------------------ */
 
   function handleSelect(key, data, skipStep, index, isAddMultiple = false) {
+    if (key === "multiple") {
+      let newParams = { ...params };
+      Object.keys(data).forEach((k) => {
+        if (k !== "navigationKey" && k !== "silent") {
+          newParams[k] = { ...newParams[k], ...data[k] };
+        }
+      });
+      setParams(newParams);
+      if (data.silent) return;
+      // Navigation should be based on the intended current step's key
+      const navigationKey = data.navigationKey || Object.keys(data)[0];
+      goNext(skipStep, index, isAddMultiple, navigationKey);
+      return;
+    }
     if (key === "owners") {
       let owners = params.owners || [];
       owners[index] = data;
@@ -114,7 +130,7 @@ const WTEmergencyFixedPointCreate = () => {
   /*                      SCROLL TO SECTION                              */
   /* ------------------------------------------------------------------ */
 
-  const formStepRoutes = ["fp-applicant-details", "fp-address-details", "fp-request-details"];
+  const formStepRoutes = ["fp-applicant-details", "fp-address-details", "fp-dispatch-details", "fp-request-details"];
   const isFormStep = formStepRoutes.some((route) => pathname.includes(route));
   const sectionRefs = useRef({});
 

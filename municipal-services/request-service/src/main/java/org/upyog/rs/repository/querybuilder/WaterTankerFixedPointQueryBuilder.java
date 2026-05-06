@@ -69,7 +69,7 @@ public class WaterTankerFixedPointQueryBuilder {
                     "ad.fixed_point_id AS fixed_point_idgen, " +
                     "fpa.type AS fp_addr_type, " +
                     "addr.ward, addr.zone, addr.constituency " +
-                    "FROM public.upyog_rs_water_tanker_applicant_details ad " +
+                    "FROM upyog_rs_water_tanker_applicant_details ad " +
                     "LEFT JOIN public.upyog_rs_water_tanker_address_details addr " +
                     "ON ad.applicant_id = addr.applicant_id " +
                     //  DISTINCT ON ensures only 1 mapping row per applicant
@@ -105,6 +105,16 @@ public class WaterTankerFixedPointQueryBuilder {
         if (criteria.getName() != null && !criteria.getName().trim().isEmpty()) {
             query.append(" AND ad.name ILIKE ? ");
             preparedStmtList.add("%" + criteria.getName() + "%");
+        }
+
+        if (criteria.getFillingPointId() != null && !criteria.getFillingPointId().trim().isEmpty()) {
+            query.append(" AND m.filling_pt_name = ? ");
+            preparedStmtList.add(criteria.getFillingPointId());
+        }
+
+        if (criteria.getId() != null && !criteria.getId().trim().isEmpty()) {
+            query.append(" AND ad.applicant_id = ? ");
+            preparedStmtList.add(criteria.getId());
         }
 
 //        if (criteria.getFromDate() != null) {
@@ -154,6 +164,18 @@ public class WaterTankerFixedPointQueryBuilder {
         if (criteria.getName() != null && !criteria.getName().trim().isEmpty()) {
             query.append(" AND ad.name ILIKE ? ");
             preparedStmtList.add("%" + criteria.getName() + "%");
+        }
+
+        if (criteria.getFillingPointId() != null && !criteria.getFillingPointId().trim().isEmpty()) {
+            query.append(" AND ad.applicant_id IN ( " +
+                    "SELECT fixed_pt_name FROM upyog_rs_water_tanker_filling_point_fixed_point_mapping " +
+                    "WHERE filling_pt_name = ? ) ");
+            preparedStmtList.add(criteria.getFillingPointId());
+        }
+
+        if (criteria.getId() != null && !criteria.getId().trim().isEmpty()) {
+            query.append(" AND ad.applicant_id = ? ");
+            preparedStmtList.add(criteria.getId());
         }
 //
 //        if (criteria.getFromDate() != null) {

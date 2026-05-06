@@ -65,10 +65,11 @@ const openFilePDF = (fileId) => {
 const WTEmergencyFixedPointCheckPage = ({ onSubmit, value = {} }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const { owner, requestDetails, address, serviceType, toiletRequestDetails, treePruningRequestDetails } = value;
+  const { owner, requestDetails, dispatchDetails, address, serviceType, toiletRequestDetails, treePruningRequestDetails } = value;
   const [agree, setAgree] = useState(false);
   const immediateRequired = requestDetails?.extraCharge ? "YES" : "NO";
   const [fileUrl, setFileUrl] = useState(null);
+  const isWaterTankerService = !serviceType?.serviceType?.code || serviceType?.serviceType?.code === "WT";
 
   const baseUrl = pathname.includes("citizen")
     ? `${APPLICATION_PATH}/citizen/wt/fixed-point/request-service`
@@ -95,7 +96,7 @@ const WTEmergencyFixedPointCheckPage = ({ onSubmit, value = {} }) => {
           <CardSubHeader>{t("ES_TITILE_OWNER_DETAILS")}</CardSubHeader>
           <StatusTable style={{ marginTop: "30px", marginBottom: "30px" }}>
             <Row
-              label={t("COMMON_APPLICANT_NAME")}
+              label={owner?.isExistingFixedPoint?.code === "YES" || owner?.type === "FIXED-POINT" ? t("WT_FIXED_POINT_DELIVERY_POINT", "Fixed Point/Delivery Point") : t("COMMON_APPLICANT_NAME")}
               text={`${t(checkForNA(owner?.applicantName))}`}
               actionButton={<ActionButton jumpTo={`${baseUrl}/fp-applicant-details`} />}
             />
@@ -119,7 +120,19 @@ const WTEmergencyFixedPointCheckPage = ({ onSubmit, value = {} }) => {
             <Row label={t("LANDMARK")} text={`${t(checkForNA(address?.landmark))}`} />
             <Row label={t("STREET_NAME")} text={`${t(checkForNA(address?.streetName))}`} />
           </StatusTable>
-          {serviceType?.serviceType?.code === "WT" && (
+
+          <CardSubHeader>{t("WT_DISPATCH_DETAILS")}</CardSubHeader>
+          <StatusTable style={{ marginTop: "30px", marginBottom: "30px" }}>
+            <Row
+              label={t("WT_FILLING_POINT")}
+              text={`${t(checkForNA(dispatchDetails?.fillingPoint?.name))}`}
+              actionButton={<ActionButton jumpTo={`${baseUrl}/fp-dispatch-details`} />}
+            />
+            <Row label={t("WT_VENDOR")} text={`${t(checkForNA(dispatchDetails?.vendor?.name))}`} />
+            <Row label={t("WT_VEHICLE")} text={`${t(checkForNA(dispatchDetails?.vehicle?.name))}`} />
+            <Row label={t("WT_DRIVER")} text={`${t(checkForNA(dispatchDetails?.driver?.name))}`} />
+          </StatusTable>
+          {isWaterTankerService && (
             <>
               <CardSubHeader>{t("WT_REQUEST_DETAILS")}</CardSubHeader>
               <StatusTable style={{ marginTop: "30px", marginBottom: "30px" }}>

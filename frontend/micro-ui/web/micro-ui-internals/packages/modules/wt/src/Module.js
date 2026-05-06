@@ -43,6 +43,8 @@ import WTEmergencyFixedPointAcknowledgement from "./pageComponents/EmergencyFixe
 import MTEmergencyFixedPointAcknowledgement from "./pageComponents/EmergencyFixedPoint/MTAcknowledgement";
 import EmergencyFixedPointTPAcknowledgement from "./pageComponents/EmergencyFixedPoint/TPAcknowledgement";
 import WTEmergencyFixedPointCreate from "./pageComponents/EmergencyFixedPoint";
+import EmergencyFixedPointApplicantDetails from "./pageComponents/EmergencyFixedPoint/ApplicantDetails";
+import EmergencyFixedPointDispatchDetails from "./pageComponents/EmergencyFixedPoint/DispatchDetails";
 
 // Parent component of module
 export const WTModule = ({ stateCode, userType, tenants }) => {
@@ -88,7 +90,7 @@ export const WTLinks = ({ matchPath, userType }) => {
     },
     {
       link: `${matchPath}/wt/wt-Vendor`,
-      i18nKey: t("WT_VENDOR_LOGIN"),
+      i18nKey: t("Vendor Management"),
     },
   ];
 
@@ -144,6 +146,8 @@ const componentsToRegister = {
   MTEmergencyFixedPointAcknowledgement,
   EmergencyFixedPointTPAcknowledgement,
   WTEmergencyFixedPointCreate,
+  EmergencyFixedPointApplicantDetails,
+  EmergencyFixedPointDispatchDetails,
 };
 
 export const initWTComponents = () => {

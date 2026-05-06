@@ -71,10 +71,6 @@ public class VehicleRepository {
 					"VALUES(?, ?, ?) " +
 					"ON CONFLICT (vehicle_id, driver_id) DO UPDATE SET status = EXCLUDED.status";
 
-	private static final String CHECK_DRIVER_ALREADY_ASSIGNED =
-			"SELECT vehicle_id FROM eg_vehicle_driver_mapping " +
-					"WHERE driver_id = ? AND status = 'ACTIVE'";
-
 
 	public void updateDriver(VehicleRequest vehicleRequest) {
 		String vehicleId = vehicleRequest.getVehicle().getId();
@@ -141,12 +137,6 @@ public class VehicleRepository {
 		return jdbcTemplate.query(query, preparedStmtList.toArray(), new SingleColumnRowMapper<>(String.class));
 	}
 
-	public List<String> fetchVehicleIdsWithNoDriver(@Valid VehicleSearchCriteria criteria) {
-
-		List<Object> preparedStmtList = new ArrayList<>();
-		String query = queryBuilder.getVehicleIdsWithNoDriverQuery(criteria, preparedStmtList);
-		return jdbcTemplate.query(query, preparedStmtList.toArray(), new SingleColumnRowMapper<>(String.class));
-	}
 	public List<Vehicle> getVehiclePlainSearch(VehicleSearchCriteria criteria) {
 		if (criteria.getIds() == null || criteria.getIds().isEmpty())
 			throw new CustomException("PLAIN_SEARCH_ERROR", "Search only allowed by ids!");
@@ -292,19 +282,5 @@ public class VehicleRepository {
 		}
 
 		return vehicleDriverMap;
-	}
-
-
-
-	public String getActiveVehicleByDriver(String driverId) {
-		try {
-			return jdbcTemplate.queryForObject(
-					CHECK_DRIVER_ALREADY_ASSIGNED,
-					new Object[]{driverId},
-					String.class
-			);
-		} catch (Exception e) {
-			return null; // not assigned
-		}
 	}
 }

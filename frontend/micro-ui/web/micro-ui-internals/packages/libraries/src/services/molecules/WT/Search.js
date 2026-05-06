@@ -8,63 +8,99 @@ import React from "react";
  * Uses `WTService.search` to fetch data, then formats it for display in the UI. 
  */
 export const WTSearch = {
-  
+
   all: async (tenantId, filters = {}) => {
-    
+
     const response = await WTService.search({ tenantId, filters });
-    
+
     return response;
   },
 
-  
+
   application: async (tenantId, filters = {}) => {
     const response = await WTService.search({ tenantId, filters });
     return response.waterTankerBookingDetail[0];
   },
   BookingDetails: ({ waterTankerBookingDetail: response, t }) => {
 
-   let immediateRequired = (response?.extraCharge) ? "YES":"NO"
+    let immediateRequired = (response?.extraCharge) ? "YES" : "NO"
     return [
       {
-        title: "WT_BOOKING_NO", 
-        values:[{title: "WT_BOOKING_NO", value: response?.bookingNo || t("CS_NA")}]
+        title: "WT_BOOKING_NO",
+        asSectionHeader: true,
+        values: [
+          { title: "WT_BOOKING_NO", value: response?.bookingNo || t("CS_NA") },
+          { title: "WT_BOOKING_STATUS", value: response?.bookingStatus || t("CS_NA") },
+          { title: "WT_APPLICATION_DATE", value: response?.applicationDate ? Digit.DateUtils.ConvertEpochToDate(response?.applicationDate) : t("CS_NA") },
+          { title: "WT_PAYMENT_DATE", value: response?.paymentDate ? Digit.DateUtils.ConvertEpochToDate(response?.paymentDate) : t("CS_NA") }
+        ]
       },
       {
         title: "WT_APPLICANT_DETAILS",
 
         asSectionHeader: true,
         values: [
-          { title: "WT_APPLICANT_NAME", value: response?.applicantDetail?.name || t("CS_NA")},
-          { title: "WT_MOBILE_NUMBER", value: response?.applicantDetail?.mobileNumber || t("CS_NA")},
-          { title: "WT_ALT_MOBILE_NUMBER", value: response?.applicantDetail?.alternateNumber || t("CS_NA")}, 
-          { title: "WT_EMAIL_ID", value: response?.applicantDetail?.emailId || t("CS_NA")}
+          { title: "WT_APPLICANT_NAME", value: response?.applicantDetail?.name || t("CS_NA") },
+          { title: "WT_MOBILE_NUMBER", value: response?.applicantDetail?.mobileNumber || t("CS_NA") },
+          { title: "WT_ALT_MOBILE_NUMBER", value: response?.applicantDetail?.alternateNumber || t("CS_NA") },
+          { title: "WT_EMAIL_ID", value: response?.applicantDetail?.emailId || t("CS_NA") }
         ],
       },
       {
         title: "WT_ADDRESS_DETAILS",
         asSectionHeader: true,
         values: [
-          { title: "WT_PINCODE", value: response?.address?.pincode || t("CS_NA")},
-          { title: "WT_CITY", value: response?.address?.city  || t("CS_NA")},
-          { title: "WT_LOCALITY", value: response?.address?.locality  || t("CS_NA")},
-          { title: "WT_STREET_NAME", value: response?.address?.streetName  || t("CS_NA")},
-          { title: "WT_HOUSE_NO", value: response?.address?.houseNo  || t("CS_NA")},
-          { title: "WT_LANDMARK", value: response?.address?.landmark  || t("CS_NA")},
-          { title: "WT_ADDRESS_LINE1", value: response?.address?.addressLine1  || t("CS_NA")},
-          { title: "WT_ADDRESS_LINE2", value: response?.address?.addressLine2  || t("CS_NA")}
+          { title: "WT_PINCODE", value: response?.address?.pincode || t("CS_NA") },
+          { title: "WT_CITY", value: response?.address?.city || t("CS_NA") },
+          { title: "WT_LOCALITY", value: response?.address?.locality || t("CS_NA") },
+          { title: "WT_STREET_NAME", value: response?.address?.streetName || t("CS_NA") },
+          { title: "WT_HOUSE_NO", value: response?.address?.houseNo || t("CS_NA") },
+          { title: "WT_LANDMARK", value: response?.address?.landmark || t("CS_NA") },
+          { title: "WT_ADDRESS_LINE1", value: response?.address?.addressLine1 || t("CS_NA") },
+          { title: "WT_ADDRESS_LINE2", value: response?.address?.addressLine2 || t("CS_NA") },
+          { title: "WT_LATITUDE", value: response?.address?.latitude || response?.latitude || t("CS_NA") },
+          { title: "WT_LONGITUDE", value: response?.address?.longitude || response?.longitude || t("CS_NA") }
         ],
       },
       {
         title: "WT_REQUEST_DETAILS",
         asSectionHeader: true,
         values: [
-          { title: "WT_TANKER_TYPE", value: response?.tankerType || t("CS_NA")},
-          { title: "WT_TANKER_QUANTITY", value: response?.tankerQuantity || t("CS_NA")},
-          { title: "WT_WATER_QUANTITY", value: response?.waterQuantity || t("CS_NA")},
-          { title: "WT_DELIVERY_DATE", value: response?.deliveryDate || t("CS_NA")},
-          { title: "WT_DELIVERY_TIME", value: response?.deliveryTime?.replace(":", "h ") + "m" || t("CS_NA")},
-          { title: "WT_DESCRIPTION", value: response?.description || t("CS_NA")},
-          { title: "WT_IMMEDIATE", value:immediateRequired || t("CS_NA")},
+          { title: "WT_TANKER_TYPE", value: response?.tankerType || t("CS_NA") },
+          { title: "WT_WATER_TYPE", value: response?.waterType || t("CS_NA") },
+          { title: "WT_TANKER_QUANTITY", value: response?.tankerQuantity || t("CS_NA") },
+          { title: "WT_WATER_QUANTITY", value: response?.waterQuantity || t("CS_NA") },
+          { title: "WT_DELIVERY_DATE", value: response?.deliveryDate || t("CS_NA") },
+          { title: "WT_DELIVERY_TIME", value: response?.deliveryTime?.replace(":", "h ") + "m" || t("CS_NA") },
+          { title: "WT_DESCRIPTION", value: response?.description || t("CS_NA") },
+          { title: "WT_IMMEDIATE", value: immediateRequired || t("CS_NA") },
+        ],
+      },
+      {
+        title: "WT_VENDOR_DETAILS",
+        asSectionHeader: true,
+        values: [
+          { title: "WT_VENDOR_NAME", value: t("CS_NA") },
+          { title: "WT_MOBILE_NUMBER", value: t("CS_NA") },
+          { title: "WT_ALT_MOBILE_NUMBER", value: t("CS_NA") },
+          { title: "WT_EMAIL_ID", value: t("CS_NA") }
+        ],
+      },
+      {
+        title: "WT_DRIVER_DETAILS",
+        asSectionHeader: true,
+        values: [
+          { title: "WT_DRIVER_NAME", value: t("CS_NA") },
+          { title: "WT_MOBILE_NUMBER", value: t("CS_NA") },
+          { title: "WT_ALT_MOBILE_NUMBER", value: t("CS_NA") },
+          { title: "WT_EMAIL_ID", value: t("CS_NA") }
+        ],
+      },
+      {
+        title: "WT_VEHICLE_DETAILS",
+        asSectionHeader: true,
+        values: [
+          { title: "WT_FILLING_POINTS", value: t("CS_NA") }
         ],
       },
     ];

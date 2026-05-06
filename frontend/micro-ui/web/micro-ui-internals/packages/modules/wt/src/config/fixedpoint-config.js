@@ -20,7 +20,7 @@ export const fixedPointConfig = [
     body: [
       {
         route: "fp-applicant-details",
-        component: "ApplicantDetails",
+        component: "EmergencyFixedPointApplicantDetails",
         withoutLabel: true,
         key: "owner",
         type: "component",
@@ -49,7 +49,7 @@ export const fixedPointConfig = [
         key: "address",
         type: "component",
         isMandatory: true,
-        nextStep: "fp-request-details",
+        nextStep: "fp-dispatch-details",
         texts: {
           submitBarLabel: "COMMON_SAVE_NEXT",
           header: "ES_ADDRESS_DETAILS",
@@ -58,6 +58,30 @@ export const fixedPointConfig = [
           {
             currentStep: 2,
             actions: "ES_ADDRESS_DETAILS",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    head: "WT_DISPATCH_DETAILS",
+    body: [
+      {
+        route: "fp-dispatch-details",
+        component: "EmergencyFixedPointDispatchDetails",
+        withoutLabel: true,
+        key: "dispatchDetails",
+        type: "component",
+        isMandatory: true,
+        nextStep: "fp-request-details",
+        texts: {
+          submitBarLabel: "COMMON_SAVE_NEXT",
+          header: "WT_DISPATCH_DETAILS",
+        },
+        timeLine: [
+          {
+            currentStep: 3,
+            actions: "WT_DISPATCH_DETAILS",
           },
         ],
       },
@@ -76,15 +100,16 @@ export const fixedPointConfig = [
         nextStep: null,
         texts: {
           submitBarLabel: "COMMON_SAVE_NEXT",
-          header: "FP_REQUEST_DETAILS",
+          header: "WT_REQUEST_DETAILS",
         },
         timeLine: [
           {
-            currentStep: 3,
-            actions: "FP_REQUEST_DETAILS",
+            currentStep: 4,
+            actions: "ES_REQUEST_DETAILS",
           },
         ],
       },
     ],
   },
 ];
+

@@ -188,6 +188,16 @@ public class EnrichmentService {
 		waterTankerDetail.setWTfileStoreId(
 				waterTankerRequest.getWaterTankerBookingDetail().getWTfileStoreId()
 		);
+		waterTankerDetail.setDriverId(waterTankerRequest.getWaterTankerBookingDetail().getDriverId());
+
+		waterTankerDetail.setVendorId(waterTankerRequest.getWaterTankerBookingDetail().getVendorId());
+		waterTankerDetail.setVehicleId(waterTankerRequest.getWaterTankerBookingDetail().getVehicleId());
+		waterTankerDetail.setVehicleType(waterTankerRequest.getWaterTankerBookingDetail().getVehicleType());
+		waterTankerDetail.setVehicleCapacity(waterTankerRequest.getWaterTankerBookingDetail().getVehicleCapacity());
+		waterTankerDetail.setFillingPointId(waterTankerRequest.getWaterTankerBookingDetail().getFillingPointId());
+		waterTankerDetail.setDeliveryDate(waterTankerRequest.getWaterTankerBookingDetail().getDeliveryDate());
+		waterTankerDetail.setDeliveryTime(waterTankerRequest.getWaterTankerBookingDetail().getDeliveryTime());
+
 
 		waterTankerDetail.setBookingCreatedBy(bookingCreateBy);
 
@@ -220,6 +230,7 @@ public class EnrichmentService {
 		log.info("Enriched application request data :" + waterTankerDetail);
 
 	}
+
 	public void enrichUpdateFixedPointWaterTankerRequest(
 			WaterTankerFixedPointRequest waterTankerFixedPointRequest) {
 
@@ -228,6 +239,9 @@ public class EnrichmentService {
 
 		RequestInfo requestInfo = waterTankerFixedPointRequest.getRequestInfo();
 		WaterTankerFixedPointDetail detail = waterTankerFixedPointRequest.getWaterTankerFixedPointDetail();
+
+		String applicantUuid = RequestServiceUtil.getRandonUUID();
+		String bookingCreateBy = waterTankerFixedPointRequest.getRequestInfo().getUserInfo().getUserName();
 
 		// For update: preserve createdBy/createdTime, only refresh lastModified fields
 		AuditDetails existingAudit = detail.getAuditDetails();
@@ -625,7 +639,7 @@ public class EnrichmentService {
 		waterTankerFixedPointDetail.setMobileNumber(applicantDetail.getMobileNumber());
 
 		waterTankerFixedPointDetail.getApplicantDetail().setType("FIXED-POINT");
-		//waterTankerFixedPointDetail.getApplicantDetail().setFixedPointId(referenceList.get(0));
+		waterTankerFixedPointDetail.getApplicantDetail().setFixedPointId(referenceList.get(0));
 		waterTankerFixedPointDetail.getApplicantDetail().setApplicantId(RequestServiceUtil.getRandonUUID());
 		waterTankerFixedPointDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
 		waterTankerFixedPointDetail.getApplicantDetail().setAuditDetails(auditDetails);

@@ -14,9 +14,9 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
   const [tankerQuantity, settankerQuantity] = useState(formData?.requestDetails?.tankerQuantity || { i18nKey: "1", code: "1", value: "1" });
   const [waterQuantity, setwaterQuantity] = useState(formData?.requestDetails?.waterQuantity || "");
   const [waterType, setWaterType] = useState(formData?.requestDetails?.waterType || "");
-  const [deliveryDate, setdeliveryDate] = useState(formData?.requestDetails?.deliveryDate || "");
+  const [deliveryDate, setdeliveryDate] = useState(formData?.requestDetails?.deliveryDate || new Date().toISOString().split("T")[0]);
   const [description, setdescription] = useState(formData?.requestDetails?.description || "");
-  const [deliveryTime, setdeliveryTime] = useState(formData?.requestDetails?.deliveryTime || "");
+  const [deliveryTime, setdeliveryTime] = useState(formData?.requestDetails?.deliveryTime || new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
   const [extraCharge, setextraCharge] = useState(formData?.requestDetails?.extraCharge || false);
   const [uploadedFile, setUploadedFile] = useState(formData?.requestDetails?.fileStoreId || null);
   const [file, setFile] = useState(null);
@@ -55,7 +55,6 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
       return formattedData;
     },
   });
-
   let Vehicle = [];
 
   let tankerDetails = [];
@@ -94,16 +93,15 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
       tankerTypeDetails.push({ i18nKey: `${data.i18nKey}`, code: `${data.code}`, value: `${data.value}` });
     });
 
-  // Iterate over the Vehicle array, check if tankerType.code matches vehicleType, and return data
-  const VehicleDetails = Vehicle.map((data) => {
-    if (tankerType.code === data.vehicleType) {
-      return {
-        i18nKey: data.capacityName,
-        code: data.code,
-        value: data.capacityName,
-      };
-    }
-  }).filter((item) => item !== undefined); // Remove undefined values from the array
+  // Filter Vehicle array based on selected tankerType and return mapped data
+  const VehicleDetails = Vehicle
+    .filter((data) => tankerType?.code === data.vehicleType)
+    .map((data) => ({
+      i18nKey: `${data.capacityName}`,
+      code: `${data.code}`,
+      value: `${data.value}`,
+      capacity: `${data.capacity}`,
+    }));
 
   // Custom time input component
   const TimeInput = () => {
