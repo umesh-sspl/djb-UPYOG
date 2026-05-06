@@ -25,7 +25,7 @@ export const EkycService = {
     application_review: (data, params) =>
         Request({
             url: Urls.ekyc.application_review,
-            data: { ...data, fetchType: "REVIEW" },
+            data: { ...data },
             useCache: false,
             method: "POST",
             params: { tenantId: params },
