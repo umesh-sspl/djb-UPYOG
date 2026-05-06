@@ -767,6 +767,10 @@ input[type="number"] {
   min-width: 0;
 }
 
+.min-width-full {
+  min-width: 100%;
+}
+
 .employee-app-wrapper {
   min-height: calc(100vh - 8em);
   height: calc(100vh - 102px);

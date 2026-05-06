@@ -2,7 +2,7 @@ import { AppContainer, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon } from "@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation } from "react-router-dom";
-import Dashboard from "./Dashboard";
+import Dashboard from "../../components/Dashboard";
 import Inbox from "./Inbox";
 import Mapping from "./Mapping";
 import Create from "./Create";

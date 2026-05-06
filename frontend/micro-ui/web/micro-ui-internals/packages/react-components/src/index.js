@@ -67,6 +67,9 @@ import StandaloneSearchBar from "./atoms/StandaloneSearchBar";
 import ULBHomeCard from "./atoms/ULBHomeCard";
 import { AdvertisementModuleCard } from "./atoms/AdvertisementModuleCard";
 import {
+  LeftArrowIcon,
+  RightArrowIcon,
+  PresentationIcon,
   AnnouncementIcon,
   ArrowDown,
   ArrowLeft,
@@ -257,6 +260,7 @@ import CollapsibleCardPage from "./hoc/CollapsibleCardPage";
 import VerticalTimeline from "./atoms/VerticalTimeline";
 import SideBar from "./atoms/Sidebar";
 import LayoutWrapper from "./hoc/LayoutWrapper";
+import ModuleLinksView from "./atoms/ModuleLinksView";
 export {
   Phone,
   Body,
@@ -270,6 +274,7 @@ export {
   ActionBar,
   Menu,
   LinkLabel,
+  ModuleLinksView,
   BackButton,
   BreakLine,
   Card,
@@ -522,4 +527,7 @@ export {
   IconClose,
   ChevronDown,
   LayoutGrid,
+  LeftArrowIcon,
+  RightArrowIcon,
+  PresentationIcon,
 };

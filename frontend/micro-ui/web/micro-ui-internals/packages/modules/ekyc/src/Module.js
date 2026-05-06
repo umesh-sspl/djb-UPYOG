@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import { CitizenHomeCard, DocumentIcon } from "@djb25/digit-ui-react-components";
 import EKYCCard from "./components/EKYCCard";
-import Inbox from "./pages/employee/Dashboard";
+import Inbox from "./components/Dashboard";
 import DesktopInbox from "./components/DesktopInbox";
 import MobileInbox from "./components/MobileInbox";
 import Filter from "./components/Filter";
@@ -13,16 +13,11 @@ import AadhaarVerification from "./pages/employee/AadhaarVerification";
 import AddressDetails from "./pages/employee/AddressDetails";
 import PropertyInfo from "./pages/employee/PropertyInfo";
 import MeterDetails from "./pages/employee/MeterDetails";
-export const EkycModule = ({ stateCode, userType, tenants }) => {
+export const EkycModule = ({ userType, tenants }) => {
   const { path, url } = useRouteMatch();
-  const moduleCode = "EKYC";
-  const language = Digit.StoreData.getCurrentLanguage();
-  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
+
   Digit.SessionStorage.set("EKYC_TENANTS", tenants);
 
-  if (isLoading) {
-    return null;
-  }
   if (userType === "employee") {
     return <EmployeeApp path={path} url={url} userType={userType} tenants={tenants} />;
   } else return <CitizenApp />;
