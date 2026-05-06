@@ -63,13 +63,9 @@ public class WaterTankerServiceImpl implements WaterTankerService {
 				+ " for the request : " + waterTankerRequest.getWaterTankerBookingDetail());
 
 		enrichmentService.enrichCreateWaterTankerRequest(waterTankerRequest);
-
 		ApplicantDetail existingApplicant = requestServiceRepository.getApplicantByMobileNumber(waterTankerRequest.getWaterTankerBookingDetail().getMobileNumber());
 
-//		if (existingApplicant == null) {
-			workflowService.updateWorkflowStatus(null, waterTankerRequest);
-//		}
-
+		WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
 		try {
 			RequestInfo requestInfo = waterTankerRequest.getRequestInfo();
 			ApplicantDetail applicantDetail = waterTankerRequest.getWaterTankerBookingDetail().getApplicantDetail();
@@ -89,7 +85,11 @@ public class WaterTankerServiceImpl implements WaterTankerService {
 				waterTankerRequest.getWaterTankerBookingDetail()
 						.getAddress()
 						.setApplicantId(existingApplicant.getApplicantId());
+				waterTankerDetail.getApplicantDetail().setApplicantId(existingApplicant.getApplicantId());
+				waterTankerDetail.setApplicantId(existingApplicant.getApplicantId());
+				waterTankerDetail.getAddress().setApplicantId(existingApplicant.getApplicantId());
 
+				log.info("Existing applicant found: {}", existingApplicant.getApplicantId());
 			} else {
 
 				waterTankerRequest.getWaterTankerBookingDetail()
@@ -111,13 +111,23 @@ public class WaterTankerServiceImpl implements WaterTankerService {
 			throw new RuntimeException("Failed to fetch/create user: " + e.getMessage(), e);
 		}
 
+//	if (existingApplicant == null) {
+		workflowService.updateWorkflowStatus(null, waterTankerRequest);
+//		}
 		requestServiceRepository.saveWaterTankerBooking(waterTankerRequest);
 
-		WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
+		if (waterTankerDetail.getApplicantDetail() != null
+				&& waterTankerDetail.getApplicantDetail().getApplicantId() != null
+				&& waterTankerDetail.getBookingId() != null) {
+			requestServiceRepository.updateApplicantBookingId(
+					waterTankerDetail.getApplicantDetail().getApplicantId(),
+					waterTankerDetail.getBookingId());
+		} else {
+			log.warn("Skipping updateApplicantBookingId — applicantDetail or bookingId is null");
+		}
+
 		return waterTankerDetail;
 	}
-
-
 
 
 	@Override
