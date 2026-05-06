@@ -98,6 +98,17 @@ public class VehicleService {
 			}
 		}
 
+		if (Boolean.TRUE.equals(criteria.getVehicleWithNoDriver())) {
+
+			List<String> vehicleIds = repository.fetchVehicleIdsWithNoDriver(criteria);
+
+			if (CollectionUtils.isEmpty(criteria.getIds())) {
+				criteria.setIds(vehicleIds);
+			} else {
+				criteria.getIds().addAll(vehicleIds);
+			}
+		}
+
 		if (criteria.getMobileNumber() != null) {
 			usersRespnse = userService.getOwner(criteria, requestInfo);
 			if (usersRespnse != null && usersRespnse.getUser() != null && !usersRespnse.getUser().isEmpty()) {
