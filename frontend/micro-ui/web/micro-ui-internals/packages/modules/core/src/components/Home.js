@@ -15,10 +15,12 @@ import {
   CHBIcon,
   FinanceChartIcon,
   Toast,
+  LeftArrowIcon,
+  RightArrowIcon,
+  PresentationIcon,
 } from "@djb25/digit-ui-react-components";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import EmployeeDashboard from "./EmployeeDashboard";
 import RecentActivity from "./RecentActivity";
 import NewsAndEvents from "./NewsAndEvents";
@@ -193,43 +195,6 @@ const CitizenHome = ({ modules, getCitizenMenu, fetchedCitizen, isLoading }) => 
     </React.Fragment>
   );
 };
-
-export const LeftArrowIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 18l-6-6 6-6" />
-  </svg>
-);
-
-export const RightArrowIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18l6-6-6-6" />
-  </svg>
-);
-
-const PresentationIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
-    <rect x="8" y="38" width="14" height="32" rx="1" fill="#ffffff" opacity="0.4" />
-    <rect x="5" y="30" width="8" height="8" rx="1" fill="#ffffff" opacity="0.4" />
-    <rect x="25" y="26" width="20" height="44" rx="1" fill="#ffffff" opacity="0.6" />
-    <circle cx="35" cy="12" r="2.5" fill="#ffffff" opacity="0.5" />
-
-    <rect x="48" y="34" width="14" height="36" rx="1" fill="#ffffff" opacity="0.45" />
-    <rect x="65" y="28" width="18" height="42" rx="1" fill="#ffffff" opacity="0.55" />
-    <rect x="86" y="40" width="12" height="30" rx="1" fill="#ffffff" opacity="0.4" />
-
-    <line x1="4" y1="70" x2="96" y2="70" stroke="#ffffff" strokeWidth="1" opacity="0.2" />
-
-    <path
-      d="M4 78 Q16 70 28 78 Q40 86 52 78 Q64 70 76 78 Q88 86 96 78"
-      fill="none"
-      stroke="#ffffff"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      opacity="0.9"
-    />
-    <path d="M4 86 Q18 80 32 86 Q46 92 60 86 Q74 80 88 86" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
-  </svg>
-);
 
 export const engagementModuleCodes = [
   "ENGAGEMENT",
