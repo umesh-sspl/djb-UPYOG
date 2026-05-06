@@ -45,5 +45,6 @@ public interface RequestServiceRepository {
 
 	public WaterTankerBookingDetail getBookingByMobileNumber(String mobileNumber);
 
+	void updateApplicantBookingId(String applicantId, String bookingId);
 
 }

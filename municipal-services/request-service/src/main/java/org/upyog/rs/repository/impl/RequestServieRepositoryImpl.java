@@ -340,4 +340,15 @@ public class RequestServieRepositoryImpl implements RequestServiceRepository {
 			return null;
 		}
 	}
+
+	private static final String UPDATE_BOOKING_ID_QUERY =
+			"UPDATE upyog_rs_water_tanker_applicant_details " +
+					"SET booking_id = ? " +
+					"WHERE applicant_id = ?";
+
+	@Override
+	public void updateApplicantBookingId(String applicantId, String bookingId) {
+		log.info("Updating booking_id={} for applicant_id={}", bookingId, applicantId);
+		jdbcTemplate.update(UPDATE_BOOKING_ID_QUERY, bookingId, applicantId);
+	}
 }
