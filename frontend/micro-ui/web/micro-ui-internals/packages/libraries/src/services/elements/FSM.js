@@ -165,6 +165,73 @@ export const FSMService = {
       params: { tenantId },
       auth: true,
     }),
+  supervisorSearch: (tenantId, filters) =>
+    Request({
+      url: Urls.fsm.supervisorSearch,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId, ...filters },
+      auth: true,
+    }),
+  createSupervisor: (details, tenantId) =>
+    Request({
+      url: Urls.fsm.createSupervisor,
+      data: details,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId },
+      auth: true,
+    }),
+  updateSupervisor: (details, tenantId) =>
+    Request({
+      url: Urls.fsm.updateSupervisor,
+      data: details,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId },
+      auth: true,
+    }),
+  surveyorSearch: (tenantId, filters) =>
+    Request({
+      url: Urls.fsm.surveyorSearch,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId, ...filters },
+      auth: true,
+    }),
+  createSurveyor: (details, tenantId) =>
+    Request({
+      url: Urls.fsm.createSurveyor,
+      data: details,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId },
+      auth: true,
+    }),
+  updateSurveyor: (details, tenantId) =>
+    Request({
+      url: Urls.fsm.updateSurveyor,
+      data: details,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId },
+      auth: true,
+    }),
+  workerSearch: (tenantId, filters) =>
+    Request({
+      url: Urls.fsm.workerSearch,
+      useCache: true,
+      userService: true,
+      method: "POST",
+      params: { tenantId, ...filters },
+      auth: true,
+    }),
   advanceBalanceCalculate: (tenantId, details) =>
     Request({
       url: Urls.fsm.advanceBalanceCalculate,

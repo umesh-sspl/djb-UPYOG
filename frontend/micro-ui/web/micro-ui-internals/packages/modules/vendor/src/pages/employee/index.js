@@ -79,13 +79,13 @@ const EmployeeApp = ({ path, url, userType }) => {
       crumbs.push({ label: t("VENDOR_DRIVER_DETAILS") });
     } else if (pathname.includes("/registry/additionaldetails")) {
       crumbs.push({ label: t("VENDOR_ADDITIONAL_DETAILS") });
-    }else if (pathname.includes("/registry/new-supervisor")) {
+    } else if (pathname.includes("/registry/new-supervisor")) {
       crumbs.push({ label: t("ES_FSM_REGISTRY_TITLE_NEW_SUPERVISOR") });
-    }else if (pathname.includes("/registry/supervisor-details") || pathname.includes("/registry/modify-supervisor/")) {
+    } else if (pathname.includes("/registry/supervisor-details") || pathname.includes("/registry/modify-supervisor/")) {
       crumbs.push({ label: t("VENDOR_SUPERVISOR_DETAILS") });
-    }else if (pathname.includes("/registry/new-surveyor")) {
+    } else if (pathname.includes("/registry/new-surveyor")) {
       crumbs.push({ label: t("ES_FSM_REGISTRY_TITLE_NEW_SURVEYOR") });
-    }else if (pathname.includes("/registry/surveyor-details") || pathname.includes("/registry/modify-surveyor/")) {
+    } else if (pathname.includes("/registry/surveyor-details") || pathname.includes("/registry/modify-surveyor/")) {
       crumbs.push({ label: t("VENDOR_SURVEYOR_DETAILS") });
     }
 
