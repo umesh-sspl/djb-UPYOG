@@ -60,19 +60,33 @@ const TopBar = ({
   }, []);
 
   React.useEffect(() => {
-    (async () => {
-      const tenant = Digit.ULBService.getCurrentTenantId();
-      const uuid = userDetails?.info?.uuid;
-      if (uuid) {
-        const usersResponse = await Digit.UserService.userSearch(tenant, { uuid: [uuid] }, {});
-        if (usersResponse && usersResponse.user && usersResponse.user.length) {
-          const userDetails = usersResponse.user[0];
-          const thumbs = userDetails?.photo?.split(",");
-          setProfilePic(thumbs?.at(0));
+    let isMounted = true;
+
+    const fetchUser = async () => {
+      try {
+        const tenant = Digit.ULBService.getCurrentTenantId();
+        const uuid = userDetails?.info?.uuid;
+
+        if (uuid) {
+          const usersResponse = await Digit.UserService.userSearch(tenant, { uuid: [uuid] }, {});
+
+          if (isMounted && usersResponse?.user?.length) {
+            const user = usersResponse.user[0];
+            const thumbs = user?.photo?.split(",");
+            setProfilePic(thumbs?.at(0));
+          }
         }
+      } catch (err) {
+        console.error(err);
       }
-    })();
-  }, [profilePic !== null, userDetails?.info?.uuid]);
+    };
+
+    fetchUser();
+
+    return () => {
+      isMounted = false; // 🚀 prevents state update after unmount
+    };
+  }, [userDetails?.info?.uuid]);
 
   // const CitizenHomePageTenantId = Digit.ULBService.getCitizenCurrentTenant(true);
 
@@ -255,13 +269,9 @@ const TopBar = ({
 
 const EmployeeDesignationWrapper = ({ userDetails, ...props }) => {
   const { t, compact } = props;
-  const { isLoading, data } = Digit.Hooks.hrms.useHRMSSearch(
-    { codes: userDetails?.info?.userName },
-    Digit.ULBService.getCurrentTenantId(),
-    null,
-    null,
-    { enabled: !!userDetails?.info?.userName && userDetails?.info?.type === "EMPLOYEE" }
-  );
+  const { data } = Digit.Hooks.hrms.useHRMSSearch({ codes: userDetails?.info?.userName }, Digit.ULBService.getCurrentTenantId(), null, null, {
+    enabled: !!userDetails?.info?.userName && userDetails?.info?.type === "EMPLOYEE",
+  });
 
   const designation = data?.Employees?.[0]?.assignments?.find((a) => a.isCurrentAssignment)?.designation;
   const designationName = designation ? t("COMMON_MASTERS_DESIGNATION_" + designation) : "";

@@ -1,4 +1,11 @@
-import { BackButton, CitizenHomeCard, CitizenInfoLabel, PrivateRoute, AdvertisementModuleCard, CollectionIcon } from "@djb25/digit-ui-react-components";
+import {
+  BackButton,
+  CitizenHomeCard,
+  CitizenInfoLabel,
+  PrivateRoute,
+  AdvertisementModuleCard,
+  CollectionIcon,
+} from "@djb25/digit-ui-react-components";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Route, Switch, useRouteMatch, useHistory } from "react-router-dom";
@@ -24,7 +31,7 @@ import VSearchCertificate from "./CMSearchCertificate";
 import AssetsQRCode from "./AssetsQRCode";
 import ChallanQRCode from "./ChallanQRCode";
 // import EDCRScrutiny from "./Home/EdcrScrutiny";
-import { newConfig as newConfigEDCR } from "../../config/edcrConfig";
+// import { newConfig as newConfigEDCR } from "../../config/edcrConfig";
 import CreateAnonymousEDCR from "./Home/EDCR";
 import EDCRAcknowledgement from "./Home/EDCR/EDCRAcknowledgement";
 import { APPLICATION_PATH } from "./Home/EDCR/utils";
@@ -111,7 +118,6 @@ const Home = ({
   const { t } = useTranslation();
   const { path } = useRouteMatch();
   sourceUrl = "https://s3.ap-south-1.amazonaws.com/egov-qa-assets";
-  const pdfUrl = "https://pg-egov-assets.s3.ap-south-1.amazonaws.com/Upyog+Code+and+Copyright+License_v1.pdf";
   const history = useHistory();
   useEffect(() => {
     const userType = userDetails?.info?.type?.toUpperCase();
@@ -119,14 +125,12 @@ const Home = ({
       history.push("/digit-ui/employee");
     }
   }, [userDetails, history]);
-  const handleClickOnWhatsApp = (obj) => {
-    window.open(obj);
-  };
+
   // Fetches the state ID using the ULBService and retrieves the form configuration for EDCR from MDMS.
   // If EdcrConfig is available in the fetched data, it is used; otherwise, it falls back to newConfigEDCR.
-  const stateId = Digit.ULBService.getStateId();
-  let { data: newConfig } = Digit.Hooks.obps.SearchMdmsTypes.getFormConfig(stateId, []);
-  newConfig = newConfig?.EdcrConfig ? newConfig?.EdcrConfig : newConfigEDCR;
+  // const stateId = Digit.ULBService.getStateId();
+  // let { data: newConfig } = Digit.Hooks.obps.SearchMdmsTypes.getFormConfig(stateId, []);
+  // newConfig = newConfig?.EdcrConfig ? newConfig?.EdcrConfig : newConfigEDCR;
 
   const hideSidebar = sidebarHiddenFor.some((e) => window.location.href.includes(e));
 
@@ -186,13 +190,22 @@ const Home = ({
       {
         link: `${matchPath}/download-bill-pdf`,
         i18nKey: t("ACTION_TEST_DOWNLOAD_BILL_PDF") || "Download Bill PDF",
-      }
+      },
     ];
-    return <CitizenHomeCard header={t("ACTION_TEST_BILLGENIE") || "Bills Accounting"} links={links} Icon={() => <CollectionIcon className="fill-path-primary-main" />} />;
+    return (
+      <CitizenHomeCard
+        header={t("ACTION_TEST_BILLGENIE") || "Bills Accounting"}
+        links={links}
+        Icon={() => <CollectionIcon className="fill-path-primary-main" />}
+      />
+    );
   };
 
   const ModuleLevelLinkHomePages = allModules.map(({ code, bannerImage }, index) => {
-    let Links = Digit.ComponentRegistryService.getComponent(`${code}Links`) || Digit.ComponentRegistryService.getComponent(`${code.charAt(0).toUpperCase() + code.slice(1).toLowerCase()}Links`) || (code.toUpperCase() === "BILLS" ? BillsLinks : (() => <React.Fragment />));
+    let Links =
+      Digit.ComponentRegistryService.getComponent(`${code}Links`) ||
+      Digit.ComponentRegistryService.getComponent(`${code.charAt(0).toUpperCase() + code.slice(1).toLowerCase()}Links`) ||
+      (code.toUpperCase() === "BILLS" ? BillsLinks : () => <React.Fragment />);
     let mdmsDataObj = isLinkDataFetched ? processLinkData(linkData, code, t) : undefined;
 
     //if (mdmsDataObj?.header === "ACTION_TEST_WS") {
@@ -233,12 +246,12 @@ const Home = ({
                   Info={
                     code === "OBPS"
                       ? () => (
-                        <CitizenInfoLabel
-                          style={{ margin: "0px", padding: "10px" }}
-                          info={t("CS_FILE_APPLICATION_INFO_LABEL")}
-                          text={t(`BPA_CITIZEN_HOME_STAKEHOLDER_INCLUDES_INFO_LABEL`)}
-                        />
-                      )
+                          <CitizenInfoLabel
+                            style={{ margin: "0px", padding: "10px" }}
+                            info={t("CS_FILE_APPLICATION_INFO_LABEL")}
+                            text={t(`BPA_CITIZEN_HOME_STAKEHOLDER_INCLUDES_INFO_LABEL`)}
+                          />
+                        )
                       : null
                   }
                   isInfo={code === "OBPS" ? true : false}
@@ -412,6 +425,7 @@ const Home = ({
       </div>
       {showDialog && <LogoutDialog onSelect={handleOnSubmit} onCancel={handleOnCancel} onDismiss={handleOnCancel} />}
     </div>
-  );};
+  );
+};
 
 export default Home;

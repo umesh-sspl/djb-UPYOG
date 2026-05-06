@@ -48,7 +48,7 @@ export const processLinkData = (newData, code, t) => {
         loginLink: "CS_LINK_LOGIN_DSO",
       },
     ];
-    roleBasedLoginRoutes.map(({ role, from, loginLink, dashoardLink }) => {
+    roleBasedLoginRoutes.forEach(({ role, from, loginLink, dashoardLink }) => {
       if (Digit.UserService.hasAccess(role))
         newObj?.links?.push({
           link: from,
@@ -143,9 +143,6 @@ const CitizenHome = ({ modules, getCitizenMenu, fetchedCitizen, isLoading }) => 
   const paymentModule = modules.find(({ code }) => code === "Payment");
   const otherModules = modules.filter(({ code }) => code !== "Payment");
   const moduleArray = paymentModule ? [paymentModule, ...otherModules] : otherModules;
-
-  const engagementModules = moduleArray.filter((mod) => engagementModuleCodes.includes(mod?.code));
-  const mainModules = moduleArray.filter((mod) => !engagementModuleCodes.includes(mod?.code));
 
   const renderCitizenCard = (mod, index) => {
     const { code } = mod;
@@ -351,12 +348,24 @@ const EmployeeHome = ({ modules }) => {
   };
 
   React.useEffect(() => {
+    let isMounted = true;
+
     if (showToast) {
       const timer = setTimeout(() => {
-        clearToast();
+        if (isMounted) {
+          clearToast();
+        }
       }, 3000);
-      return () => clearTimeout(timer);
+
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [showToast]);
 
   if (window.Digit.SessionStorage.get("PT_CREATE_EMP_TRADE_NEW_FORM")) window.Digit.SessionStorage.set("PT_CREATE_EMP_TRADE_NEW_FORM", {});

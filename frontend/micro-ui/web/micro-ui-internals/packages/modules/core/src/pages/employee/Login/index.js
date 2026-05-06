@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 // import { AppContainer } from "@djb25/digit-ui-react-components";
 import { Route, Switch, useRouteMatch } from "react-router-dom";
@@ -9,17 +9,15 @@ const EmployeeLogin = () => {
   const { t } = useTranslation();
   const { path } = useRouteMatch();
 
-  const loginParams = useMemo(() =>
-    loginConfig.map(
-      (step) => {
-        const texts = {};
-        for (const key in step.texts) {
-          texts[key] = t(step.texts[key]);
-        }
-        return { ...step, texts };
-      },
-      [loginConfig]
-    )
+  const loginParams = loginConfig.map(
+    (step) => {
+      const texts = {};
+      for (const key in step.texts) {
+        texts[key] = t(step.texts[key]);
+      }
+      return { ...step, texts };
+    },
+    [loginConfig]
   );
 
   return (

@@ -1,8 +1,14 @@
-export const commonReducer = (defaultData) => (state = defaultData, action) => {
-  switch (action.type) {
+export const commonReducer = (defaultData = {}) => (state, action) => {
+  const currentState = state ?? defaultData;
+
+  switch (action?.type) {
     case "LANGUAGE_SELECT":
-      return { ...state, selectedLanguage: action.payload };
+      return {
+        ...currentState,
+        selectedLanguage: action.payload,
+      };
+
     default:
-      return state;
+      return currentState;
   }
 };
