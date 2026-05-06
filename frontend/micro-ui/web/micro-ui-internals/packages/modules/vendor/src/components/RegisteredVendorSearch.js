@@ -83,6 +83,10 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
         return history.push("/digit-ui/employee/vendor/registry/new-vehicle");
       case "DRIVER":
         return history.push("/digit-ui/employee/vendor/registry/new-driver");
+      case "SUPERVISOR":
+      return history.push("/digit-ui/employee/vendor/registry/new-supervisor");
+      case "SURVEYOR":
+      return history.push("/digit-ui/employee/vendor/registry/new-surveyor");
       default:
         break;
     }
@@ -198,6 +202,24 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
               >
                 {t("ES_FSM_REGISTRY_INBOX_TAB_DRIVER")}
               </button>
+              <button
+                className={selectedTab === "SUPERVISOR" ? "search-tab-head-selected" : "search-tab-head"}
+                onClick={() => {
+                  clearSearch({});
+                  onTabChange("SUPERVISOR");
+                }}
+              >
+                {t("ES_FSM_REGISTRY_INBOX_TAB_SUPERVISOR")}
+              </button>
+              <button
+                className={selectedTab === "SURVEYOR" ? "search-tab-head-selected" : "search-tab-head"}
+                onClick={() => {
+                  clearSearch({});
+                  onTabChange("SURVEYOR");
+                }}
+              >
+                {t("ES_FSM_REGISTRY_INBOX_TAB_SURVEYOR")}
+              </button>
             </div>
             <div className="action-bar-wrap-registry">
               <div className="search-add" onClick={onAddClick}>
@@ -207,7 +229,7 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
                 </div>
               </div>
               {showAddMenu && (
-                <Menu localeKeyPrefix={"ES_FSM_ACTION_CREATE"} options={["VENDOR", "DRIVER", "VEHICLE"]} t={t} onSelect={onActionSelect} />
+                <Menu localeKeyPrefix={"ES_FSM_ACTION_CREATE"} options={["VENDOR", "DRIVER", "VEHICLE", "SUPERVISOR", "SURVEYOR"]} t={t} onSelect={onActionSelect} />
               )}
             </div>
           </div>
@@ -233,3 +255,4 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
 };
 
 export default SearchApplication;
+

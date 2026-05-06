@@ -312,6 +312,7 @@ input[readonly] {
   @apply border-grey-dark text-grey-dark !important;
   pointer-events: none !important;
 }
+
 .disabled-label {
   @apply border-grey-dark text-grey-dark !important;
   pointer-events: none !important;
@@ -489,6 +490,7 @@ input[type="number"] {
 .phone-input-wrapper {
   display: flex;
 }
+
 .phone-input-wrapper:hover {
   .employee-card-input--front {
     border: 2px solid #a1a1aa;
@@ -499,6 +501,7 @@ input[type="number"] {
   input {
     border: 2px solid #a1a1aa;
     color: #a1a1aa;
+
     &:focus-within {
       outline: none;
       border-color: #007bff;
@@ -515,6 +518,7 @@ input[type="number"] {
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     z-index: 1;
   }
+
   input {
     outline: none;
     border-color: #007bff;
@@ -698,8 +702,7 @@ input[type="number"] {
   }
 }
 
-.applications-list-container {
-}
+.applications-list-container {}
 
 .complaint-summary {
   @media (min-width: 780px) {
@@ -729,6 +732,7 @@ input[type="number"] {
 }
 
 @media (min-width: 780px) {
+
   .citizen-obps-wrapper,
   .pgr-citizen-wrapper,
   .pt-citizen,
@@ -755,6 +759,7 @@ input[type="number"] {
 }
 
 @media only screen and (max-width: 768px) {
+
   /* For mobile phones: */
   .error-boundary {
     height: 75vh;

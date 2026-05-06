@@ -49,15 +49,19 @@ const SearchVendor = () => {
           },
           config: { enabled: false },
         })
-      : Digit.Hooks.fsm.useVendorSearch({
-          tenantId,
-          filters: {
-            ...paginationParms,
-            name: searchParams?.name,
-            status: "ACTIVE,DISABLED",
-          },
-          config: { enabled: false },
-        });
+        : tab === "SUPERVISOR"
+          ? Digit.Hooks.fsm.useSupervisorDetails(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
+          : tab === "SURVEYOR"
+            ? Digit.Hooks.fsm.useSurveyorDetails(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
+            : Digit.Hooks.fsm.useVendorSearch({
+              tenantId,
+              filters: {
+                ...paginationParms,
+                name: searchParams?.name,
+                status: "ACTIVE,DISABLED",
+              },
+              config: { enabled: false },
+            });
 
   Digit.Hooks.fsm.useVendorSearch({
     tenantId,
@@ -99,46 +103,92 @@ const SearchVendor = () => {
   }, [searchParams, sortParams, pageOffset, pageSize]);
 
   useEffect(() => {
-    if (dsoData?.vehicle && tab === "VEHICLE") {
-      let vehicleIds = "";
-      dsoData.vehicle.map((data) => (vehicleIds += `${data.id},`));
-      setVehicleIds(vehicleIds);
-      setTableData(dsoData.vehicle);
+      if (dsoData?.vehicle && tab === "VEHICLE") {
+        let vehicleIds = "";
+        dsoData.vehicle.map((data) => (vehicleIds += `${data.id},`));
+        setVehicleIds(vehicleIds);
+        setTableData(dsoData.vehicle);
+      }
+      if (dsoData?.driver && tab === "DRIVER") {
+        let driverIds = "";
+        dsoData.driver.map((data) => (driverIds += `${data.id},`));
+        setDriverIds(driverIds);
+        setTableData(dsoData?.driver);
+      } 
+      if (dsoData?.vendor && tab === "VENDOR") {
+        const tableData = dsoData.vendor.map((dso) => ({
+          mobileNumber: dso.owner?.mobileNumber,
+          name: dso.name,
+          id: dso.id,
+          auditDetails: dso.auditDetails,
+          drivers: dso.drivers,
+          activeDrivers: dso.drivers?.filter((driver) => driver.status === "ACTIVE"),
+          allVehicles: dso.vehicles,
+          dsoDetails: dso,
+          vendorAdditionalDetails: dso.vendorAdditionalDetails,
+          fillingPoint: dso.fillingPoint,
+          vehicles: dso.vehicles
+            ?.filter((vehicle) => vehicle.status === "ACTIVE")
+            ?.map((vehicle) => ({
+              id: vehicle.id,
+              registrationNumber: vehicle?.registrationNumber,
+              type: vehicle.type,
+              i18nKey: `FSM_VEHICLE_TYPE_${vehicle.type}`,
+              capacity: vehicle.tankCapacity,
+              suctionType: vehicle.suctionType,
+              model: vehicle.model,
+            })),
+        }));
+        setTableData(tableData);
+      } 
+    if (tab === "SUPERVISOR") {
+      const staticSupervisors = [
+        {
+          id: "SUP1",
+          name: "Amit Kumar",
+          employeeId: "EMP001",
+          status: "ACTIVE",
+          owner: { mobileNumber: "9876543210", userName: "9876543210" },
+          auditDetails: { createdTime: new Date().getTime() },
+          vendorData: { name: "Clean City Agency" }
+        },
+        {
+          id: "SUP2",
+          name: "Rajesh Singh",
+          employeeId: "EMP002",
+          status: "ACTIVE",
+          owner: { mobileNumber: "9876543211", userName: "9876543211" },
+          auditDetails: { createdTime: new Date().getTime() },
+          vendorData: { name: "Green Environment" }
+        }
+      ];
+      setTableData(dsoData?.supervisor || staticSupervisors);
     }
-    if (dsoData?.driver && tab === "DRIVER") {
-      let driverIds = "";
-      dsoData.driver.map((data) => (driverIds += `${data.id},`));
-      setDriverIds(driverIds);
-      setTableData(dsoData?.driver);
-    }
-    if (dsoData?.vendor && tab === "VENDOR") {
-      const tableData = dsoData.vendor.map((dso) => ({
-        mobileNumber: dso.owner?.mobileNumber,
-        name: dso.name,
-        id: dso.id,
-        auditDetails: dso.auditDetails,
-        drivers: dso.drivers,
-        activeDrivers: dso.drivers?.filter((driver) => driver.status === "ACTIVE"),
-        allVehicles: dso.vehicles,
-        dsoDetails: dso,
-        vendorAdditionalDetails: dso.vendorAdditionalDetails,
-        fillingPoint: dso.fillingPoint,
-        vehicles: dso.vehicles
-          ?.filter((vehicle) => vehicle.status === "ACTIVE")
-          ?.map((vehicle) => ({
-            id: vehicle.id,
-            registrationNumber: vehicle?.registrationNumber,
-            type: vehicle.type,
-            i18nKey: `FSM_VEHICLE_TYPE_${vehicle.type}`,
-            capacity: vehicle.tankCapacity,
-            suctionType: vehicle.suctionType,
-            model: vehicle.model,
-          })),
-      }));
-      setTableData(tableData);
+    if (tab === "SURVEYOR") {
+      const staticSurveyors = [
+        {
+          id: "SUR1",
+          name: "Suresh Raina",
+          employeeId: "EMP101",
+          status: "ACTIVE",
+          owner: { mobileNumber: "9123456780", userName: "9123456780" },
+          auditDetails: { createdTime: new Date().getTime() },
+          vendorData: { name: "Clean City Agency" }
+        },
+        {
+          id: "SUR2",
+          name: "Mahesh Babu",
+          employeeId: "EMP102",
+          status: "ACTIVE",
+          owner: { mobileNumber: "9123456781", userName: "9123456781" },
+          auditDetails: { createdTime: new Date().getTime() },
+          vendorData: { name: "Green Environment" }
+        }
+      ];
+      setTableData(dsoData?.surveyor || staticSurveyors);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dsoData]);
+  }, [dsoData, tab]);
 
   useEffect(() => {
     if (vehicleIds !== "" || driverIds !== "") refetchVendor();
@@ -241,12 +291,29 @@ const SearchVendor = () => {
             name: "name",
           },
         ]
-      : [
-          {
-            label: t("ES_VENDOR_SEARCH_VENDOR_NAME"),
-            name: "name",
-          },
-        ];
+        : tab === "SUPERVISOR" || tab === "SURVEYOR"
+          ? [
+            {
+              label: t("ES_VENDOR_SEARCH_VENDOR_NAME"),
+              name: "vendor",
+              type: "dropdown",
+              options: allVendors?.map((data) => ({
+                ...data.dsoDetails,
+                displayName: `${data.dsoDetails.name} (${data.dsoDetails.mobileNumber || data.dsoDetails.owner?.mobileNumber || "N/A"})`,
+              })),
+              optionsKey: "displayName",
+            },
+            {
+              label: tab === "SUPERVISOR" ? t("ES_SUPERVISOR_SEARCH_NAME") : t("ES_SURVEYOR_SEARCH_NAME"),
+              name: "name",
+            },
+          ]
+          : [
+            {
+              label: t("ES_VENDOR_SEARCH_VENDOR_NAME"),
+              name: "name",
+            },
+          ];
 
   // const searchFields = [
   //   {

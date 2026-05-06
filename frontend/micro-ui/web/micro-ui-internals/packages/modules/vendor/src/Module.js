@@ -27,6 +27,11 @@ import DriverDetails from "./pages/employee/RegisterDriver/DriverDetails";
 import VehicleDetails from "./pages/employee/RegisterVehicle/VehicleDetails";
 import SelectVehicleType from "./pageComponents/SelectVehicleType";
 import BankDetailsComponent from "./components/BankDetailsComponent";
+import SupervisorAreaAssignment from "./pageComponents/SupervisorAreaAssignment";
+import AddSupervisor from "./pages/employee/RegisterSupervisor/AddSupervisor";
+import SupervisorDetails from "./pages/employee/RegisterSupervisor/SupervisorDetails";
+import AddSurveyor from "./pages/employee/RegisterSurveyor/AddSurveyor";
+import SurveyorDetails from "./pages/employee/RegisterSurveyor/SurveyorDetails";
 
 const componentsToRegister = {
   VendorDetails,
@@ -51,6 +56,11 @@ const componentsToRegister = {
   NewResponse,
   DriverDetails,
   VehicleDetails,
+  AddSupervisor,
+  SupervisorDetails,
+  SupervisorAreaAssignment,
+  AddSurveyor,
+  SurveyorDetails,
 };
 
 const addComponentsToRegistry = () => {
