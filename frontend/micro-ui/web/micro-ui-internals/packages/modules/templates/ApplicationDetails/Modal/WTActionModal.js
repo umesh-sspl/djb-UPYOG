@@ -178,13 +178,19 @@ const ActionModal = ({
       applicationData.vehicleId = selectVehicle?.vehicleId;
       applicationData.driverId = selectVehicle?.driverId;
     }
+
+    if (businessService === "watertanker-fixedpoint") {
+      workflow.moduleName = "request-service.water_tanker";
+      workflow.businessService = "watertanker-fixedpoint";
+    }
+
     /* * Constructs the request payload based on the business service type.
      * If `businessService` is "watertanker", wraps `applicationData` in `waterTankerBookingDetail`.
      * Otherwise, wraps it in `mobileToiletBookingDetail`.
      * * The payload is then passed to `submitAction` for processing.
      */
     let requestPayload =
-      businessService === "watertanker"
+      (businessService === "watertanker" || businessService === "watertanker-fixedpoint")
         ? { waterTankerBookingDetail: { ...applicationData, workflow } }
         : { mobileToiletBookingDetail: { ...applicationData, workflow } };
     submitAction(requestPayload);

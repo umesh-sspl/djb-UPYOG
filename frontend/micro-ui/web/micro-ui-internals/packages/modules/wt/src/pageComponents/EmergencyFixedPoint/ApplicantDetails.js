@@ -144,10 +144,9 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
   const goNext = () => {
     let owner = formData.owner;
     
-    // Map Fixed Point to applicantName
     let finalApplicantName = "";
     if (isExistingFixedPoint?.code === "YES") {
-      finalApplicantName = fixedPoint?.applicantDetail?.applicantId || fixedPoint?.applicantId || "";
+      finalApplicantName = fixedPoint?.applicantDetail?.name || fixedPoint?.name || "";
     } else {
       finalApplicantName = typeof fixedPoint === "string" ? fixedPoint : fixedPoint?.name || "";
     }

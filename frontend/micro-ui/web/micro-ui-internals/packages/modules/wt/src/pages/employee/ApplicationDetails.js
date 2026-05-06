@@ -3,7 +3,7 @@ import WTEditApplicationModal from "../../components/WTEditApplicationModal";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import ApplicationDetailsTemplate from "../../../../templates/ApplicationDetails";
 import WorkflowTimeline from "../../components/WorkflowTimeline";
 
@@ -18,6 +18,7 @@ import WorkflowTimeline from "../../components/WorkflowTimeline";
 
 const ApplicationDetails = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [hideTimeline, setHideTimeline] = React.useState(typeof window !== "undefined" ? window.innerWidth < 768 : false);
   // const { data: storeData } = Digit.Hooks.useStore.getInitData();
   const tenantId = Digit.ULBService.getCurrentTenantId();
@@ -29,9 +30,10 @@ const ApplicationDetails = () => {
   // const [showOptions, setShowOptions] = useState(false);
   const [BusinessService, setBusinessService] = useState("watertanker"); // Default to water tanker service
   // Determine business service dynamically
+  const isFixedPoint = location.pathname.includes("/fixed-point/");
   const isWaterTanker = bookingNo?.startsWith("WT"); // Water Tanker
   const isTreePruning = bookingNo?.startsWith("TP"); // Tree Pruning
-  const businessService = isWaterTanker ? "watertanker" : isTreePruning ? "treePruning" : "mobileToilet";
+  const businessService = isFixedPoint ? "watertanker-fixedpoint" : (isWaterTanker ? "watertanker" : isTreePruning ? "treePruning" : "mobileToilet");
   const user = Digit.UserService.getUser().info;
 
   // Store the booking number in session storage with key based on service type
@@ -63,36 +65,48 @@ const ApplicationDetails = () => {
   const closeToast = () => {
     setShowToast(null);
   };
+ useEffect(() => {
+  if (applicationDetails) {
+    let details = _.cloneDeep(applicationDetails);
 
-  useEffect(() => {
-    if (applicationDetails) {
-      let details = _.cloneDeep(applicationDetails);
-      if (details?.applicationDetails?.length > 0) {
-        details.applicationDetails[0].Component = () => (
-          <div 
-            onClick={() => setShowEditModal(true)} 
-            style={{ 
-              float: "right", 
-              display: "flex", 
-              alignItems: "center", 
-              cursor: "pointer", 
-              color: "#f47738", 
-              gap: "8px", 
-              padding: "4px 12px", 
-              backgroundColor: "#fff", 
-              borderRadius: "4px", 
-              border: "1px solid #f47738", 
-              transition: "all 0.2s ease" 
-            }}
-          >
-            <EditIcon style={{ fill: "#f47738", width: "16px", height: "16px" }} />
-            <span style={{ fontWeight: "600", fontSize: "14px" }}>{t("WT_EDIT_FIELDS")}</span>
-          </div>
-        );
-      }
-      setAppDetailsToShow(details);
+    const bookingStatus =
+      details?.applicationData?.applicationData?.bookingStatus;
+
+    const isDelivered =
+      bookingStatus === "DELIVERED" ||
+      bookingStatus === "TANKER_DELIVERED";
+
+    if (details?.applicationDetails?.length > 0 && !isDelivered) {
+      details.applicationDetails[0].Component = () => (
+        <div
+          onClick={() => setShowEditModal(true)}
+          style={{
+            float: "right",
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            color: "#f47738",
+            gap: "8px",
+            padding: "4px 12px",
+            backgroundColor: "#fff",
+            borderRadius: "4px",
+            border: "1px solid #f47738",
+            transition: "all 0.2s ease",
+          }}
+        >
+          <EditIcon style={{ fill: "#f47738", width: "16px", height: "16px" }} />
+          <span style={{ fontWeight: "600", fontSize: "14px" }}>
+            {t("WT_EDIT_FIELDS")}
+          </span>
+        </div>
+      );
+    } else if (details?.applicationDetails?.length > 0) {
+      delete details.applicationDetails[0].Component;
     }
-  }, [applicationDetails]);
+
+    setAppDetailsToShow(details);
+  }
+}, [applicationDetails]);
 
   useEffect(() => {
     if (
@@ -137,7 +151,7 @@ const ApplicationDetails = () => {
             mutate={mutate}
             workflowDetails={workflowDetails}
             businessService={businessService}
-            moduleCode="request-service"
+            moduleCode={isFixedPoint ? "request-service.water_tanker" : "request-service"}
             showToast={showToast}
             setShowToast={setShowToast}
             closeToast={closeToast}
