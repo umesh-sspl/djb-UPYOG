@@ -259,6 +259,8 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
             value={deliveryDate}
             onChange={setDeliveryDate}
             min={new Date().toISOString().split("T")[0]}
+                        max={new Date().toISOString().split("T")[0]}
+
             rules={{
               required: t("CORE_COMMON_REQUIRED_ERRMSG"),
               validDate: (val) => (/^\d{4}-\d{2}-\d{2}$/.test(val) ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG")),
