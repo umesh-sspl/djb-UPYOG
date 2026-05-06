@@ -1,5 +1,5 @@
 .popup-module {
-  width: 480px;
+  width: auto;
   margin: 0 auto;
   @apply bg-white;
 
@@ -19,7 +19,7 @@
 
 @screen dt {
   .popup-module {
-    width: 480px;
+    width: auto;
     margin: auto;
     @apply bg-white;
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
-import { Card, Dropdown, Loader, SubmitBar, Toast } from "@djb25/digit-ui-react-components";
+import { Card, Dropdown, Loader, SubmitBar, Toast, Modal, Table, ViewsIcon } from "@djb25/digit-ui-react-components";
 import VENDORLink from "./inbox/VENDORLink";
 import ApplicationTable from "./inbox/ApplicationTable";
 import Filter from "./inbox/Filter";
@@ -183,6 +183,80 @@ const VendorInbox = (props) => {
   const [showToast, setShowToast] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
+  const [selectedVendorForWorkOrder, setSelectedVendorForWorkOrder] = useState(null);
+
+  const openWorkOrderModal = (vendorDetails) => {
+    setSelectedVendorForWorkOrder(vendorDetails);
+    setShowWorkOrderModal(true);
+  };
+
+  const closeWorkOrderModal = () => {
+    setSelectedVendorForWorkOrder(null);
+    setShowWorkOrderModal(false);
+  };
+
+  const handleViewDocument = async (fileStoreId) => {
+    if (!fileStoreId) return;
+    try {
+      const response = await Digit.UploadServices.Filefetch([fileStoreId], "dl");
+      if (response?.data?.[fileStoreId]) {
+        const fileUrl = response.data[fileStoreId].split(",")[0];
+        window.open(fileUrl, "_blank");
+      }
+    } catch (e) {
+      console.error(e);
+      setShowToast({ key: "error", action: "Failed to fetch document." });
+      setTimeout(closeToast, 5000);
+    }
+  };
+
+  const workOrderColumns = React.useMemo(
+    () => [
+      {
+        Header: t("WT_NAME"),
+        accessor: "name",
+        Cell: ({ row }) => GetCell(row.original.name),
+      },
+      {
+        Header: t("WT_MOBILE_NUMBER"),
+        accessor: "mobileNumber",
+        Cell: ({ row }) => GetCell(row.original.mobileNumber),
+      },
+      {
+        Header: t("WT_EMAIL_ID"),
+        accessor: "emailId",
+        Cell: ({ row }) => GetCell(row.original.emailId),
+      },
+      {
+        Header: t("WT_VALID_FROM"),
+        accessor: "validFrom",
+        Cell: ({ row }) => (row.original.validFrom ? Digit.DateUtils.ConvertEpochToDate(row.original.validFrom) : t("CS_NA")),
+      },
+      {
+        Header: t("WT_VALID_TO"),
+        accessor: "validTo",
+        Cell: ({ row }) => (row.original.validTo ? Digit.DateUtils.ConvertEpochToDate(row.original.validTo) : t("CS_NA")),
+      },
+      {
+        Header: t("WT_DOCUMENT"),
+        accessor: "fileStoreId",
+        Cell: ({ row }) =>
+          row.original.fileStoreId ? (
+            <div
+              style={{ color: "#f47738", cursor: "pointer", textDecoration: "underline" }}
+              onClick={() => handleViewDocument(row.original.fileStoreId)}
+            >
+              <ViewsIcon />
+            </div>
+          ) : (
+            t("CS_NA")
+          ),
+      },
+    ],
+    [t]
+  );
+
   const queryClient = useQueryClient();
 
   const {
@@ -723,6 +797,25 @@ const VendorInbox = (props) => {
               );
             },
           },
+
+          {
+            Header: t("VIEW_WORKORDER_DETAILS"),
+            disableSortBy: true,
+            Cell: ({ row }) => {
+              return (
+                <button
+                  className="submit-bar"
+                  style={{
+                    backgroundColor: "#417505",
+                    color: "white",
+                  }}
+                  onClick={() => openWorkOrderModal(row.original)}
+                >
+                  {t("VIEW_WORKORDER_DETAILS")}
+                </button>
+              );
+            },
+          },
         ];
 
       //if toggle on vehicle then it will show the below columns
@@ -883,7 +976,7 @@ const VendorInbox = (props) => {
         return [
           //Username
           {
-            Header: t("Driver's Mobile No."),
+            Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
             id: "userName",
             accessor: (row) => row.owner?.userName || "NA",
             Cell: ({ row }) => {
@@ -1202,6 +1295,48 @@ const VendorInbox = (props) => {
           }
           onClose={closeToast}
         />
+      )}
+      {showWorkOrderModal && (
+        <Modal
+          headerBarMain={
+            <h1 className="heading-m" style={{ margin: 0 }}>
+              {t("ES_VENDOR_WORKORDER_DETAILS_MODAL")}
+            </h1>
+          }
+          headerBarEnd={
+            <div className="icon-bg-secondary" onClick={closeWorkOrderModal} style={{ cursor: "pointer" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF" width="24" height="24">
+                <path d="M0 0h24v24H0V0z" fill="none" />
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+              </svg>
+            </div>
+          }
+          actionCancelLabel={t("CS_COMMON_CLOSE")}
+          actionCancelOnSubmit={closeWorkOrderModal}
+          hideSubmit={true}
+          formId="modal-action"
+        >
+          <div style={{ padding: "16px" }}>
+            {selectedVendorForWorkOrder?.dsoDetails?.vendorWorkOrder?.length > 0 ? (
+              <Table
+                t={t}
+                data={selectedVendorForWorkOrder.dsoDetails.vendorWorkOrder}
+                columns={workOrderColumns}
+                getCellProps={(cellInfo) => {
+                  return {
+                    style: {
+                      minWidth: "150px",
+                      padding: "8px 12px",
+                      fontSize: "13.5px",
+                    },
+                  };
+                }}
+              />
+            ) : (
+              <p style={{ textAlign: "center", marginTop: "20px" }}>{t("ES_VENDOR_NO_WORKORDERS")}</p>
+            )}
+          </div>
+        </Modal>
       )}
     </div>
   );

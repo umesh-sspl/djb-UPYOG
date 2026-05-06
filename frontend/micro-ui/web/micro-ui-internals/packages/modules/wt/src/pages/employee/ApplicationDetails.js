@@ -110,10 +110,10 @@ const ApplicationDetails = () => {
   // const [showTimeline, setShowTimeline] = useState(true);
   // let dowloadOptions = [];
   return (
-    <div className="employee-form-content-with-action-bar" style={{ padding: user?.type === "CITIZEN" ? "0 15px" : "", height: "100%" }}>
-      <div className="employee-application-details" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+    <React.Fragment>
+      {/* <div className="employee-application-details" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
         <Header styles={{ margin: "0px", fontSize: "32px" }}>{t("BOOKING_DETAILS")}</Header>
-      </div>
+      </div> */}
       {showEditModal && (
         <WTEditApplicationModal
           t={t}
@@ -122,8 +122,7 @@ const ApplicationDetails = () => {
         />
       )}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "24px", height: "100%" }}>
-        {/* Left Column: Workflow Timeline */}
+         {/* Left Column: Workflow Timeline */}
         <div className={`workflow-timeline-wrapper ${hideTimeline ? "hide-workflow" : ""}`} style={{ flex: "1 1 300px", maxWidth: hideTimeline ? "0px" : "400px", transition: "max-width 0.3s" }}>
           <WorkflowTimeline hideTimeline={hideTimeline} setHideTimeline={setHideTimeline} workflowDetails={workflowDetails} />
         </div>
@@ -149,8 +148,7 @@ const ApplicationDetails = () => {
             showTimeLine={false} // Hide default timeline
           />
         </div>
-      </div>
-    </div>
+    </React.Fragment>
   );
 };
 

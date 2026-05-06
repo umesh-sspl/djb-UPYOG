@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom";
 import { Label, DatePicker, SubmitBar, Toast, Dropdown, UploadFile, CollapsibleCardPage } from "@djb25/digit-ui-react-components";
 import VerticalTimeline from "./VerticalTimeline";
 import SelectServiceType from "../pageComponents/SelectServiceType";
-import VendorMultiSelectDropdown from '../components/VendorMultiSelectDropdown'
+import VendorMultiSelectDropdown from "../components/VendorMultiSelectDropdown";
 const VendorAssign = ({ parentUrl, heading }) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const { t } = useTranslation();
@@ -68,6 +68,9 @@ const VendorAssign = ({ parentUrl, heading }) => {
     const payload = {
       vendorWorkOrder: {
         tenantId,
+        name: vendor?.name,
+        mobileNumber: vendor?.owner?.mobileNumber,
+        emailId: vendor?.owner?.emailId,
         vendorId: vendor?.code || vendor?.id,
         validFrom: new Date(validFrom).getTime(),
         validTo: new Date(validTo).getTime(),
@@ -92,7 +95,7 @@ const VendorAssign = ({ parentUrl, heading }) => {
 
     if (selectedFillingPoints && selectedFillingPoints.length > 0) {
       const mapPayload = {
-        mappings: selectedFillingPoints.map(val => ({
+        mappings: selectedFillingPoints.map((val) => ({
           tenantId: tenantId,
           fillingPointId: val?.id || val?.bookingId || val?.fillingPointId,
           vendorId: vendor?.code || vendor?.id,
@@ -123,7 +126,7 @@ const VendorAssign = ({ parentUrl, heading }) => {
     setFile(e.target.files[0]);
   }
 
-  const isFormDisabled = !vendor || !validFrom || !validTo 
+  const isFormDisabled = !vendor || !validFrom || !validTo;
   // commented out service type Pranav 22/04/2026
   // || !selectedServiceType;
 
@@ -177,26 +180,25 @@ const VendorAssign = ({ parentUrl, heading }) => {
               formData={{ serviceType: selectedServiceType }}
             /> */}
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <Label>
-                {`${t("WT_FILLING_POINT")}`}
-              </Label>
+              <Label>{`${t("WT_FILLING_POINT")}`}</Label>
               <VendorMultiSelectDropdown
                 options={allFillingPoints}
                 optionsKey="fillingPointName"
                 selected={selectedFillingPoints}
                 onSelect={(values) => {
-                  const extractedValues = values?.map(v => Array.isArray(v) ? v[1] : v) || [];
+                  const extractedValues = values?.map((v) => (Array.isArray(v) ? v[1] : v)) || [];
                   setSelectedFillingPoints(extractedValues);
                 }}
                 defaultLabel={t("SELECT_FILLING_POINT")}
                 defaultUnit={t("SELECTED")}
                 ServerStyle={{ textAlign: "left", width: "100%", minWidth: "250px", backgroundColor: "#fff" }}
                 isPropsNeeded={false}
-                
               />
 
               {selectedFillingPoints && selectedFillingPoints.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "12px", maxHeight: "120px", overflowY: "auto", padding: "4px" }}>
+                <div
+                  style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "12px", maxHeight: "120px", overflowY: "auto", padding: "4px" }}
+                >
                   {selectedFillingPoints.map((fp, index) => (
                     <div
                       key={index}
@@ -208,10 +210,19 @@ const VendorAssign = ({ parentUrl, heading }) => {
                         borderRadius: "16px",
                         padding: "4px 12px",
                         fontSize: "14px",
-                        fontWeight: "500"
+                        fontWeight: "500",
                       }}
                     >
-                      <span style={{ marginRight: "8px", color: "#333", maxWidth: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <span
+                        style={{
+                          marginRight: "8px",
+                          color: "#333",
+                          maxWidth: "200px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {t(fp?.fillingPointName || fp?.id)}
                       </span>
                       <button
@@ -220,7 +231,7 @@ const VendorAssign = ({ parentUrl, heading }) => {
                           e.preventDefault();
                           e.stopPropagation();
                           const fpId = fp.id || fp.fillingPointId;
-                          setSelectedFillingPoints(prev => prev.filter(p => (p.id || p.fillingPointId) !== fpId));
+                          setSelectedFillingPoints((prev) => prev.filter((p) => (p.id || p.fillingPointId) !== fpId));
                         }}
                         style={{
                           background: "transparent",
@@ -232,7 +243,7 @@ const VendorAssign = ({ parentUrl, heading }) => {
                           alignItems: "center",
                           justifyContent: "center",
                           marginLeft: "auto",
-                          padding: "0"
+                          padding: "0",
                         }}
                       >
                         &times;

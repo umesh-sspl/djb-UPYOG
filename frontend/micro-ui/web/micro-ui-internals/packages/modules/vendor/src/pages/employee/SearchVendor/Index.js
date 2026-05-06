@@ -100,14 +100,12 @@ const SearchVendor = () => {
 
   useEffect(() => {
     if (dsoData?.vehicle && tab === "VEHICLE") {
-      let vehicleIds = "";
-      dsoData.vehicle.map((data) => (vehicleIds += `${data.id},`));
+      const vehicleIds = dsoData.vehicle.map(data => data.id).filter(Boolean).join(",");
       setVehicleIds(vehicleIds);
       setTableData(dsoData.vehicle);
     }
     if (dsoData?.driver && tab === "DRIVER") {
-      let driverIds = "";
-      dsoData.driver.map((data) => (driverIds += `${data.id},`));
+      const driverIds = dsoData.driver.map(data => data.id).filter(Boolean).join(",");
       setDriverIds(driverIds);
       setTableData(dsoData?.driver);
     }
@@ -151,12 +149,12 @@ const SearchVendor = () => {
         const vehicles = dsoData?.vehicle.map((data) => {
           let vendor = vendorData.find((ele) => ele.dsoDetails?.vehicles?.find((vehicle) => vehicle.id === data.id));
           if (vendor) {
-            data.vendor = vendor.dsoDetails;
+            let updatedData = { ...data, vendor: vendor.dsoDetails };
             const vehicleInVendor = vendor.dsoDetails?.vehicles?.find((vehicle) => vehicle.id === data.id);
             if (vehicleInVendor) {
-              /* Ensure we don't overwrite existing driverData with undefined if it's missing in the vendor response */
-              data.driverData = vehicleInVendor.driverData || vehicleInVendor.driver || data.driverData;
+              updatedData.driverData = vehicleInVendor.driverData || vehicleInVendor.driver || updatedData.driverData;
             }
+            return updatedData;
           }
           return data;
         });
@@ -167,7 +165,7 @@ const SearchVendor = () => {
         const drivers = dsoData?.driver.map((data) => {
           let vendor = vendorData.find((ele) => ele.dsoDetails?.drivers?.find((driver) => driver.id === data.id));
           if (vendor) {
-            data.vendor = vendor.dsoDetails;
+            return { ...data, vendor: vendor.dsoDetails };
           }
           return data;
         });

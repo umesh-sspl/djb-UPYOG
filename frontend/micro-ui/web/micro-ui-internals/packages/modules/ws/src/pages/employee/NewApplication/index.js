@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import {
   ActionBar,
@@ -66,6 +66,62 @@ const WATER_CONNECTION_USED_BY_OPTIONS = [
   createOption("Govt. College", "Govt. College"),
 ];
 
+const PROPERTY_CATEGORY_OPTIONS = [
+  createOption("COMMERCIAL", "Commercial"),
+  createOption("INDUSTRIAL", "Industrial"),
+  createOption("INSTITUTIONAL", "Institutional"),
+  createOption("MIXED", "Mixed"),
+];
+
+const PROPERTY_TYPE_OPTIONS = [
+  createOption("APARTMENT", "Apartment"),
+  createOption("BANQUET_HALL", "Banquet Hall"),
+  createOption("BUNGALOWS", "Bungalows"),
+  createOption("DDA_FLATS", "DDA flats"),
+  createOption("DHARAMSHALAS_HOSTELS", "Dharamshalas or Hostels"),
+  createOption("GOVT_FLATS", "Govt. Flats"),
+  createOption("GROUP_HOUSING_SOCIETY", "Group Housing Society"),
+  createOption("HOTEL_GUEST_HOUSES", "Hotel or Guest Houses"),
+  createOption("INDIVIDUAL_HOUSE", "Individual House"),
+  createOption("MALL_CINEPLEX", "Mall or Cineplex"),
+  createOption("OFFICE_COMPLEX", "Office complex"),
+  createOption("SCHOOL", "School"),
+  createOption("HOSPITAL_NURSING_HOME", "Hospital/Nursing Home"),
+];
+
+const USAGE_TYPE_OPTIONS = [
+  createOption("BSES_RAJDHANI", "B.S.E.S. RAJDHANI"),
+  createOption("BSES_YAMUNA", "B.S.E.S. YAMUNA"),
+  createOption("BANQUET_HALL_PARTY_HALL", "Banquet hall/ Party hall"),
+  createOption("BEAUTY_PARLORS", "Beauty Parlors"),
+  createOption("BLIND_SCHOOLS", "Blind Schools"),
+  createOption("BOTTLING_PLANT", "Bottling Plant"),
+  createOption("CPWD", "C.P.W.D."),
+  createOption("CENTRAL_GOVT_OFFICES", "Central Govt. Offices"),
+  createOption("CINEPLEX", "Cineplex"),
+  createOption("CLINIC_PATHLAB", "Clinic/Pathlab"),
+  createOption("COOP_GROUP_HOUSING", "Co-operative Group Housing Society"),
+  createOption("COLD_STORAGE", "Cold Storage"),
+  createOption("COLOUR_DYE_SHOP", "Colour Dye shop/factory"),
+  createOption("COOLING_PLANT", "Cooling Plant"),
+  createOption("COURTS", "Courts"),
+  createOption("DSIIDC", "D.S.I.I.D.C"),
+  createOption("DDA", "Delhi Development Authority"),
+  createOption("DELHI_FIRE_SERVICE", "Delhi Fire Service (Fire Station)"),
+  createOption("DELHI_GOVT_OFFICE", "Delhi Govt. Office"),
+];
+
+const NO_OF_FLOORS_OPTIONS = [
+  createOption("BASEMENT", "Basement"),
+  createOption("GROUND_FLOOR", "Ground Floor"),
+  createOption("1_FLOOR", "1 Floor"),
+  createOption("2_FLOOR", "2 Floor"),
+  createOption("3_FLOOR", "3 Floor"),
+  createOption("4_FLOOR", "4 Floor"),
+  createOption("5_FLOOR", "5 Floor"),
+  createOption("6_FLOOR", "6 Floor"),
+];
+
 const PROOF_OF_IDENTITY_OPTIONS = [
   createOption("AADHAAR", "Aadhaar"),
   createOption("PAN", "PAN"),
@@ -74,12 +130,143 @@ const PROOF_OF_IDENTITY_OPTIONS = [
   createOption("DRIVING_LICENSE", "Driving License"),
 ];
 
+const OWNERSHIP_DOCUMENTS_OPTIONS = [
+  createOption("ELECTRICITY_BILL", "Electricity bills"),
+  createOption("PROPERTY_TAX_RECEIPT", "Property Tax Receipt"),
+  createOption("SALE_DEED", "Sale Deed"),
+];
+
+const OTHER_DOCUMENTS_OPTIONS = [createOption("NOC_FROM_OWNER", "NOC From Owner"), createOption("OTHERS", "Others")];
+
 const OWNERSHIP_STATUS_OPTIONS = [
   createOption("SELF_OWNED", "Self Owned"),
   createOption("LEASED", "Leased"),
   createOption("RENTED", "Rented"),
   createOption("GOVERNMENT_ALLOTTED", "Government Allotted"),
 ];
+
+const CameraIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+    <circle cx="12" cy="13" r="4" />
+  </svg>
+);
+
+const ViewIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const CameraCaptureModal = ({ onCapture, onClose, t }) => {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [stream, setStream] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+        setStream(mediaStream);
+      } catch (err) {
+        setError(t("WS_CAMERA_ACCESS_ERROR") || "Camera Access Error");
+        console.error("Error accessing camera: ", err);
+      }
+    };
+    startCamera();
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext("2d");
+      canvasRef.current.width = videoRef.current.videoWidth;
+      canvasRef.current.height = videoRef.current.videoHeight;
+
+      context.translate(canvasRef.current.width, 0);
+      context.scale(-1, 1);
+
+      context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+      canvasRef.current.toBlob((blob) => {
+        const file = new File([blob], `applicant_photo_${Date.now()}.jpg`, { type: "image/jpeg" });
+        onCapture(file);
+      }, "image/jpeg");
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(0,0,0,0.8)",
+        zIndex: 9999,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {error ? (
+        <div style={{ color: "white", marginBottom: "20px" }}>{error}</div>
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{ maxWidth: "100%", maxHeight: "80%", backgroundColor: "black", transform: "scaleX(-1)" }}
+        />
+      )}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+      <div style={{ marginTop: "20px", display: "flex", gap: "20px" }}>
+        {!error && (
+          <button
+            type="button"
+            onClick={capturePhoto}
+            style={{
+              padding: "10px 20px",
+              background: "#f47738",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            {t("WS_CAPTURE_PHOTO") || "Capture"}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            padding: "10px 20px",
+            background: "white",
+            color: "#f47738",
+            border: "1px solid #f47738",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          {t("CS_COMMON_CANCEL") || "Cancel"}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const DEFAULT_SECTION_STATE = {
   application: true,
@@ -123,6 +310,12 @@ const DEFAULT_FORM_VALUES = {
     isOwnerVerified: false,
     domesticType: { code: "INDIVIDUAL", name: "Individual" },
     commercialType: null,
+    departmentType: null,
+    govtOrganization: {
+      organizationName: "",
+      natureOfWork: "",
+      organizationDocument: null,
+    },
   },
   djbEmployee: {
     isDjbEmployee: false,
@@ -152,8 +345,9 @@ const DEFAULT_FORM_VALUES = {
     ward: null,
   },
   useDetails: {
+    propertyCategory: null,
     propertyType: null,
-    noOfFloors: "",
+    noOfFloors: null,
     hospitalBeds: "",
     plotArea: "",
     builtUpArea: "",
@@ -173,10 +367,15 @@ const DEFAULT_FORM_VALUES = {
     applyForAdequacyCertificate: false,
   },
   documents: {
+    applicantPhoto: null,
     proofOfIdentity: null,
+    identityProofNumber: "",
     identityProofFile: null,
     ownershipStatus: null,
+    ownershipDocumentNumber: "",
     ownershipDocumentFile: null,
+    otherDocument: null,
+    otherDocumentNumber: "",
     otherDocumentFile: null,
   },
   declaration: {
@@ -243,71 +442,71 @@ const ProfileImagePreview = ({ fileStoreId }) => {
   return <img src={imageUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
 };
 
-const ProfileImageUpload = ({ value, onUpload, isUploading, error, t, label, required }) => {
-  const fileInputRef = React.useRef(null);
-  const fileStoreId = value?.fileStoreId;
-  const [imageUrl, setImageUrl] = useState(null);
+// const ProfileImageUpload = ({ value, onUpload, isUploading, error, t, label, required }) => {
+//   const fileInputRef = React.useRef(null);
+//   const fileStoreId = value?.fileStoreId;
+//   const [imageUrl, setImageUrl] = useState(null);
 
-  useEffect(() => {
-    const fetchImageUrl = async () => {
-      if (fileStoreId) {
-        try {
-          const tenantId = Digit.ULBService.getStateId();
-          const response = await Digit.UploadServices.Filefetch([fileStoreId], tenantId);
-          const url = response?.data?.fileStoreIds?.[0]?.url;
-          if (url) {
-            let differentFormats = url?.split(",") || [];
-            let fileURL = "";
-            differentFormats.map((link) => {
-              if (!link.includes("large") && !link.includes("medium") && !link.includes("small")) {
-                fileURL = link;
-              }
-            });
-            setImageUrl(fileURL || differentFormats[0]);
-          }
-        } catch (err) {
-          console.error("Error fetching image URL:", err);
-          setImageUrl(null);
-        }
-      } else {
-        setImageUrl(null);
-      }
-    };
-    fetchImageUrl();
-  }, [fileStoreId]);
+//   useEffect(() => {
+//     const fetchImageUrl = async () => {
+//       if (fileStoreId) {
+//         try {
+//           const tenantId = Digit.ULBService.getStateId();
+//           const response = await Digit.UploadServices.Filefetch([fileStoreId], tenantId);
+//           const url = response?.data?.fileStoreIds?.[0]?.url;
+//           if (url) {
+//             let differentFormats = url?.split(",") || [];
+//             let fileURL = "";
+//             differentFormats.map((link) => {
+//               if (!link.includes("large") && !link.includes("medium") && !link.includes("small")) {
+//                 fileURL = link;
+//               }
+//             });
+//             setImageUrl(fileURL || differentFormats[0]);
+//           }
+//         } catch (err) {
+//           console.error("Error fetching image URL:", err);
+//           setImageUrl(null);
+//         }
+//       } else {
+//         setImageUrl(null);
+//       }
+//     };
+//     fetchImageUrl();
+//   }, [fileStoreId]);
 
-  const handleEditClick = () => {
-    fileInputRef.current.click();
-  };
+//   const handleEditClick = () => {
+//     fileInputRef.current.click();
+//   };
 
-  return (
-    <div className="avatar-upload-container">
-      {label && <CardLabel style={{ textAlign: "center", marginBottom: "16px", fontWeight: "700" }}>{`${t(label)}${required ? "*" : ""}`}</CardLabel>}
-      <div className="avatar-wrapper">
-        <div className="avatar-circle" onClick={handleEditClick}>
-          {imageUrl ? (
-            <img src={imageUrl} alt="Profile" />
-          ) : (
-            <div className="avatar-placeholder">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-          )}
-        </div>
-        <div className="avatar-edit-icon" onClick={handleEditClick}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B4B66" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-          </svg>
-        </div>
-      </div>
-      <input type="file" ref={fileInputRef} style={{ display: "none" }} accept="image/*" onChange={onUpload} />
-      {isUploading && <div style={{ fontSize: "14px", marginTop: "8px", color: "#505A5F" }}>Uploading...</div>}
-      {error && <CardLabelError style={{ textAlign: "center", marginTop: "8px" }}>{error}</CardLabelError>}
-    </div>
-  );
-};
+//   return (
+//     <div className="avatar-upload-container">
+//       {label && <CardLabel style={{ textAlign: "center", marginBottom: "16px", fontWeight: "700" }}>{`${t(label)}${required ? "*" : ""}`}</CardLabel>}
+//       <div className="avatar-wrapper">
+//         <div className="avatar-circle" onClick={handleEditClick}>
+//           {imageUrl ? (
+//             <img src={imageUrl} alt="Profile" />
+//           ) : (
+//             <div className="avatar-placeholder">
+//               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5">
+//                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+//                 <circle cx="12" cy="7" r="4" />
+//               </svg>
+//             </div>
+//           )}
+//         </div>
+//         <div className="avatar-edit-icon" onClick={handleEditClick}>
+//           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B4B66" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+//             <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+//           </svg>
+//         </div>
+//       </div>
+//       <input type="file" ref={fileInputRef} style={{ display: "none" }} accept="image/*" onChange={onUpload} />
+//       {isUploading && <div style={{ fontSize: "14px", marginTop: "8px", color: "#505A5F" }}>Uploading...</div>}
+//       {error && <CardLabelError style={{ textAlign: "center", marginTop: "8px" }}>{error}</CardLabelError>}
+//     </div>
+//   );
+// };
 
 const linkButtonStyle = {
   background: "transparent",
@@ -491,9 +690,39 @@ const FileUploadField = ({ id, label, value, onUpload, onDelete, error, isUpload
         onDelete={onDelete}
         onUpload={onUpload}
       />
-      <CardText style={{ marginBottom: "0px", marginTop: "0px" }}>
-        {isUploading ? "Uploading file..." : value?.fileName || "No file selected"}
-      </CardText>
+      {isUploading && <CardText style={{ marginTop: "8px" }}>Uploading file...</CardText>}
+      {value?.fileStoreId && !isUploading && (
+        <div
+          style={{
+            marginTop: "8px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "#F3F4F6",
+            padding: "4px 12px",
+            borderRadius: "20px",
+            width: "fit-content",
+            border: "1px solid #E5E7EB",
+          }}
+        >
+          <CardText style={{ margin: 0, fontSize: "14px", color: "#374151", fontWeight: "500" }}>{value.fileName}</CardText>
+          <div onClick={onDelete} style={{ cursor: "pointer", display: "flex", alignItems: "center", color: "#6B7280" }} title="Remove File">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </div>
+        </div>
+      )}
     </FieldBlock>
   );
 };
@@ -512,6 +741,7 @@ const NewApplication = () => {
   const [collapsedSections, setCollapsedSections] = useState(DEFAULT_SECTION_STATE);
   const [showToast, setShowToast] = useState(null);
   const [uploadingFields, setUploadingFields] = useState({});
+  const [showCamera, setShowCamera] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpError, setOtpError] = useState(null);
 
@@ -812,6 +1042,19 @@ const NewApplication = () => {
   }, [subCategoryIsDomestic, setValue, clearErrors]);
 
   useEffect(() => {
+    if (activeType?.code !== "ORGANIZATION") {
+      setValue("applicationSelection.departmentType", null);
+      setValue("applicationSelection.govtOrganization.organizationName", "");
+      setValue("applicationSelection.govtOrganization.natureOfWork", "");
+      setValue("applicationSelection.govtOrganization.organizationDocument", null);
+      clearErrors("applicationSelection.departmentType");
+      clearErrors("applicationSelection.govtOrganization.organizationName");
+      clearErrors("applicationSelection.govtOrganization.natureOfWork");
+      clearErrors("applicationSelection.govtOrganization.organizationDocument");
+    }
+  }, [activeType?.code, setValue, clearErrors]);
+
+  useEffect(() => {
     if (!connectionTypeIsTemporary) {
       setValue("applicationSelection.temporaryConnection", null);
       clearErrors("applicationSelection.temporaryConnection");
@@ -870,6 +1113,28 @@ const NewApplication = () => {
       setShowToast({ key: "error", message: error?.message || "File upload failed. Please try again." });
     } finally {
       setUploadingFields((previousState) => ({ ...previousState, [fieldName]: false }));
+    }
+  };
+
+  const handleCapture = async (file) => {
+    setShowCamera(false);
+    setUploadingFields((prev) => ({ ...prev, "documents.applicantPhoto": true }));
+    try {
+      const response = await Digit.UploadServices.Filestorage("WS", file, stateId);
+      const fileStoreId = response?.data?.files?.[0]?.fileStoreId;
+      if (fileStoreId) {
+        setValue("documents.applicantPhoto", {
+          fileName: file.name,
+          fileSize: file.size,
+          fileStoreId,
+          fileType: file.type,
+        });
+        clearErrors("documents.applicantPhoto");
+      }
+    } catch (error) {
+      setShowToast({ key: "error", message: "Failed to upload photo" });
+    } finally {
+      setUploadingFields((prev) => ({ ...prev, "documents.applicantPhoto": false }));
     }
   };
 
@@ -1166,26 +1431,31 @@ const NewApplication = () => {
             align-items: center;
           }
 
-          .avatar-edit-icon {
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
-            background: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #E5E7EB;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-
           .avatar-edit-icon:hover {
             transform: scale(1.1);
             background-color: #F9FAFB;
+          }
+
+          .document-action-btn {
+            background: #E5E7EB;
+            border: 1px solid #9CA3AF;
+            border-radius: 4px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 500;
+            min-height: 40px;
+          }
+          .document-action-btn:hover {
+            background: #D1D5DB;
+          }
+          .document-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
           }
         `}
       </style>
@@ -1206,34 +1476,6 @@ const NewApplication = () => {
               title={t("WS_APPLICATION_SELECTION")}
               sectionRef={sectionRefs.application}
             >
-              <LabelFieldPair>
-                <CardLabel className="card-label-smaller">{t("WS_ZRO_LOCATION")}</CardLabel>
-                <div className="field">
-                  <Controller
-                    control={control}
-                    name={"zro"}
-                    rules={{ required: t("REQUIRED_FIELD") }}
-                    isMandatory={true}
-                    render={(props) => (
-                      <div>
-                        <Dropdown
-                          className="form-field"
-                          selected={props.value}
-                          disable={false}
-                          option={mappedZROLocation}
-                          errorStyle={!!getFieldError("zro")}
-                          select={props.onChange}
-                          optionKey="i18nKey"
-                          onBlur={props.onBlur}
-                          t={t}
-                        />
-                      </div>
-                    )}
-                  />
-                </div>
-              </LabelFieldPair>
-              {getFieldError("zro") && <CardLabelError>{getFieldError("zro")?.message}</CardLabelError>}
-
               <LabelFieldPair>
                 <CardLabel className="card-label-smaller">{t("WS_SERVICE_TYPE")}</CardLabel>
                 <div className="field">
@@ -1559,10 +1801,95 @@ const NewApplication = () => {
                   </div>
                 </LabelFieldPair>
               )}
+
+              {activeType?.code === "ORGANIZATION" && (
+                <React.Fragment>
+                  <LabelFieldPair>
+                    <CardLabel className="card-label-smaller">{`${t("WS_DEPARTMENT_TYPE")} *`}</CardLabel>
+                    <div className="field">
+                      <Controller
+                        control={control}
+                        name="applicationSelection.departmentType"
+                        rules={{ required: activeType?.code === "ORGANIZATION" ? t("REQUIRED_FIELD") : false }}
+                        render={(props) => (
+                          <RadioButtons
+                            onSelect={props.onChange}
+                            selectedOption={props.value}
+                            options={[
+                              { code: "GOVERNMENT", name: "Government" },
+                              { code: "NON_GOVERNMENT", name: "Non-Government" },
+                            ]}
+                            optionsKey="name"
+                            t={t}
+                          />
+                        )}
+                      />
+                    </div>
+                  </LabelFieldPair>
+                  {getFieldError("applicationSelection.departmentType") && (
+                    <CardLabelError>{getFieldError("applicationSelection.departmentType")?.message}</CardLabelError>
+                  )}
+
+                  <div style={{ gridColumn: "1 / -1", marginTop: "16px", marginBottom: "16px" }}>
+                    <h2 style={{ color: "#0B4B66", fontSize: "18px", fontWeight: "700" }}>{t("WS_DEPARTMENT_ORGANIZATION_DETAILS")}</h2>
+                  </div>
+
+                  <LabelFieldPair>
+                    <CardLabel className="card-label-smaller">{t("WS_ORGANIZATION_DEPARTMENT_NAME")}</CardLabel>
+                    <div className="field">
+                      <TextInput
+                        name="applicationSelection.govtOrganization.organizationName"
+                        inputRef={register({ required: activeType?.code === "ORGANIZATION" ? "Organization/Department Name is required" : false })}
+                        errorStyle={!!getFieldError("applicationSelection.govtOrganization.organizationName")}
+                        placeholder={t("WS_ORGANIZATION_DEPARTMENT_NAME")}
+                      />
+                    </div>
+                  </LabelFieldPair>
+                  {getFieldError("applicationSelection.govtOrganization.organizationName") && (
+                    <CardLabelError>{getFieldError("applicationSelection.govtOrganization.organizationName")?.message}</CardLabelError>
+                  )}
+
+                  <LabelFieldPair>
+                    <CardLabel className="card-label-smaller">{t("WS_NATURE_OF_WORK")}</CardLabel>
+                    <div className="field">
+                      <TextInput
+                        name="applicationSelection.govtOrganization.natureOfWork"
+                        inputRef={register({ required: activeType?.code === "ORGANIZATION" ? "Nature of Work is required" : false })}
+                        errorStyle={!!getFieldError("applicationSelection.govtOrganization.natureOfWork")}
+                        placeholder={t("WS_NATURE_OF_WORK")}
+                      />
+                    </div>
+                  </LabelFieldPair>
+                  {getFieldError("applicationSelection.govtOrganization.natureOfWork") && (
+                    <CardLabelError>{getFieldError("applicationSelection.govtOrganization.natureOfWork")?.message}</CardLabelError>
+                  )}
+
+                  <LabelFieldPair>
+                    <CardLabel className="card-label-smaller">{t("WS_ORG_DEPT_DOCUMENT")}</CardLabel>
+                    <div className="field">
+                      <Controller
+                        control={control}
+                        name="applicationSelection.govtOrganization.organizationDocument"
+                        rules={{ required: activeType?.code === "ORGANIZATION" ? "Document is required" : false }}
+                        render={(props) => (
+                          <FileUploadField
+                            error={getFieldError("applicationSelection.govtOrganization.organizationDocument")}
+                            id="org-dept-doc"
+                            isUploading={!!uploadingFields["applicationSelection.govtOrganization.organizationDocument"]}
+                            onDelete={() => clearUploadedFile("applicationSelection.govtOrganization.organizationDocument", props.onChange)}
+                            onUpload={(event) => uploadFile(event, "applicationSelection.govtOrganization.organizationDocument", props.onChange)}
+                            value={props.value}
+                          />
+                        )}
+                      />
+                    </div>
+                  </LabelFieldPair>
+                </React.Fragment>
+              )}
             </SectionCard>
           </div>
 
-          <SectionCard
+          {/* <SectionCard
             description={t("WS_GOVT_CONNECTION_DESC")}
             isOpen={collapsedSections.governmentEmployee}
             onToggle={toggleSection}
@@ -1636,7 +1963,7 @@ const NewApplication = () => {
                 </LabelFieldPair>
               </React.Fragment>
             )}
-          </SectionCard>
+          </SectionCard> */}
 
           <div style={{ display: previewMode ? "none" : "block" }}>
             <React.Fragment>
@@ -1648,7 +1975,7 @@ const NewApplication = () => {
                 title={t(applicantSectionTitle)}
                 sectionRef={sectionRefs.applicant}
               >
-                <Controller
+                {/* <Controller
                   control={control}
                   name="applicant.UploadPicture"
                   rules={{ validate: (value) => !!value || "Applicant Picture is required." }}
@@ -1663,7 +1990,7 @@ const NewApplication = () => {
                       value={props.value}
                     />
                   )}
-                />
+                /> */}
 
                 <FieldBlock error={getFieldError("applicant.firstName")} label={t("WS_FIRST_NAME")} required>
                   <TextInput
@@ -1833,28 +2160,33 @@ const NewApplication = () => {
                 title={t("WS_PROPERTY_ADDRESS")}
                 sectionRef={sectionRefs.propertyAddress}
               >
-                {/* <FieldBlock error={getFieldError("propertyAddress.city")} label={t("WS_CITY")}>
-                  <Controller
-                    control={control}
-                    name="propertyAddress.city"
-                    render={(props) => (
-                      <Dropdown
-                        className="form-field"
-                        selected={props.value || city}
-                        select={(val) => {
-                          setCity(val);
-                          props.onChange(val);
-                        }}
-                        option={allCities}
-                        optionCardStyles={{ overflowY: "auto", maxHeight: "300px" }}
-                        optionKey="i18nKey"
-                        t={t}
-                        style={{ width: "100%" }}
-                        placeholder={t("WS_SELECT")}
-                      />
-                    )}
-                  />
-                </FieldBlock> */}
+                <LabelFieldPair>
+                  <CardLabel className="card-label-smaller">{t("WS_ZRO_LOCATION")}</CardLabel>
+                  <div className="field">
+                    <Controller
+                      control={control}
+                      name={"zro"}
+                      rules={{ required: t("REQUIRED_FIELD") }}
+                      isMandatory={true}
+                      render={(props) => (
+                        <div>
+                          <Dropdown
+                            className="form-field"
+                            selected={props.value}
+                            disable={false}
+                            option={mappedZROLocation}
+                            errorStyle={!!getFieldError("zro")}
+                            select={props.onChange}
+                            optionKey="i18nKey"
+                            onBlur={props.onBlur}
+                            t={t}
+                          />
+                        </div>
+                      )}
+                    />
+                  </div>
+                </LabelFieldPair>
+                {getFieldError("zro") && <CardLabelError>{getFieldError("zro")?.message}</CardLabelError>}
                 <FieldBlock error={getFieldError("propertyAddress.pinCode")} label={t("WS_PIN_CODE")} required>
                   <Controller
                     control={control}
@@ -1943,6 +2275,10 @@ const NewApplication = () => {
                   <TextInput errorStyle={!!getFieldError("propertyAddress.houseNo")} inputRef={register()} name="propertyAddress.houseNo" />
                 </FieldBlock>
 
+                <FieldBlock error={getFieldError("propertyAddress.Assembly")} label={t("WS_ASSEMBLY")}>
+                  <TextInput errorStyle={!!getFieldError("propertyAddress.Assembly")} inputRef={register()} name="propertyAddress.Assembly" />
+                </FieldBlock>
+
                 <FieldBlock error={getFieldError("propertyAddress.block")} label={t("WS_BLOCK")}>
                   <TextInput errorStyle={!!getFieldError("propertyAddress.block")} inputRef={register()} name="propertyAddress.block" />
                 </FieldBlock>
@@ -1952,6 +2288,12 @@ const NewApplication = () => {
                 </FieldBlock>
                 <FieldBlock error={getFieldError("propertyAddress.landmark")} label={t("WS_LANDMARK")}>
                   <TextInput errorStyle={!!getFieldError("propertyAddress.landmark")} inputRef={register()} name="propertyAddress.landmark" />
+                </FieldBlock>
+                <FieldBlock error={getFieldError("propertyAddress.Latitude")} label={t("WS_LATITUDE")}>
+                  <TextInput errorStyle={!!getFieldError("propertyAddress.Latitude")} inputRef={register()} name="propertyAddress.Latitude" />
+                </FieldBlock>
+                <FieldBlock error={getFieldError("propertyAddress.Longitude")} label={t("WS_LONGITUDE")}>
+                  <TextInput errorStyle={!!getFieldError("propertyAddress.Longitude")} inputRef={register()} name="propertyAddress.Longitude" />
                 </FieldBlock>
                 <FieldBlock error={getFieldError("propertyAddress.address")} isFullWidth label={t("WS_ADDRESS")}>
                   <TextArea
@@ -1973,15 +2315,54 @@ const NewApplication = () => {
                 title={t("WS_PROPERTY_AND_WATER_CONNECTION_USE_DETAILS")}
                 sectionRef={sectionRefs.useDetails}
               >
+                <FieldBlock error={getFieldError("useDetails.propertyCategory")} label={t("WS_PROPERTY_CATEGORY")} required>
+                  <Controller
+                    control={control}
+                    name="useDetails.propertyCategory"
+                    rules={{ required: "Property Category is required." }}
+                    render={(props) => (
+                      <Dropdown option={PROPERTY_CATEGORY_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
+                    )}
+                  />
+                </FieldBlock>
                 <FieldBlock error={getFieldError("useDetails.propertyType")} label={t("WS_PROPERTY_TYPE")} required>
                   <Controller
                     control={control}
                     name="useDetails.propertyType"
                     rules={{ required: "Property Type is required." }}
                     render={(props) => (
-                      <Dropdown option={dropdownData.propertyTypes} optionKey="name" selected={props.value} select={props.onChange} t={t} />
+                      <Dropdown option={PROPERTY_TYPE_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
                     )}
                   />
+                </FieldBlock>
+                <FieldBlock error={getFieldError("useDetails.WaterConnectionUsageType")} label={t("WS_WATER_CONNECTION_USAGE_TYPE")} required>
+                  <Controller
+                    control={control}
+                    name="useDetails.WaterConnectionUsageType"
+                    rules={{ required: "Usage Type is required." }}
+                    render={(props) => (
+                      <Dropdown option={USAGE_TYPE_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
+                    )}
+                  />
+                </FieldBlock>
+
+                <FieldBlock error={getFieldError("useDetails.noOfFloors")} label={t("WS_NUMBER_OF_FLOORS")} required>
+                  <Controller
+                    control={control}
+                    name="useDetails.noOfFloors"
+                    rules={{ required: "No. of Floors is required." }}
+                    render={(props) => (
+                      <Dropdown option={NO_OF_FLOORS_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
+                    )}
+                  />
+                  {/* <TextInput
+                    errorStyle={!!getFieldError("useDetails.noOfFloors")}
+                    inputRef={register({
+                      pattern: { value: NUMBER_PATTERN, message: "Enter a valid whole number." },
+                      required: "No. of Floors is required.",
+                    })}
+                    name="useDetails.noOfFloors"
+                  /> */}
                 </FieldBlock>
 
                 <FieldBlock error={getFieldError("useDetails.plotArea")} label={t("WS_PLOT_AREA")} required>
@@ -2006,14 +2387,12 @@ const NewApplication = () => {
                   />
                 </FieldBlock>
 
-                <FieldBlock error={getFieldError("useDetails.noOfFloors")} label={t("WS_NUMBER_OF_FLOORS")} required>
-                  <TextInput
-                    errorStyle={!!getFieldError("useDetails.noOfFloors")}
-                    inputRef={register({
-                      pattern: { value: NUMBER_PATTERN, message: "Enter a valid whole number." },
-                      required: "No. of Floors is required.",
-                    })}
-                    name="useDetails.noOfFloors"
+                <FieldBlock error={getFieldError("useDetails.SelectYearofConstruction")} label={t("WS_SELECT_YEAR_OF_CONSTRUCTION")} required>
+                  <Controller
+                    control={control}
+                    name="useDetails.SelectYearofConstruction"
+                    rules={{ required: "Select Year of Construction is required." }}
+                    render={(props) => <Dropdown option={yearOptions} optionKey="value" selected={props.value} select={props.onChange} t={t} />}
                   />
                 </FieldBlock>
 
@@ -2025,6 +2404,16 @@ const NewApplication = () => {
                       required: "Built Up Area is required.",
                     })}
                     name="useDetails.NumberofDwellingUnits"
+                  />
+                </FieldBlock>
+                <FieldBlock error={getFieldError("useDetails.NumberofRooms")} label={t("WS_NUMBER_OF_ROOMS")} required>
+                  <TextInput
+                    errorStyle={!!getFieldError("useDetails.NumberofRooms")}
+                    inputRef={register({
+                      pattern: { value: DECIMAL_PATTERN, message: "Enter a valid numeric value." },
+                      required: "Built Up Area is required.",
+                    })}
+                    name="useDetails.NumberofRooms"
                   />
                 </FieldBlock>
 
@@ -2040,26 +2429,6 @@ const NewApplication = () => {
                     />
                   </FieldBlock>
                 ) : null}
-
-                <FieldBlock error={getFieldError("useDetails.SelectYearofConstruction")} label={t("WS_SELECT_YEAR_OF_CONSTRUCTION")} required>
-                  <Controller
-                    control={control}
-                    name="useDetails.SelectYearofConstruction"
-                    rules={{ required: "Select Year of Construction is required." }}
-                    render={(props) => <Dropdown option={yearOptions} optionKey="value" selected={props.value} select={props.onChange} t={t} />}
-                  />
-                </FieldBlock>
-
-                <FieldBlock error={getFieldError("useDetails.WaterConnectionUsageType")} label={t("WS_WATER_CONNECTION_USAGE_TYPE")} required>
-                  <Controller
-                    control={control}
-                    name="useDetails.WaterConnectionUsageType"
-                    rules={{ required: "Water Connection Usage Type is required." }}
-                    render={(props) => (
-                      <Dropdown option={WATER_CONNECTION_USED_BY_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
-                    )}
-                  />
-                </FieldBlock>
               </SectionCard>
 
               <SectionCard
@@ -2124,7 +2493,83 @@ const NewApplication = () => {
                 title="Documents to be Attached"
                 sectionRef={sectionRefs.documents}
               >
-                <FieldBlock error={getFieldError("documents.proofOfIdentity")} label="Proof of Identity" required>
+                {/* Applicant Photo Row */}
+                <Controller
+                  control={control}
+                  name="documents.applicantPhoto"
+                  render={(props) => (
+                    <FileUploadField
+                      error={getFieldError("documents.applicantPhoto")}
+                      id="applicant-photo"
+                      isUploading={!!uploadingFields["documents.applicantPhoto"]}
+                      label="Upload Applicant Photo"
+                      onDelete={() => clearUploadedFile("documents.applicantPhoto", props.onChange)}
+                      onUpload={(event) => uploadFile(event, "documents.applicantPhoto", props.onChange)}
+                      value={props.value}
+                    />
+                  )}
+                />
+                <FieldBlock label="Click Applicant Photo">
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button type="button" className="document-action-btn" onClick={() => setShowCamera(true)}>
+                      <CameraIcon /> Click Photo
+                    </button>
+                    {watch("documents.applicantPhoto")?.fileStoreId && (
+                      <React.Fragment>
+                        <button
+                          type="button"
+                          className="document-action-btn"
+                          style={{ width: "50px" }}
+                          onClick={() => handleView(watch("documents.applicantPhoto")?.fileStoreId, stateId)}
+                          title="View Photo"
+                        >
+                          <ViewIcon />
+                        </button>
+                      </React.Fragment>
+                    )}
+                  </div>
+                  {watch("documents.applicantPhoto")?.fileStoreId && (
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        background: "#F3F4F6",
+                        padding: "4px 12px",
+                        borderRadius: "20px",
+                        width: "fit-content",
+                        border: "1px solid #E5E7EB",
+                      }}
+                    >
+                      <CardText style={{ margin: 0, fontSize: "14px", color: "#374151", fontWeight: "500" }}>
+                        {watch("documents.applicantPhoto").fileName}
+                      </CardText>
+                      <div
+                        onClick={() => clearUploadedFile("documents.applicantPhoto", (val) => setValue("documents.applicantPhoto", val))}
+                        style={{ cursor: "pointer", display: "flex", alignItems: "center", color: "#6B7280" }}
+                        title="Remove Photo"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </FieldBlock>
+
+                {/* Proof of Identity Row */}
+                <FieldBlock error={getFieldError("documents.proofOfIdentity")} label="Proof of Identity *" required>
                   <Controller
                     control={control}
                     name="documents.proofOfIdentity"
@@ -2134,15 +2579,11 @@ const NewApplication = () => {
                     )}
                   />
                 </FieldBlock>
-
-                <FieldBlock error={getFieldError("propertyAddress.proofOfIdentity")} label="Proof of Identity Document" required>
-                  <TextInput
-                    errorStyle={!!getFieldError("propertyAddress.proofOfIdentity")}
-                    inputRef={register()}
-                    name="propertyAddress.proofOfIdentity"
-                  />
+                <FieldBlock error={getFieldError("documents.identityProofNumber")} label="Proof of Identity Document">
+                  <TextInput name="documents.identityProofNumber" inputRef={register()} placeholder="Identity No." />
                 </FieldBlock>
 
+                {/* Identity Upload Row */}
                 <Controller
                   control={control}
                   name="documents.identityProofFile"
@@ -2150,10 +2591,9 @@ const NewApplication = () => {
                   render={(props) => (
                     <FileUploadField
                       error={getFieldError("documents.identityProofFile")}
-                      helperText="Max size 5 MB. Allowed types: PDF, PNG, JPG, JPEG."
                       id="identity-proof-file"
                       isUploading={!!uploadingFields["documents.identityProofFile"]}
-                      label="Upload Identity Proof"
+                      label="Proof of Identity Upload Document *"
                       onDelete={() => clearUploadedFile("documents.identityProofFile", props.onChange)}
                       onUpload={(event) => uploadFile(event, "documents.identityProofFile", props.onChange)}
                       required
@@ -2161,28 +2601,33 @@ const NewApplication = () => {
                     />
                   )}
                 />
+                <FieldBlock label="View Document">
+                  <button
+                    type="button"
+                    className="document-action-btn"
+                    onClick={() => handleView(watch("documents.identityProofFile")?.fileStoreId, stateId)}
+                    disabled={!watch("documents.identityProofFile")?.fileStoreId}
+                  >
+                    <ViewIcon /> View
+                  </button>
+                </FieldBlock>
 
-                <FieldBlock error={getFieldError("propertyAddress.otherDocument")}></FieldBlock>
-
-                <FieldBlock error={getFieldError("documents.ownershipStatus")} label="Ownership Proof" required>
+                {/* Proof of Ownership Row */}
+                <FieldBlock error={getFieldError("documents.ownershipStatus")} label="Proof of Ownership *" required>
                   <Controller
                     control={control}
                     name="documents.ownershipStatus"
-                    rules={{ required: "Ownership Status is required." }}
+                    rules={{ required: "Ownership Proof is required." }}
                     render={(props) => (
-                      <Dropdown option={OWNERSHIP_STATUS_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
+                      <Dropdown option={OWNERSHIP_DOCUMENTS_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
                     )}
                   />
                 </FieldBlock>
-
-                <FieldBlock error={getFieldError("propertyAddress.ownershipStatus")} label="Proof of Identity Ownership Document" required>
-                  <TextInput
-                    errorStyle={!!getFieldError("propertyAddress.ownershipStatus")}
-                    inputRef={register()}
-                    name="propertyAddress.ownershipStatus"
-                  />
+                <FieldBlock error={getFieldError("documents.ownershipDocumentNumber")} label="Proof of Ownership Document">
+                  <TextInput name="documents.ownershipDocumentNumber" inputRef={register()} placeholder="Ownership No." />
                 </FieldBlock>
 
+                {/* Ownership Upload Row */}
                 <Controller
                   control={control}
                   name="documents.ownershipDocumentFile"
@@ -2190,10 +2635,9 @@ const NewApplication = () => {
                   render={(props) => (
                     <FileUploadField
                       error={getFieldError("documents.ownershipDocumentFile")}
-                      helperText="Max size 5 MB. Allowed types: PDF, PNG, JPG, JPEG."
                       id="ownership-document-file"
                       isUploading={!!uploadingFields["documents.ownershipDocumentFile"]}
-                      label="Upload Ownership Document"
+                      label="Proof of Ownership Upload Document *"
                       onDelete={() => clearUploadedFile("documents.ownershipDocumentFile", props.onChange)}
                       onUpload={(event) => uploadFile(event, "documents.ownershipDocumentFile", props.onChange)}
                       required
@@ -2201,44 +2645,59 @@ const NewApplication = () => {
                     />
                   )}
                 />
+                <FieldBlock label="View Document">
+                  <button
+                    type="button"
+                    className="document-action-btn"
+                    onClick={() => handleView(watch("documents.ownershipDocumentFile")?.fileStoreId, stateId)}
+                    disabled={!watch("documents.ownershipDocumentFile")?.fileStoreId}
+                  >
+                    <ViewIcon /> View
+                  </button>
+                </FieldBlock>
 
-                <FieldBlock error={getFieldError("propertyAddress.otherDocument")}></FieldBlock>
-
-                <FieldBlock error={getFieldError("documents.otherDocument")} label="Other Document" required>
+                {/* Other Row */}
+                <FieldBlock error={getFieldError("documents.otherDocument")} label="Other">
                   <Controller
                     control={control}
                     name="documents.otherDocument"
-                    rules={{ required: "Other Document is required." }}
                     render={(props) => (
-                      <Dropdown option={OWNERSHIP_STATUS_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
+                      <Dropdown option={OTHER_DOCUMENTS_OPTIONS} optionKey="name" selected={props.value} select={props.onChange} t={t} />
                     )}
                   />
                 </FieldBlock>
-
-                <FieldBlock error={getFieldError("propertyAddress.otherDocument")} label="Other Document" required>
-                  <TextInput
-                    errorStyle={!!getFieldError("propertyAddress.otherDocument")}
-                    inputRef={register()}
-                    name="propertyAddress.otherDocument"
-                  />
+                <FieldBlock error={getFieldError("documents.otherDocumentNumber")} label="Other Document">
+                  <TextInput name="documents.otherDocumentNumber" inputRef={register()} placeholder="Other Document No." />
                 </FieldBlock>
 
+                {/* Other Upload Row */}
                 <Controller
                   control={control}
                   name="documents.otherDocumentFile"
+                  rules={{ validate: (value) => !!value || "Other Upload Document is required." }}
                   render={(props) => (
                     <FileUploadField
                       error={getFieldError("documents.otherDocumentFile")}
-                      helperText="Optional. Max size 5 MB. Allowed types: PDF, PNG, JPG, JPEG."
                       id="other-document-file"
                       isUploading={!!uploadingFields["documents.otherDocumentFile"]}
-                      label="Other Document"
+                      label="Other Upload Document *"
                       onDelete={() => clearUploadedFile("documents.otherDocumentFile", props.onChange)}
                       onUpload={(event) => uploadFile(event, "documents.otherDocumentFile", props.onChange)}
+                      required
                       value={props.value}
                     />
                   )}
                 />
+                <FieldBlock label="View Document">
+                  <button
+                    type="button"
+                    className="document-action-btn"
+                    onClick={() => handleView(watch("documents.otherDocumentFile")?.fileStoreId, stateId)}
+                    disabled={!watch("documents.otherDocumentFile")?.fileStoreId}
+                  >
+                    <ViewIcon /> View
+                  </button>
+                </FieldBlock>
               </SectionCard>
               <SectionCard
                 description="Declaration and undertaking to be signed by the applicant."
@@ -2329,9 +2788,14 @@ const NewApplication = () => {
                 {formValues?.applicationSelection?.subCategory?.code === "COMMERCIAL" && (
                   <React.Fragment>
                     <PreviewItem label="Commercial Type" value={formValues?.applicationSelection?.commercialType} />
-                    <PreviewItem label="Organization Name" value={formValues?.applicationSelection?.govtOrganization?.organizationName} />
-                    <PreviewItem label="Nature of Work" value={formValues?.applicationSelection?.govtOrganization?.natureOfWork} />
-                    <PreviewItem label="Organization Document" value={formValues?.applicationSelection?.govtOrganization?.organizationDocument} />
+                    {formValues?.applicationSelection?.commercialType?.code === "ORGANIZATION" && (
+                      <React.Fragment>
+                        <PreviewItem label="Department Type" value={formValues?.applicationSelection?.departmentType} />
+                        <PreviewItem label="Organization Name" value={formValues?.applicationSelection?.govtOrganization?.organizationName} />
+                        <PreviewItem label="Nature of Work" value={formValues?.applicationSelection?.govtOrganization?.natureOfWork} />
+                        <PreviewItem label="Organization Document" value={formValues?.applicationSelection?.govtOrganization?.organizationDocument} />
+                      </React.Fragment>
+                    )}
                   </React.Fragment>
                 )}
               </SectionCard>
@@ -2468,11 +2932,16 @@ const NewApplication = () => {
                 title="Documents to be Attached"
                 onEditClick={() => handleSectionEdit("documents")}
               >
+                <PreviewItem label="Applicant Photo" value={formValues?.documents?.applicantPhoto} />
                 <PreviewItem label="Proof of Identity" value={formValues?.documents?.proofOfIdentity} />
+                <PreviewItem label="Identity No." value={formValues?.documents?.identityProofNumber} />
                 <PreviewItem label="Upload Identity Proof" value={formValues?.documents?.identityProofFile} />
                 <PreviewItem label="Ownership Status" value={formValues?.documents?.ownershipStatus} />
+                <PreviewItem label="Ownership No." value={formValues?.documents?.ownershipDocumentNumber} />
                 <PreviewItem label="Upload Ownership Document" value={formValues?.documents?.ownershipDocumentFile} />
-                <PreviewItem label="Other Document" value={formValues?.documents?.otherDocumentFile} />
+                <PreviewItem label="Other" value={formValues?.documents?.otherDocument} />
+                <PreviewItem label="Other Document No." value={formValues?.documents?.otherDocumentNumber} />
+                <PreviewItem label="Other Upload Document" value={formValues?.documents?.otherDocumentFile} />
               </SectionCard>
 
               <SectionCard
@@ -2507,6 +2976,7 @@ const NewApplication = () => {
       </ActionBar>
 
       {showToast ? <Toast error={showToast?.key === "error"} label={showToast?.message} onClose={closeToast} warning={showToast?.warning} /> : null}
+      {showCamera && <CameraCaptureModal onCapture={handleCapture} onClose={() => setShowCamera(false)} t={t} />}
     </div>
   );
 };
