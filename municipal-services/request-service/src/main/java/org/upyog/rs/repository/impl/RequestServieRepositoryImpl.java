@@ -63,6 +63,8 @@ public class RequestServieRepositoryImpl implements RequestServiceRepository {
 	private void pushWaterTankerRequestToKafka(WaterTankerBookingRequest waterTankerRequest) {
 		if(requestServiceConfiguration.getIsUserProfileEnabled()) {
 			producer.push(requestServiceConfiguration.getWaterTankerApplicationWithProfileSaveTopic(), waterTankerRequest);
+//		} else if(waterTankerRequest.getWaterTankerBookingDetail().getWorkflow().getBusinessService().equals("watertanker-fixedpoint")){
+//			producer.push(requestServiceConfiguration.getWaterTankerEmergencySaveTopic(), waterTankerRequest);
 		}
 		else {
 			producer.push(requestServiceConfiguration.getWaterTankerApplicationSaveTopic(), waterTankerRequest);

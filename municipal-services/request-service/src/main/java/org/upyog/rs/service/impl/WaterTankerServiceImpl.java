@@ -66,9 +66,9 @@ public class WaterTankerServiceImpl implements WaterTankerService {
 
 		ApplicantDetail existingApplicant = requestServiceRepository.getApplicantByMobileNumber(waterTankerRequest.getWaterTankerBookingDetail().getMobileNumber());
 
-		if (existingApplicant == null) {
+//		if (existingApplicant == null) {
 			workflowService.updateWorkflowStatus(null, waterTankerRequest);
-		}
+//		}
 
 		try {
 			RequestInfo requestInfo = waterTankerRequest.getRequestInfo();
