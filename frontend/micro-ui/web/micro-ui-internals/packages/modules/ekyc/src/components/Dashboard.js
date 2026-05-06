@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
-import StatusCards from "../../components/StatusCards";
+import StatusCards from "./StatusCards";
 import { Card, Loader } from "@djb25/digit-ui-react-components";
 
 // Mock data removed in favor of API integration
 
-const Dashboard = ({ parentRoute, businessService = "EKYC", initialStates = {}, filterComponent, isInbox }) => {
+const Dashboard = () => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
 
   // 2. API Data Fetching
@@ -34,7 +34,7 @@ const Dashboard = ({ parentRoute, businessService = "EKYC", initialStates = {}, 
   return isLoading ? (
     <Loader />
   ) : (
-    <Card>
+    <Card className="min-width-full">
       <StatusCards countData={countData} />
     </Card>
   );
