@@ -302,7 +302,7 @@ function ApplicationDetailsContent({
                   style={
                     index === 0 && checkLocation
                       ? { marginBottom: "16px", fontSize: "24px" }
-                      : { marginBottom: "16px", marginTop: "32px", fontSize: "24px" }
+                      : { marginBottom: "16px", marginTop: "16px", fontSize: "24px" }
                   }
                 >
                   {t(detail.title)}

@@ -96,9 +96,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
   const [assembly, setAssembly] = useState(formData?.assembly || formData?.address?.assembly || "");
   const [zro, setZro] = useState(formData?.zro || formData?.address?.zro || formData?.infodetails?.existingDataSet?.address?.zro || "");
   const [selectedAddress, setSelectedAddress] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [geocodedAddress, setGeocodedAddress] = useState(null);
-  const [error, setError] = useState(null);
+
   const {
     control,
     formState: { errors },
@@ -439,72 +437,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
     );
   };
 
-  const geocodeAddress = async (address) => {
-    if (!address || !address.trim()) return null;
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`, {
-        headers: {
-          "Accept-Language": "en",
-          "User-Agent": "Digit-UI-AddressDetails",
-        },
-      });
-      if (!response.ok) throw new Error(`Geocoding failed: ${response.statusText}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error in geocodeAddress:", error);
-      return null;
-    }
-  };
 
-  const getLatLng = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const parts = [
-        houseNo,
-        streetName,
-        addressLine1,
-        addressLine2,
-        locality?.name || (typeof locality === "string" ? locality : ""),
-        city?.name || (typeof city === "string" ? city : ""),
-        pincode,
-      ].filter(Boolean);
-
-      const fullAddress = parts.join(", ");
-
-      if (!fullAddress.trim()) {
-        setError(t("WT_ENTER_ADDRESS_DETAILS_FIRST"));
-        setLoading(false);
-        return;
-      }
-
-      const data = await geocodeAddress(fullAddress);
-
-      if (data && data.length > 0) {
-        setLatitude(data[0].lat);
-        setLongitude(data[0].lon);
-        setGeocodedAddress(data[0].display_name);
-      } else {
-        setError(t("WT_LOCATION_NOT_FOUND"));
-      }
-    } catch (err) {
-      setError(t("WT_GEOCODING_ERROR"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!addressLine1 || addressLine1.trim().length < 5) return;
-
-    const timer = setTimeout(() => {
-      getLatLng();
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [addressLine1]);
 
   return (
     <React.Fragment>

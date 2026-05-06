@@ -1,4 +1,5 @@
 import { WTService } from "../../elements/WT";
+import { FSMService } from "../../elements/FSM";
 import React from "react";
 
 /**
@@ -16,12 +17,11 @@ export const WTSearch = {
     return response;
   },
 
-
   application: async (tenantId, filters = {}) => {
     const response = await WTService.search({ tenantId, filters });
     return response.waterTankerBookingDetail[0];
   },
-  BookingDetails: ({ waterTankerBookingDetail: response, t }) => {
+  BookingDetails: ({ waterTankerBookingDetail: response, vendorDetails, vehicleDetails, driverDetails, t }) => {
 
     let immediateRequired = (response?.extraCharge) ? "YES" : "NO"
     return [
@@ -80,27 +80,30 @@ export const WTSearch = {
         title: "WT_VENDOR_DETAILS",
         asSectionHeader: true,
         values: [
-          { title: "WT_VENDOR_NAME", value: t("CS_NA") },
-          { title: "WT_MOBILE_NUMBER", value: t("CS_NA") },
-          { title: "WT_ALT_MOBILE_NUMBER", value: t("CS_NA") },
-          { title: "WT_EMAIL_ID", value: t("CS_NA") }
+          { title: "WT_VENDOR_NAME", value: vendorDetails?.name || t("CS_NA") },
+          { title: "WT_MOBILE_NUMBER", value: vendorDetails?.owner?.mobileNumber || t("CS_NA") },
+          { title: "WT_ALT_MOBILE_NUMBER", value: vendorDetails?.owner?.alternateNumber || t("CS_NA") },
+          { title: "WT_EMAIL_ID", value: vendorDetails?.owner?.emailId || t("CS_NA") }
         ],
       },
       {
         title: "WT_DRIVER_DETAILS",
         asSectionHeader: true,
         values: [
-          { title: "WT_DRIVER_NAME", value: t("CS_NA") },
-          { title: "WT_MOBILE_NUMBER", value: t("CS_NA") },
-          { title: "WT_ALT_MOBILE_NUMBER", value: t("CS_NA") },
-          { title: "WT_EMAIL_ID", value: t("CS_NA") }
+          { title: "WT_DRIVER_NAME", value: driverDetails?.name || t("CS_NA") },
+          { title: "WT_MOBILE_NUMBER", value: driverDetails?.owner?.mobileNumber || t("CS_NA") },
+          { title: "WT_ALT_MOBILE_NUMBER", value: driverDetails?.owner?.alternateNumber || t("CS_NA") },
+          { title: "WT_EMAIL_ID", value: driverDetails?.owner?.emailId || t("CS_NA") }
         ],
       },
       {
         title: "WT_VEHICLE_DETAILS",
         asSectionHeader: true,
         values: [
-          { title: "WT_FILLING_POINTS", value: t("CS_NA") }
+          { title: "WT_VEHICLE_NUMBER", value: vehicleDetails?.registrationNumber || t("CS_NA") },
+          { title: "WT_VEHICLE_TYPE", value: vehicleDetails?.type ? t(`COMMON_MASTER_VEHICLE_${vehicleDetails?.type}`) : t("CS_NA") },
+          { title: "WT_VEHICLE_CAPACITY", value: vehicleDetails?.tankCapacity || t("CS_NA") },
+          { title: "WT_FILLING_POINTS", value: response?.fillingPointMetadata?.name || t("CS_NA") }
         ],
       },
     ];
@@ -109,11 +112,32 @@ export const WTSearch = {
     const filter = { BookingNo, ...args };
     const response = await WTSearch.application(tenantId, filter);
 
+    let vendorDetails = null;
+    let vehicleDetails = null;
+    let driverDetails = null;
+
+    try {
+      if (response?.vendorId) {
+        const vendorRes = await FSMService.vendorSearch(tenantId, { ids: response.vendorId });
+        vendorDetails = vendorRes?.vendor?.[0] || null;
+      }
+      if (response?.vehicleId) {
+        const vehicleRes = await FSMService.vehiclesSearch(tenantId, { ids: response.vehicleId });
+        vehicleDetails = vehicleRes?.vehicle?.[0] || null;
+      }
+      if (response?.driverId) {
+        const driverRes = await FSMService.driverSearch(tenantId, { ids: response.driverId });
+        driverDetails = driverRes?.driver?.[0] || null;
+      }
+    } catch (e) {
+      console.error("Error fetching WT vendor/vehicle/driver details", e);
+    }
+
     return {
       tenantId: response.tenantId,
-      applicationDetails: WTSearch.BookingDetails({ waterTankerBookingDetail: response, t }),
+      applicationDetails: WTSearch.BookingDetails({ waterTankerBookingDetail: response, vendorDetails, vehicleDetails, driverDetails, t }),
       applicationData: response,
-      transformToAppDetailsForEmployee: WTSearch.BookingDetails
+      transformToAppDetailsForEmployee: (params) => WTSearch.BookingDetails({ ...params, vendorDetails, vehicleDetails, driverDetails })
     };
   },
 };
