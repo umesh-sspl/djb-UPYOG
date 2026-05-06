@@ -66,7 +66,31 @@ const ApplicationDetails = () => {
 
   useEffect(() => {
     if (applicationDetails) {
-      setAppDetailsToShow(_.cloneDeep(applicationDetails));
+      let details = _.cloneDeep(applicationDetails);
+      if (details?.applicationDetails?.length > 0) {
+        details.applicationDetails[0].Component = () => (
+          <div 
+            onClick={() => setShowEditModal(true)} 
+            style={{ 
+              float: "right", 
+              display: "flex", 
+              alignItems: "center", 
+              cursor: "pointer", 
+              color: "#f47738", 
+              gap: "8px", 
+              padding: "4px 12px", 
+              backgroundColor: "#fff", 
+              borderRadius: "4px", 
+              border: "1px solid #f47738", 
+              transition: "all 0.2s ease" 
+            }}
+          >
+            <EditIcon style={{ fill: "#f47738", width: "16px", height: "16px" }} />
+            <span style={{ fontWeight: "600", fontSize: "14px" }}>{t("WT_EDIT_FIELDS")}</span>
+          </div>
+        );
+      }
+      setAppDetailsToShow(details);
     }
   }, [applicationDetails]);
 
@@ -89,13 +113,6 @@ const ApplicationDetails = () => {
     <div className="employee-form-content-with-action-bar" style={{ padding: user?.type === "CITIZEN" ? "0 15px" : "", height: "100%" }}>
       <div className="employee-application-details" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
         <Header styles={{ margin: "0px", fontSize: "32px" }}>{t("BOOKING_DETAILS")}</Header>
-        <div 
-          onClick={() => setShowEditModal(true)} 
-          style={{ display: "flex", alignItems: "center", cursor: "pointer", color: "#f47738", gap: "8px", padding: "8px 16px", backgroundColor: "#fff", borderRadius: "4px", border: "1px solid #f47738", transition: "all 0.2s ease" }}
-        >
-          <EditIcon style={{ fill: "#f47738", width: "20px", height: "20px" }} />
-          <span style={{ fontWeight: "600", fontSize: "16px" }}>{t("WT_EDIT_FIELDS")}</span>
-        </div>
       </div>
       {showEditModal && (
         <WTEditApplicationModal

@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { ArrowDown } from "./svgindex";
 
@@ -197,6 +197,8 @@ const Dropdown = (props) => {
   useEffect(() => {
     if (dropdownStatus) {
       setOptionIndex(0);
+    } else {
+      setFilterVal("");
     }
   }, [dropdownStatus]);
 
@@ -211,7 +213,7 @@ const Dropdown = (props) => {
     props?.onBlur?.();
   };
 
-  const onSelect = (val) => {
+  const onSelect = useCallback((val) => {
     if (val !== selectedOption || props.allowMultiselect) {
       props.select(val);
       setSelectedOption(val);
@@ -220,18 +222,20 @@ const Dropdown = (props) => {
       setSelectedOption(val);
       setforceSet((prev) => prev + 1);
     }
-  };
+  }, [selectedOption, props.allowMultiselect, props.select]);
 
-  const setFilter = (val) => {
+  const setFilter = useCallback((val) => {
     setFilterVal(val);
-  };
+  }, []);
 
-  const filteredOption =
-    (props.option && props.option.filter((option) => t(option[props.optionKey])?.toUpperCase()?.indexOf(filterVal?.toUpperCase()) > -1)) || [];
+  const filteredOption = useMemo(() => 
+    (props.option && props.option.filter((option) => t(option[props.optionKey])?.toUpperCase()?.indexOf(filterVal?.toUpperCase()) > -1)) || [],
+    [props.option, props.optionKey, filterVal, t]
+  );
 
-  const selectOption = (ind) => {
+  const selectOption = useCallback((ind) => {
     onSelect(filteredOption[ind]);
-  };
+  }, [filteredOption, onSelect]);
 
   const dropdownContent = (
     <div
@@ -247,6 +251,7 @@ const Dropdown = (props) => {
       }}
       ref={dropdownRef}
     >
+      {/* Search is handled by the main TextField trigger */}
       {filteredOption && filteredOption.length > 0 ? (
         filteredOption.map((option, index) => (
           <div
@@ -254,9 +259,9 @@ const Dropdown = (props) => {
             style={
               index === optionIndex
                 ? {
-                    opacity: 1,
-                    backgroundColor: "rgba(238, 238, 238, var(--bg-opacity))",
-                  }
+                  opacity: 1,
+                  backgroundColor: "rgba(238, 238, 238, var(--bg-opacity))",
+                }
                 : {}
             }
             key={index}
@@ -309,8 +314,8 @@ const Dropdown = (props) => {
                     ? `${selectedOption} ${t("BPA_SELECTED_TEXT")}`
                     : t(props.optionKey ? selectedOption[props.optionKey] : selectedOption)
                   : props.optionKey
-                  ? selectedOption[props.optionKey]
-                  : selectedOption
+                    ? selectedOption[props.optionKey]
+                    : selectedOption
                 : null
             }
             filterVal={filterVal}
@@ -343,11 +348,14 @@ Dropdown.propTypes = {
   optionKey: PropTypes.any,
   select: PropTypes.any,
   t: PropTypes.func,
+  isSearchable: PropTypes.bool,
+  searchPlaceholder: PropTypes.string,
 };
 
 Dropdown.defaultProps = {
   customSelector: null,
   showArrow: true,
+  isSearchable: true,
 };
 
 export default Dropdown;

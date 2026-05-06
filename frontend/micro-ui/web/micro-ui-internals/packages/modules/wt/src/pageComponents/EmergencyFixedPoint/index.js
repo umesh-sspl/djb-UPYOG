@@ -95,6 +95,20 @@ const WTEmergencyFixedPointCreate = () => {
   /* ------------------------------------------------------------------ */
 
   function handleSelect(key, data, skipStep, index, isAddMultiple = false) {
+    if (key === "multiple") {
+      let newParams = { ...params };
+      Object.keys(data).forEach((k) => {
+        if (k !== "navigationKey" && k !== "silent") {
+          newParams[k] = { ...newParams[k], ...data[k] };
+        }
+      });
+      setParams(newParams);
+      if (data.silent) return;
+      // Navigation should be based on the intended current step's key
+      const navigationKey = data.navigationKey || Object.keys(data)[0];
+      goNext(skipStep, index, isAddMultiple, navigationKey);
+      return;
+    }
     if (key === "owners") {
       let owners = params.owners || [];
       owners[index] = data;
@@ -116,7 +130,7 @@ const WTEmergencyFixedPointCreate = () => {
   /*                      SCROLL TO SECTION                              */
   /* ------------------------------------------------------------------ */
 
-  const formStepRoutes = ["fp-applicant-details", "fp-address-details", "fp-request-details"];
+  const formStepRoutes = ["fp-applicant-details", "fp-address-details", "fp-dispatch-details", "fp-request-details"];
   const isFormStep = formStepRoutes.some((route) => pathname.includes(route));
   const sectionRefs = useRef({});
 
