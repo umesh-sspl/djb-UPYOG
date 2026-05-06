@@ -27,19 +27,19 @@ const SearchVendor = () => {
   const { data: dsoData, isLoading, isSuccess, error, refetch } =
     tab === "VEHICLE"
       ? Digit.Hooks.fsm.useVehiclesSearch({
-          //
-          tenantId,
-          filters: {
-            ...paginationParms,
-            registrationNumber: searchParams?.registrationNumber,
-            status: "ACTIVE,DISABLED",
-            vendorId: searchParams?.vendor?.id,
-            fillingPointId: searchParams?.fillingPoint?.id,
-          },
-          config: { enabled: false },
-        })
+        //
+        tenantId,
+        filters: {
+          ...paginationParms,
+          registrationNumber: searchParams?.registrationNumber,
+          status: "ACTIVE,DISABLED",
+          vendorId: searchParams?.vendor?.id,
+          fillingPointId: searchParams?.fillingPoint?.id,
+        },
+        config: { enabled: false },
+      })
       : tab === "DRIVER"
-      ? Digit.Hooks.fsm.useDriverSearch({
+        ? Digit.Hooks.fsm.useDriverSearch({
           tenantId,
           filters: {
             ...paginationParms,
@@ -103,19 +103,17 @@ const SearchVendor = () => {
   }, [searchParams, sortParams, pageOffset, pageSize]);
 
   useEffect(() => {
-      if (dsoData?.vehicle && tab === "VEHICLE") {
-        let vehicleIds = "";
-        dsoData.vehicle.map((data) => (vehicleIds += `${data.id},`));
-        setVehicleIds(vehicleIds);
-        setTableData(dsoData.vehicle);
-      }
-      if (dsoData?.driver && tab === "DRIVER") {
-        let driverIds = "";
-        dsoData.driver.map((data) => (driverIds += `${data.id},`));
-        setDriverIds(driverIds);
-        setTableData(dsoData?.driver);
-      } 
-      if (dsoData?.vendor && tab === "VENDOR") {
+    if (dsoData?.vehicle && tab === "VEHICLE") {
+      const vehicleIds = dsoData.vehicle.map(data => data.id).filter(Boolean).join(",");
+      setVehicleIds(vehicleIds);
+      setTableData(dsoData.vehicle);
+    }
+    if (dsoData?.driver && tab === "DRIVER") {
+      const driverIds = dsoData.driver.map(data => data.id).filter(Boolean).join(",");
+      setDriverIds(driverIds);
+      setTableData(dsoData?.driver);
+    }
+    if (dsoData?.vendor && tab === "VENDOR") {
         const tableData = dsoData.vendor.map((dso) => ({
           mobileNumber: dso.owner?.mobileNumber,
           name: dso.name,
@@ -245,37 +243,37 @@ const SearchVendor = () => {
     setPageSize(Number(e.target.value));
   };
 
-  const handleFilterChange = () => {};
+  const handleFilterChange = () => { };
 
   const searchFields =
     tab === "VEHICLE"
       ? [
-          {
-            label: t("ES_VENDOR_SEARCH_VENDOR_NAME"),
-            name: "vendor",
-            type: "dropdown",
-            options: allVendors?.map((data) => ({
-              ...data.dsoDetails,
-              displayName: `${data.dsoDetails.name} (${data.dsoDetails.mobileNumber || data.dsoDetails.owner?.mobileNumber || "N/A"})`,
-            })),
-            optionsKey: "displayName",
-          },
-          {
-            label: t("ES_FSM_REGISTRY_SEARCH_FILLING_POINT"),
-            name: "fillingPoint",
-            type: "dropdown",
-            options: allFillingPoints?.fillingPoints?.map((fp) => ({ ...fp, name: fp?.name || fp?.fillingPointName || fp?.fillingStationId })),
-            optionsKey: "name",
-          },
-          {
-            label: t("ES_VEHICLE_SEARCH_VEHICLE_NUMBER"),
-            name: "registrationNumber",
-            pattern: "[A-Z]{2}[- ]?[0-9]{2}[- ]?[A-Z]{1,2}[- ]?[0-9]{4}",
-            title: t("ES_FSM_VEHICLE_FORMAT_TIP"),
-          },
-        ]
+        {
+          label: t("ES_VENDOR_SEARCH_VENDOR_NAME"),
+          name: "vendor",
+          type: "dropdown",
+          options: allVendors?.map((data) => ({
+            ...data.dsoDetails,
+            displayName: `${data.dsoDetails.name} (${data.dsoDetails.mobileNumber || data.dsoDetails.owner?.mobileNumber || "N/A"})`,
+          })),
+          optionsKey: "displayName",
+        },
+        {
+          label: t("ES_FSM_REGISTRY_SEARCH_FILLING_POINT"),
+          name: "fillingPoint",
+          type: "dropdown",
+          options: allFillingPoints?.fillingPoints?.map((fp) => ({ ...fp, name: fp?.name || fp?.fillingPointName || fp?.fillingStationId })),
+          optionsKey: "name",
+        },
+        {
+          label: t("ES_VEHICLE_SEARCH_VEHICLE_NUMBER"),
+          name: "registrationNumber",
+          pattern: "[A-Z]{2}[- ]?[0-9]{2}[- ]?[A-Z]{1,2}[- ]?[0-9]{4}",
+          title: t("ES_FSM_VEHICLE_FORMAT_TIP"),
+        },
+      ]
       : tab === "DRIVER"
-      ? [
+        ? [
           {
             label: t("ES_VENDOR_SEARCH_VENDOR_NAME"),
             name: "vendor",
