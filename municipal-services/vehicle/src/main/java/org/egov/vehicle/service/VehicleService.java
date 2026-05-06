@@ -144,6 +144,20 @@ public class VehicleService {
 		applyVehicleSearchRestriction(criteria, requestInfo);
 		UserDetailResponse usersRespnse;
 
+
+
+		if (Boolean.TRUE.equals(criteria.getVehicleWithNoDriver())) {
+
+			List<String> vehicleIds = repository.fetchVehicleIdsWithNoDriver(criteria);
+
+			if (CollectionUtils.isEmpty(criteria.getIds())) {
+				criteria.setIds(vehicleIds);
+			} else {
+				criteria.getIds().addAll(vehicleIds);
+			}
+		}
+
+
 		if (criteria.isVehicleWithNoVendor()) {
 			List<String> vehicleIds = repository.fetchVehicleIdsWithNoVendor(criteria);
 			if (CollectionUtils.isEmpty(criteria.getIds())) {
@@ -152,6 +166,8 @@ public class VehicleService {
 				criteria.getIds().addAll(vehicleIds);
 			}
 		}
+
+
 
 		if (criteria.getMobileNumber() != null) {
 			usersRespnse = userService.getOwner(criteria, requestInfo);

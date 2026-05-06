@@ -137,6 +137,17 @@ public class VehicleRepository {
 		return jdbcTemplate.query(query, preparedStmtList.toArray(), new SingleColumnRowMapper<>(String.class));
 	}
 
+
+
+
+	public List<String> fetchVehicleIdsWithNoDriver(@Valid VehicleSearchCriteria criteria) {
+
+		List<Object> preparedStmtList = new ArrayList<>();
+		String query = queryBuilder.getVehicleIdsWithNoDriverQuery(criteria, preparedStmtList);
+		return jdbcTemplate.query(query, preparedStmtList.toArray(), new SingleColumnRowMapper<>(String.class));
+	}
+
+
 	public List<Vehicle> getVehiclePlainSearch(VehicleSearchCriteria criteria) {
 		if (criteria.getIds() == null || criteria.getIds().isEmpty())
 			throw new CustomException("PLAIN_SEARCH_ERROR", "Search only allowed by ids!");
@@ -284,6 +295,7 @@ public class VehicleRepository {
 		return vehicleDriverMap;
 	}
 
+
 	public List<String> fetchVehicleIdsByVendorOwner(String ownerUuid) {
 
 		String query =
@@ -295,5 +307,4 @@ public class VehicleRepository {
 		return jdbcTemplate.query(query, new Object[]{ownerUuid},
 				new SingleColumnRowMapper<>(String.class));
 	}
-
 }

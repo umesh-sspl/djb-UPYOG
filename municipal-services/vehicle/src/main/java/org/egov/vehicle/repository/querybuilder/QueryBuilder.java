@@ -36,7 +36,17 @@ public class QueryBuilder {
 			"LEFT JOIN upyog_rs_water_tanker_filling_point fp ON veh.filling_point_id = fp.id ";
 	private static final String VEH_EXISTS_QUERY = " SELECT COUNT(*) FROM eg_vehicle WHERE tenantid=? AND registrationNumber=? AND STATUS= ?";
 
+
+	private static final String VEHICLE_NO_DRIVER_QUERY =
+			"SELECT DISTINCT(vehicle.id) " +
+					"FROM eg_vehicle vehicle " +
+					"LEFT JOIN eg_vehicle_driver_mapping driver_map " +
+					"ON vehicle.id = driver_map.vehicle_id " +
+					"AND driver_map.status = 'ACTIVE' ";
+
 	private static final String VEHICLE_NO_VENDOR_QUERY = " SELECT DISTINCT (vehicle.id) FROM EG_VEHICLE vehicle LEFT JOIN eg_vendor_vehicle vendor_vehicle ON vehicle.id=vendor_vehicle.vechile_id";
+
+
 
 	/**
 	 *
@@ -309,6 +319,39 @@ public class QueryBuilder {
 		}
 		return builder.toString();
 	}
+
+
+	public String getVehicleIdsWithNoDriverQuery(@Valid VehicleSearchCriteria criteria,
+	                                             List<Object> preparedStmtList) {
+
+		StringBuilder builder = new StringBuilder(VEHICLE_NO_DRIVER_QUERY);
+
+		// Tenant filter
+		if (criteria.getTenantId() != null) {
+			addClauseIfRequired(preparedStmtList, builder);
+			builder.append(" vehicle.tenantid = ? ");
+			preparedStmtList.add(criteria.getTenantId());
+		}
+		// Vehicle status filter
+		List<String> status = criteria.getStatus();
+		if (!CollectionUtils.isEmpty(status)) {
+			addClauseIfRequired(preparedStmtList, builder);
+			builder.append(" vehicle.status IN (")
+					.append(createQuery(status))
+					.append(") ");
+			addToPreparedStatement(preparedStmtList, status);
+		}
+
+		//  MAIN CONDITION (no driver assigned)
+		addClauseIfRequired(preparedStmtList, builder);
+		builder.append(" driver_map.driver_id IS NULL ");
+
+		return builder.toString();
+	}
+
+
+
+
 
 	public String getVehicleIdsWithNoVendorQuery(@Valid VehicleSearchCriteria criteria, List<Object> preparedStmtList) {
 

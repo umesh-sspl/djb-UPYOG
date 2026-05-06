@@ -75,8 +75,13 @@ public class VehicleSearchCriteria {
 	@JsonProperty("sortOrder")
 	private SortOrder sortOrder;
 
+
+	@JsonProperty("vehicleWithNoDriver")
+	private Boolean vehicleWithNoDriver;
+
 	@JsonProperty("vehicleWithNoVendor")
 	private boolean vehicleWithNoVendor;
+
 
 	@JsonProperty("vendorVehicleStatus")
 	private List<String> vendorVehicleStatus;
