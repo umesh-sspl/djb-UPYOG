@@ -50,6 +50,10 @@ const EmployeeApp = ({ path, url, userType }) => {
   const VendorCreate = Digit.ComponentRegistryService.getComponent("VENDORCreate");
   const DriverDetails = Digit.ComponentRegistryService.getComponent("DriverDetails");
   const VehicleDetails = Digit.ComponentRegistryService.getComponent("VehicleDetails");
+  const AddSupervisor = Digit.ComponentRegistryService.getComponent("AddSupervisor");
+  const SupervisorDetails = Digit.ComponentRegistryService.getComponent("SupervisorDetails");
+  const AddSurveyor = Digit.ComponentRegistryService.getComponent("AddSurveyor");
+  const SurveyorDetails = Digit.ComponentRegistryService.getComponent("SurveyorDetails");
 
   const getDynamicBreadcrumbs = () => {
     const pathname = location.pathname;
@@ -75,6 +79,14 @@ const EmployeeApp = ({ path, url, userType }) => {
       crumbs.push({ label: t("VENDOR_DRIVER_DETAILS") });
     } else if (pathname.includes("/registry/additionaldetails")) {
       crumbs.push({ label: t("VENDOR_ADDITIONAL_DETAILS") });
+    } else if (pathname.includes("/registry/new-supervisor")) {
+      crumbs.push({ label: t("ES_FSM_REGISTRY_TITLE_NEW_SUPERVISOR") });
+    } else if (pathname.includes("/registry/supervisor-details") || pathname.includes("/registry/modify-supervisor/")) {
+      crumbs.push({ label: t("VENDOR_SUPERVISOR_DETAILS") });
+    } else if (pathname.includes("/registry/new-surveyor")) {
+      crumbs.push({ label: t("ES_FSM_REGISTRY_TITLE_NEW_SURVEYOR") });
+    } else if (pathname.includes("/registry/surveyor-details") || pathname.includes("/registry/modify-surveyor/")) {
+      crumbs.push({ label: t("VENDOR_SURVEYOR_DETAILS") });
     }
 
     return crumbs;
@@ -188,6 +200,42 @@ const EmployeeApp = ({ path, url, userType }) => {
               component={(props) => (
                 <LayoutWrapper layoutClass="action">
                   <VehicleDetails {...props} parentRoute={path} />
+                </LayoutWrapper>
+              )}
+            />
+
+            <PrivateRoute
+              path={`${path}/registry/new-supervisor`}
+              component={(props) => (
+                <LayoutWrapper layoutClass="action">
+                  <AddSupervisor {...props} parentRoute={path} />
+                </LayoutWrapper>
+              )}
+            />
+
+            <PrivateRoute
+              path={`${path}/registry/supervisor-details/:id`}
+              component={(props) => (
+                <LayoutWrapper layoutClass="action">
+                  <SupervisorDetails {...props} parentRoute={path} />
+                </LayoutWrapper>
+              )}
+            />
+
+            <PrivateRoute
+              path={`${path}/registry/new-surveyor`}
+              component={(props) => (
+                <LayoutWrapper layoutClass="action">
+                  <AddSurveyor {...props} parentRoute={path} />
+                </LayoutWrapper>
+              )}
+            />
+
+            <PrivateRoute
+              path={`${path}/registry/surveyor-details/:id`}
+              component={(props) => (
+                <LayoutWrapper layoutClass="action">
+                  <SurveyorDetails {...props} parentRoute={path} />
                 </LayoutWrapper>
               )}
             />

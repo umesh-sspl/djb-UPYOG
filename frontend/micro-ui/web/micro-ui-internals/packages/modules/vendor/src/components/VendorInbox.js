@@ -650,6 +650,10 @@ const VendorInbox = (props) => {
         return history.push("/digit-ui/employee/fsm/registry/new-vehicle");
       case "DRIVER":
         return history.push("/digit-ui/employee/fsm/registry/new-driver");
+      case "SUPERVISOR":
+        return history.push("/digit-ui/employee/vendor/registry/new-supervisor");
+      case "SURVEYOR":
+        return history.push("/digit-ui/employee/vendor/registry/new-surveyor");
       default:
         break;
     }
@@ -1067,6 +1071,98 @@ const VendorInbox = (props) => {
             },
           },
         ];
+      case "SUPERVISOR":
+      case "SURVEYOR":
+        return [
+          {
+            Header: props.selectedTab === "SUPERVISOR" ? t("Supervisor's Mobile No.") : t("Surveyor's Mobile No."),
+            id: "userName",
+            accessor: (row) => row.owner?.userName || "NA",
+            Cell: ({ row }) => {
+              const detailsPath = props.selectedTab === "SUPERVISOR" ? "supervisor-details" : "surveyor-details";
+              return (
+                <div>
+                  <span className="link">
+                    <Link to={`/digit-ui/employee/vendor/registry/${detailsPath}/` + row.original["id"]}>
+                      <div>{row.original.owner?.userName || "NA"}</div>
+                    </Link>
+                  </span>
+                </div>
+              );
+            },
+          },
+          {
+            Header: props.selectedTab === "SUPERVISOR" ? t("ES_FSM_REGISTRY_INBOX_SUPERVISOR_NAME") : t("ES_FSM_REGISTRY_INBOX_SURVEYOR_NAME"),
+            accessor: "name",
+            Cell: ({ row }) => {
+              const detailsPath = props.selectedTab === "SUPERVISOR" ? "supervisor-details" : "surveyor-details";
+              return (
+                <div>
+                  <span className="link">
+                    <Link to={`/digit-ui/employee/vendor/registry/${detailsPath}/` + row.original["id"]}>
+                      <div>{`${row.original.name || "N/A"}`}</div>
+                    </Link>
+                  </span>
+                </div>
+              );
+            },
+          },
+          {
+            Header: t("WT_MOBILE_NUMBER"),
+            accessor: "mobileNumber",
+            Cell: ({ row }) => {
+              return <div>{row.original?.owner?.mobileNumber || "N/A"}</div>;
+            },
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DATE_CREATION"),
+            accessor: "createdTime",
+            Cell: ({ row }) =>
+              GetCell(row.original?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row.original?.auditDetails?.createdTime) : ""),
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
+            id: "vendorName",
+            accessor: (row) => row.vendorData?.name || row.vendor?.name || "NA",
+            minWidth: 250,
+            Cell: ({ row }) => {
+              return (
+                <Dropdown
+                  className="fsm-registry-dropdown"
+                  selected={
+                    vendors?.find((vendor) => (row.original.vendorData?.id || row.original.vendor?.id) === vendor.id) ||
+                    row.original.vendorData ||
+                    row.original.vendor
+                  }
+                  option={vendors}
+                  select={(value) => {
+                    console.log("Updating vendor for", props.selectedTab, value);
+                  }}
+                  style={{ textAlign: "left", width: "100%", minWidth: "250px" }}
+                  optionKey="displayName"
+                  t={t}
+                />
+              );
+            },
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+            id: "status",
+            accessor: (row) => row.status || "",
+            Cell: ({ row }) => {
+              return (
+                <ToggleSwitch
+                  style={{ display: "flex", justifyContent: "left" }}
+                  value={row.original?.status === "DISABLED" ? false : true}
+                  onChange={() => {
+                    console.log("Updating status for", props.selectedTab, row.original.id);
+                  }}
+                  name={`switch-${row.id}`}
+                />
+              );
+            },
+          },
+        ];
       default:
         return [];
     }
@@ -1171,6 +1267,66 @@ const VendorInbox = (props) => {
             exportAccessor: (row) => row?.status || "NA",
           },
         ];
+        case "SURVEYOR":
+          return [
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
+              exportAccessor: (row) => row?.owner?.userName || "NA",
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
+              exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
+              exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
+              exportAccessor: (row) =>
+                `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
+                  row?.vendorData?.mobileNumber ||
+                  row?.vendorData?.owner?.mobileNumber ||
+                  row?.vendor?.mobileNumber ||
+                  row?.vendor?.owner?.mobileNumber ||
+                  "NA"
+                }`,
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+              exportAccessor: (row) => row?.status || "NA",
+            },
+          ];
+        case "SUPERVISOR":
+          return [
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
+              exportAccessor: (row) => row?.owner?.userName || "NA",
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
+              exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
+              exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
+              exportAccessor: (row) =>
+                `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
+                  row?.vendorData?.mobileNumber ||
+                  row?.vendorData?.owner?.mobileNumber ||
+                  row?.vendor?.mobileNumber ||
+                  row?.vendor?.owner?.mobileNumber ||
+                  "NA"
+                }`,
+            },
+            {
+              Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+              exportAccessor: (row) => row?.status || "NA",
+            },
+          ];
       default:
         return [];
     }
@@ -1209,6 +1365,12 @@ const VendorInbox = (props) => {
     } else if (props.selectedTab === "VEHICLE") {
       emptyCardText = "ES_FSM_REGISTRY_EMPTY_CARD_VEHICLE";
       emptyButtonText = "ES_FSM_REGISTRY_EMPTY_BUTTON_VEHICLE";
+    } else if (props.selectedTab === "SUPERVISOR") {
+      emptyCardText = "ES_FSM_REGISTRY_EMPTY_CARD_SUPERVISOR";
+      emptyButtonText = "ES_FSM_REGISTRY_EMPTY_BUTTON_SUPERVISOR";
+    } else if (props.selectedTab === "SURVEYOR") {
+      emptyCardText = "ES_FSM_REGISTRY_EMPTY_CARD_SURVEYOR";
+      emptyButtonText = "ES_FSM_REGISTRY_EMPTY_BUTTON_SURVEYOR";
     } else {
       emptyCardText = "ES_FSM_REGISTRY_EMPTY_CARD_DRIVER";
       emptyButtonText = "ES_FSM_REGISTRY_EMPTY_BUTTON_DRIVER";
