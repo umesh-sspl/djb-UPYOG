@@ -37,8 +37,8 @@ const AddVehicle = ({ parentUrl, heading }) => {
       item.labelChildren = (
         <div className="tooltip" style={{ paddingLeft: "10px", marginBottom: "-3px" }}>
           <InfoIcon />
-          <span className="tooltiptext" style={{ width: "150px", left: "230%", fontSize: "14px" }}>
-            {t(item.populators.validation.title)}
+          <span className="tooltiptext" style={{ width: "320px", left: "230%", fontSize: "14px" }}>
+            {item.populators.validation.title}
           </span>
         </div>
       );
@@ -59,14 +59,46 @@ const AddVehicle = ({ parentUrl, heading }) => {
       amount: null,
     },
   };
+  const formatVehicleNumber = (input) => {
+    const cleaned = input.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (cleaned.length <= 2) return cleaned;
+
+    const state = cleaned.slice(0, 2);
+    const rest = cleaned.slice(2);
+    if (!rest) return state;
+
+    const rtoMatch = rest.match(/^(\d{1,2})/);
+    if (!rtoMatch) return state + "-" + rest;
+
+    const rtoDigits = rtoMatch[1];
+    const afterRto = rest.slice(rtoDigits.length);
+
+    const lettersMatch = afterRto.match(/^([A-Z]*)/);
+    const middleLetters = lettersMatch ? lettersMatch[1] : "";
+    const number = afterRto.slice(middleLetters.length);
+
+    if (!number) {
+      // No number digits yet — still typing the middle part
+      return state + "-" + rtoDigits + middleLetters;
+    }
+
+    // Number has started — determine 3-group vs 4-group format
+    if (middleLetters.length >= 3) {
+      // 4-group: split letters (1 + rest for 3 letters, 2 + 2 for 4 letters)
+      const splitAt = middleLetters.length <= 3 ? 1 : 2;
+      const series = middleLetters.slice(0, splitAt);
+      const subSeries = middleLetters.slice(splitAt);
+      return state + "-" + rtoDigits + series + "-" + subSeries + "-" + number.slice(0, 4);
+    }
+    // 3-group: RTO digits + series letters combined
+    return state + "-" + rtoDigits + middleLetters + "-" + number.slice(0, 4);
+  };
+
   const onFormValueChange = (setValue, formData) => {
     if (formData?.registrationNumber) {
-      let updatedRegNo = formData.registrationNumber
-        .toUpperCase()
-        .replace(/ /g, "-")
-        .replace(/[^A-Z0-9-]/g, "");
-      if (updatedRegNo.length > 13) {
-        updatedRegNo = updatedRegNo.slice(0, 13);
+      let updatedRegNo = formatVehicleNumber(formData.registrationNumber);
+      if (updatedRegNo.length > 15) {
+        updatedRegNo = updatedRegNo.slice(0, 15);
       }
       if (updatedRegNo !== formData.registrationNumber) {
         setValue("registrationNumber", updatedRegNo);
