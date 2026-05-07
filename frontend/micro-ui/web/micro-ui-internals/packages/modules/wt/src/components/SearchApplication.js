@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   TextInput,
@@ -11,6 +11,8 @@ import {
   MobileNumber,
   Loader,
   Header,
+  Modal,
+  ViewsIcon,
 } from "@djb25/digit-ui-react-components";
 import { Link } from "react-router-dom";
 import { APPLICATION_PATH } from "../utils";
@@ -19,7 +21,91 @@ import CollapsibleCardPage from "./CollapseCard";
 const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, setShowToast, moduleCode, isFixedPoint }) => {
   const isMobile = window.Digit.Utils.browser.isMobile();
   const user = Digit.UserService.getUser().info;
+  const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
+  const [selectedVendorForWorkOrder, setSelectedVendorForWorkOrder] = useState(null);
 
+  const handleViewDocument = useCallback(async (fileStoreId) => {
+    if (!fileStoreId) return;
+    try {
+      const response = await Digit.UploadServices.FileFetchbyid(fileStoreId, tenantId);
+      if (response && response.data) {
+        const file = new Blob([response.data], { type: response.headers["content-type"] });
+        const fileUrl = URL.createObjectURL(file);
+        window.open(fileUrl, "_blank");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const DriverReportColumns = useMemo(
+    () => [
+      {
+        Header: t("S.No"),
+        accessor: (row, index) => index + 1,
+      },
+      {
+        Header: t("WT_BOOKING_NO"),
+        accessor: "bookingNo",
+      },
+      {
+        Header: t("WT_VEHICLE_NO"),
+        accessor: "vehicleRegistrationNo",
+      },
+      {
+        Header: t("WT_DRIVER_NAME"),
+        accessor: "driverName",
+      },
+      {
+        Header: t("WT_TANK_CAPACITY"),
+        accessor: "tankCapicity",
+      },
+      {
+        Header: t("WT_STATUS"),
+        accessor: "currentStatus",
+      },
+      {
+        Header: t("WT_START_PHOTO"),
+        Cell: ({ row }) =>
+          row.original.startFileStoreId ? (
+            <div
+              style={{ color: "#f47738", cursor: "pointer", display: "inline-block" }}
+              onClick={() => handleViewDocument(row.original.startFileStoreId)}
+            >
+              <ViewsIcon />
+            </div>
+          ) : (
+            t("CS_NA")
+          ),
+      },
+      {
+        Header: t("WT_END_PHOTO"),
+        Cell: ({ row }) =>
+          row.original.endFileStoreId ? (
+            <div
+              style={{ color: "#f47738", cursor: "pointer", display: "inline-block" }}
+              onClick={() => handleViewDocument(row.original.endFileStoreId)}
+            >
+              <ViewsIcon />
+            </div>
+          ) : (
+            t("CS_NA")
+          ),
+      },
+    ],
+    [t, handleViewDocument]
+  );
+
+
+  const openWorkOrderModal = (vendorDetails) => {
+    setSelectedVendorForWorkOrder(vendorDetails);
+    setShowWorkOrderModal(true);
+  };
+
+  const closeWorkOrderModal = () => {
+    setSelectedVendorForWorkOrder(null);
+    setShowWorkOrderModal(false);
+  };
   const defaultValues = {
     offset: 0,
     limit: 10,
@@ -44,6 +130,10 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
   );
   const fillingPoints = fillingPointsData?.fillingPoints || [];
 
+  const { data: tripReportsData, isLoading: isTripReportsLoading } = Digit.Hooks.wt.useDriverTripReportSearch(
+    { tenantId, filters: { bookingNo: selectedVendorForWorkOrder?.bookingNo } },
+    { enabled: !!selectedVendorForWorkOrder?.bookingNo }
+  );
 
   const GetCell = (value) => <span className="cell-text">{value}</span>;
 
@@ -80,6 +170,24 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
         disableSortBy: true,
         Cell: ({ row }) => GetCell(t(row.original["bookingStatus"])),
       },
+      {
+        Header: t("VIEW_REPORTS"),
+        disableSortBy: true,
+        Cell: ({ row }) => {
+          return (
+            <button
+              className="submit-bar"
+              style={{
+                backgroundColor: "#417505",
+                color: "white",
+              }}
+              onClick={() => openWorkOrderModal(row.original)}
+            >
+              {t("VIEW_REPORTS")}
+            </button>
+          );
+        },
+      },
     ],
     [t, user.type]
   );
@@ -87,24 +195,24 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
   const statusOptions =
     moduleCode === "TP"
       ? [
-          { i18nKey: "TP_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("TP_BOOKING_CREATED") },
-          { i18nKey: "TP_PENDING_FOR_APPROVAL", code: "PENDING_FOR_APPROVAL", value: t("TP_PENDING_FOR_APPROVAL") },
-          { i18nKey: "TP_PAYMENT_PENDING", code: "PAYMENT_PENDING", value: t("TP_PAYMENT_PENDING") },
-          {
-            i18nKey: "TP_TEAM_ASSIGNMENT_FOR_VERIFICATION",
-            code: "TEAM_ASSIGNMENT_FOR_VERIFICATION",
-            value: t("TP_TEAM_ASSIGNMENT_FOR_VERIFICATION"),
-          },
-          { i18nKey: "TP_TEAM_ASSIGNMENT_FOR_EXECUTION", code: "TEAM_ASSIGNMENT_FOR_EXECUTION", value: t("TP_TEAM_ASSIGNMENT_FOR_EXECUTION") },
-          { i18nKey: "TP_TREE_PRUNING_SERVICE_COMPLETED", code: "TREE_PRUNING_SERVICE_COMPLETED", value: t("TP_TREE_PRUNING_SERVICE_COMPLETED") },
-        ]
+        { i18nKey: "TP_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("TP_BOOKING_CREATED") },
+        { i18nKey: "TP_PENDING_FOR_APPROVAL", code: "PENDING_FOR_APPROVAL", value: t("TP_PENDING_FOR_APPROVAL") },
+        { i18nKey: "TP_PAYMENT_PENDING", code: "PAYMENT_PENDING", value: t("TP_PAYMENT_PENDING") },
+        {
+          i18nKey: "TP_TEAM_ASSIGNMENT_FOR_VERIFICATION",
+          code: "TEAM_ASSIGNMENT_FOR_VERIFICATION",
+          value: t("TP_TEAM_ASSIGNMENT_FOR_VERIFICATION"),
+        },
+        { i18nKey: "TP_TEAM_ASSIGNMENT_FOR_EXECUTION", code: "TEAM_ASSIGNMENT_FOR_EXECUTION", value: t("TP_TEAM_ASSIGNMENT_FOR_EXECUTION") },
+        { i18nKey: "TP_TREE_PRUNING_SERVICE_COMPLETED", code: "TREE_PRUNING_SERVICE_COMPLETED", value: t("TP_TREE_PRUNING_SERVICE_COMPLETED") },
+      ]
       : [
-          { i18nKey: "WT_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("WT_BOOKING_CREATED") },
-          { i18nKey: "WT_VENDOR_ASSIGNED", code: "VENDOR_ASSIGNED", value: t("WT_VENDOR_ASSIGNED") },
-          { i18nKey: "WT_DELIVERY_PENDING", code: "DELIVERY_PENDING", value: t("WT_DELIVERY_PENDING") },
-          { i18nKey: "WT_DELIVERED", code: "DELIVERED", value: t("WT_DELIVERED") },
-          { i18nKey: "WT_REQUEST_REJECTED", code: "REQUEST_REJECTED", value: t("WT_REQUEST_REJECTED") },
-        ];
+        { i18nKey: "WT_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("WT_BOOKING_CREATED") },
+        { i18nKey: "WT_VENDOR_ASSIGNED", code: "VENDOR_ASSIGNED", value: t("WT_VENDOR_ASSIGNED") },
+        { i18nKey: "WT_DELIVERY_PENDING", code: "DELIVERY_PENDING", value: t("WT_DELIVERY_PENDING") },
+        { i18nKey: "WT_DELIVERED", code: "DELIVERED", value: t("WT_DELIVERED") },
+        { i18nKey: "WT_REQUEST_REJECTED", code: "REQUEST_REJECTED", value: t("WT_REQUEST_REJECTED") },
+      ];
 
   const onSort = useCallback(
     (args) => {
@@ -324,6 +432,50 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
           (data !== "" || isLoading) && <Loader />
         )}
       </div>
+      {showWorkOrderModal && (
+        <Modal
+          headerBarMain={
+            <h1 className="heading-m" style={{ margin: 0 }}>
+              {t("VIEW_DRIVER_TRIP_REPORTS")}
+            </h1>
+          }
+          headerBarEnd={
+            <div className="icon-bg-secondary" onClick={closeWorkOrderModal} style={{ cursor: "pointer" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF" width="24" height="24">
+                <path d="M0 0h24v24H0V0z" fill="none" />
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+              </svg>
+            </div>
+          }
+          actionCancelLabel={t("CS_COMMON_CLOSE")}
+          actionCancelOnSubmit={closeWorkOrderModal}
+          hideSubmit={true}
+          formId="modal-action"
+        >
+          <div style={{ padding: "16px" }}>
+            {isTripReportsLoading ? (
+              <Loader />
+            ) : tripReportsData?.driverTripReports?.length > 0 ? (
+              <Table
+                t={t}
+                data={tripReportsData.driverTripReports}
+                columns={DriverReportColumns}
+                getCellProps={(cellInfo) => {
+                  return {
+                    style: {
+                      minWidth: "150px",
+                      padding: "8px 12px",
+                      fontSize: "13.5px",
+                    },
+                  };
+                }}
+              />
+            ) : (
+              <p style={{ textAlign: "center", marginTop: "20px" }}>{t("ES_VENDOR_NO_WORKORDERS")}</p>
+            )}
+          </div>
+        </Modal>
+      )}
     </React.Fragment>
   );
 };
