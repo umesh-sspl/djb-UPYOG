@@ -86,8 +86,6 @@ public class RequestServiceConfiguration {
 	@Value("${persister.create.water-tanker.with.profile.topic}")
 	private String waterTankerApplicationWithProfileSaveTopic;
 
-	@Value("${persister.create.water-tanker.emergency.topic}")
-	private String waterTankerEmergencySaveTopic;
 
 	@Value("${persister.create.fixed-point.water-tanker.with.profile.topic}")
 	private String fixedPointWaterTankerApplicationWithProfileSaveTopic;
