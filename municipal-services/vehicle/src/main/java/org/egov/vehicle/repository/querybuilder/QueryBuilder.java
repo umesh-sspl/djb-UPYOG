@@ -41,8 +41,7 @@ public class QueryBuilder {
 			"SELECT DISTINCT(vehicle.id) " +
 					"FROM eg_vehicle vehicle " +
 					"LEFT JOIN eg_vehicle_driver_mapping driver_map " +
-					"ON vehicle.id = driver_map.vehicle_id " +
-					"AND driver_map.status = 'ACTIVE' ";
+					"ON vehicle.id = driver_map.vehicle_id" ;
 
 	private static final String VEHICLE_NO_VENDOR_QUERY = " SELECT DISTINCT (vehicle.id) FROM EG_VEHICLE vehicle LEFT JOIN eg_vendor_vehicle vendor_vehicle ON vehicle.id=vendor_vehicle.vechile_id";
 
@@ -342,10 +341,8 @@ public class QueryBuilder {
 			addToPreparedStatement(preparedStmtList, status);
 		}
 
-		//  MAIN CONDITION (no driver assigned)
 		addClauseIfRequired(preparedStmtList, builder);
-		builder.append(" driver_map.driver_id IS NULL ");
-
+		builder.append(" (driver_map.driver_id IS NULL OR driver_map.status='INACTIVE') ");
 		return builder.toString();
 	}
 
