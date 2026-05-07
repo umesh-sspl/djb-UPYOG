@@ -126,7 +126,7 @@ export const WTSearch = {
         vehicleDetails = vehicleRes?.vehicle?.[0] || null;
       }
       if (response?.driverId) {
-        const driverRes = await FSMService.driverSearch(tenantId, { ids: response.driverId });
+        const driverRes = await FSMService.driverSearch(tenantId, { ownerIds: response.driverId });
         driverDetails = driverRes?.driver?.[0] || null;
       }
     } catch (e) {

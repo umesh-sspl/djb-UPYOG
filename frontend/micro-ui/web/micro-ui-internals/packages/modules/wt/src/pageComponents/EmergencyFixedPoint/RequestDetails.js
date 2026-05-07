@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FormStep, TextInput, CardLabel, RadioButtons, CheckBox, Dropdown, TextArea, UploadFile } from "@djb25/digit-ui-react-components";
+import { FormStep, TextInput, CardLabel, CheckBox, Dropdown, TextArea, UploadFile } from "@djb25/digit-ui-react-components";
 
 /**
  * Major Page which is developed for Request/Booking detail page
@@ -10,7 +10,8 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
   const user = Digit.UserService.getUser().info;
   let validation = {};
 
-  const [tankerType, settankerType] = useState(formData?.requestDetails?.tankerType || "");
+  // Defaulted tankerType to "tanker" object so it passes correctly to the payload
+  const [tankerType, settankerType] = useState(formData?.requestDetails?.tankerType || { code: "TANKER", i18nKey: "TANKER", value: "TANKER" });
   const [tankerQuantity, settankerQuantity] = useState(formData?.requestDetails?.tankerQuantity || { i18nKey: "1", code: "1", value: "1" });
   const [waterQuantity, setwaterQuantity] = useState(formData?.requestDetails?.waterQuantity || "");
   const [waterType, setWaterType] = useState(formData?.requestDetails?.waterType || "");
@@ -55,12 +56,10 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
       return formattedData;
     },
   });
+  
   let Vehicle = [];
-
   let tankerDetails = [];
-
   let tankerTypeDetails = [];
-
   let WaterType = [];
 
   // Iterate over the WaterType array and push data to the WaterType array
@@ -75,7 +74,7 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
       tankerDetails.push({ i18nKey: `${data.code}`, code: `${data.code}`, value: `${data.code}` });
     });
 
-  // Iterate over the VehicleType  array and push data to the Vehicle array
+  // Iterate over the VehicleType array and push data to the Vehicle array
   VehicleType &&
     VehicleType.map((data) => {
       Vehicle.push({
@@ -87,21 +86,35 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
       });
     });
 
-  // Iterate over the TankerType  array and push data to the tankerTypeDetails array
+  // Iterate over the TankerType array and push data to the tankerTypeDetails array
   TankerType &&
     TankerType.map((data) => {
       tankerTypeDetails.push({ i18nKey: `${data.i18nKey}`, code: `${data.code}`, value: `${data.value}` });
     });
 
-  // Filter Vehicle array based on selected tankerType and return mapped data
-  const VehicleDetails = Vehicle
-    .filter((data) => tankerType?.code === data.vehicleType)
+  // Filter Vehicle array based on selected tankerType (Case-insensitive to prevent empty dropdowns)
+  let VehicleDetails = Vehicle
+    .filter((data) => {
+      const vType = data.vehicleType ? data.vehicleType.toLowerCase() : "";
+      const tType = tankerType?.code ? tankerType.code.toLowerCase() : "";
+      return vType === tType || vType.includes("tanker");
+    })
     .map((data) => ({
       i18nKey: `${data.capacityName}`,
       code: `${data.code}`,
       value: `${data.value}`,
       capacity: `${data.capacity}`,
     }));
+
+  // Fallback: If strict matching failed but vehicles exist, map all vehicles so dropdown isn't empty
+  if (VehicleDetails.length === 0 && Vehicle.length > 0) {
+    VehicleDetails = Vehicle.map((data) => ({
+      i18nKey: `${data.capacityName}`,
+      code: `${data.code}`,
+      value: `${data.value}`,
+      capacity: `${data.capacity}`,
+    }));
+  }
 
   // Custom time input component
   const TimeInput = () => {
@@ -167,39 +180,16 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
     onSelect(config.key, request, false);
   };
 
-  useEffect(() => {
-    if (!tankerType && tankerTypeDetails?.length) {
-      settankerType(tankerTypeDetails[0]);
-    }
-  }, [tankerTypeDetails]);
-
   return (
     <React.Fragment>
       <FormStep
         config={config}
         onSelect={goNext}
         t={t}
-        isDisabled={!tankerType || !deliveryDate || !tankerQuantity || !waterQuantity || !deliveryTime || !description || !waterType}
+        // Removed !description from isDisabled constraints
+        isDisabled={!tankerType || !deliveryDate || !tankerQuantity || !waterQuantity || !deliveryTime || !waterType}
         className="card-form-container"
       >
-        <div>
-          <CardLabel>
-            {`${t("WT_TANKER_TYPE")}`} <span className="astericColor">*</span>
-          </CardLabel>
-          <RadioButtons
-            t={t}
-            options={tankerTypeDetails}
-            style={{ display: "flex", flexWrap: "wrap", maxHeight: "30px" }}
-            innerStyles={{ minWidth: "24%" }}
-            optionsKey="i18nKey"
-            name={`tankerType`}
-            value={tankerType}
-            selectedOption={tankerType}
-            onSelect={settankerType}
-            labelKey="i18nKey"
-            isPTFlow={true}
-          />
-        </div>
         <div>
           <CardLabel>
             {`${t("WT_WATER_TYPE")}`} <span className="astericColor">*</span>
@@ -259,8 +249,7 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
             value={deliveryDate}
             onChange={setDeliveryDate}
             min={new Date().toISOString().split("T")[0]}
-                        max={new Date().toISOString().split("T")[0]}
-
+            max={new Date().toISOString().split("T")[0]}
             rules={{
               required: t("CORE_COMMON_REQUIRED_ERRMSG"),
               validDate: (val) => (/^\d{4}-\d{2}-\d{2}$/.test(val) ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG")),
@@ -289,8 +278,9 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
           />
         </div>
         <div>
+          {/* Removed mandatory asterisk span */}
           <CardLabel>
-            {`${t("WT_DESCRIPTION")}`} <span className="astericColor">*</span>
+            {`${t("WT_DESCRIPTION")}`}
           </CardLabel>
           <TextArea
             t={t}
@@ -301,9 +291,9 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
             value={description}
             onChange={setDescription}
             style={inputStyles}
-            ValidationRequired={true}
+            ValidationRequired={false} // Validation turned off
             {...(validation = {
-              isRequired: true,
+              isRequired: false, // Made optional
               pattern: "^[a-zA-Z ]+$",
               type: "tel",
               title: t("PT_NAME_ERROR_MESSAGE"),
@@ -311,7 +301,6 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
           />
         </div>
         {error ? <div style={{ height: "20px", width: "100%", fontSize: "20px", color: "red", marginTop: "5px" }}>{error}</div> : ""}
-        {/* <div style={{ disabled: "true", height: "20px", width: "100%" }}></div> */}
         <CheckBox label={t("WT_IMMEDIATE")} onChange={setextrachargeHandler} checked={extraCharge} />
       </FormStep>
     </React.Fragment>

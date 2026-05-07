@@ -32,6 +32,21 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
   const [fixedPoint, setFixedPoint] = useState(formData?.owner?.fixedPoint || "");
   const [autoPopulatedAddress, setAutoPopulatedAddress] = useState(null);
 
+  // New Search States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const handleSearch = React.useCallback((val) => {
+    setSearchQuery(val);
+  }, []);
+
   const handleFixedPointSelect = (selected) => {
     setFixedPoint(selected);
     if (selected && typeof selected === "object") {
@@ -58,7 +73,7 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
           pincode: addr.pincode ? addr.pincode.toString().split(".")[0] : "",
         };
         setAutoPopulatedAddress(addressData);
-        
+
         // Silent update to parent params so AddressDetails picks it up immediately
         onSelect("multiple", {
           address: addressData,
@@ -107,13 +122,16 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
 
   const tenantId = Digit.ULBService.getCurrentTenantId();
 
-  // Fetch all Fixed Points
+  // Fetch Fixed Points based on search query
   const { data: fixedPointsData } = Digit.Hooks.wt.useFixedPointSearchAPI(
     {
       tenantId,
-      filters: { limit: 1000 },
+      filters: {
+        limit: 1000,
+        ...(debouncedSearchQuery ? { name: debouncedSearchQuery } : {})
+      },
     },
-    { enabled: true }
+    { enabled: isExistingFixedPoint?.code === "YES" }
   );
 
   const fixedPointOptions = fixedPointsData?.waterTankerBookingDetail?.map(fp => ({
@@ -143,7 +161,7 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
 
   const goNext = () => {
     let owner = formData.owner;
-    
+
     let finalApplicantName = "";
     if (isExistingFixedPoint?.code === "YES") {
       finalApplicantName = fixedPoint?.applicantDetail?.name || fixedPoint?.name || "";
@@ -155,7 +173,7 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
       ...owner, applicantName: finalApplicantName, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId,
       fixedPoint, isExistingFixedPoint
     };
-    
+
     if (autoPopulatedAddress) {
       onSelect("multiple", {
         owner: applicantDetails,
@@ -215,6 +233,7 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
                 t={t}
                 name="fixedPoint"
                 placeholder={t("WT_SELECT_FIXED_POINT", "Select Fixed Point")}
+                onSearch={handleSearch}
               />
             ) : (
               <TextInput

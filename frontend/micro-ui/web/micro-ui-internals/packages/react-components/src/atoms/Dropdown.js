@@ -224,11 +224,17 @@ const Dropdown = (props) => {
     }
   }, [selectedOption, props.allowMultiselect, props.select]);
 
+  const onSearchRef = useRef(props.onSearch);
+  onSearchRef.current = props.onSearch;
+
   const setFilter = useCallback((val) => {
     setFilterVal(val);
+    if (onSearchRef.current) {
+      onSearchRef.current(val);
+    }
   }, []);
 
-  const filteredOption = useMemo(() => 
+  const filteredOption = useMemo(() =>
     (props.option && props.option.filter((option) => t(option[props.optionKey])?.toUpperCase()?.indexOf(filterVal?.toUpperCase()) > -1)) || [],
     [props.option, props.optionKey, filterVal, t]
   );
