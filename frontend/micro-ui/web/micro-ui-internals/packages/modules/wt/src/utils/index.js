@@ -38,7 +38,7 @@ export const waterTankerPayload = (data) => {
   const formdata = {
     waterTankerBookingDetail: {
       tenantId: data?.tenantId,
-      tankerType: data?.requestDetails?.tankerType?.code,
+      tankerType: (data?.requestDetails?.tankerType?.code || data?.requestDetails?.tankerType || "")?.toUpperCase(),
       waterType: data?.requestDetails?.waterType?.code,
       tankerQuantity: data?.requestDetails?.tankerQuantity?.code,
       waterQuantity: data?.requestDetails?.waterQuantity?.code,
@@ -265,7 +265,7 @@ export const emergencyWaterTankerPayload = (data) => {
     waterTankerBookingDetail: {
       applicantId: applicantDetailFromFP?.applicantId || data?.owner?.applicantId || "",
       tenantId: data?.tenantId,
-      tankerType: data?.requestDetails?.tankerType?.code || data?.requestDetails?.tankerType,
+      tankerType: (data?.requestDetails?.tankerType?.code || data?.requestDetails?.tankerType || "")?.toUpperCase(),
       waterType: data?.requestDetails?.waterType?.code || data?.requestDetails?.waterType,
       tankerQuantity: data?.requestDetails?.tankerQuantity?.code || data?.requestDetails?.tankerQuantity,
       waterQuantity: data?.requestDetails?.waterQuantity?.code || data?.requestDetails?.waterQuantity?.value || data?.requestDetails?.waterQuantity,
@@ -276,7 +276,7 @@ export const emergencyWaterTankerPayload = (data) => {
       addressDetailId: addressFromFP?.addressId || data?.address?.addressDetailId || "",
       vendorId: data?.dispatchDetails?.vendor?.id || data?.owner?.vendor?.id || "",
       vehicleId: data?.dispatchDetails?.vehicle?.id || data?.owner?.vehicle?.id || "",
-      driverId: data?.dispatchDetails?.driver?.id || data?.owner?.driver?.id || "",
+      driverId: data?.dispatchDetails?.driver?.ownerId || data?.owner?.driver?.ownerId || "",
       fillingPointId: data?.dispatchDetails?.fillingPoint?.id || data?.owner?.fillingPoint?.id || "",
       vehicleType: data?.dispatchDetails?.vehicle?.vehicleType || data?.owner?.vehicle?.vehicleType || "",
       vehicleCapacity: data?.dispatchDetails?.vehicle?.capacity || data?.owner?.vehicle?.capacity || "",
