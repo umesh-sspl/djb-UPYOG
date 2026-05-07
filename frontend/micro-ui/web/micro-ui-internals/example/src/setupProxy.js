@@ -122,6 +122,7 @@ module.exports = function (app) {
     "/request-service/mobile-toilet/v1/_create",
     "/request-service/mobile-toilet/v1/_update",
     "/request-service/mobile-toilet/v1/_search",
+    "/request-service/v1/driver-trip-report/_search",
     "/vendor-management/api/v1/vendorPlusAdditional/_search",
     "/user/_updateAddress",
     "/ekyc-service",

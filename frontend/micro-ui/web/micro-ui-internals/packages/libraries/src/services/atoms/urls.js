@@ -16,6 +16,7 @@ const Urls = {
   FileStore: "/filestore/v1/files",
 
   FileFetch: "/filestore/v1/files/url",
+  FileFetchById: "/filestore/v1/files/id",
   PGR_Create: `/pgr-services/v2/request/_create`,
   pgr_count: `/pgr-services/v2/request/_count`,
 
@@ -274,7 +275,8 @@ const Urls = {
     updatefillpointlocality: "/request-service/filling-point/locality/v1/_update",
     mapping: "/request-service/water-tanker/fixed-filling/v1/_mapping",
     workOrderCreate: "/vendor-management/api/v1/work-order/_create",
-    vendorMapping:"/request-service/wt/filling-point/vendor/_map",
+    vendorMapping: "/request-service/wt/filling-point/vendor/_map",
+    driverTripReportSearch: "/request-service/v1/driver-trip-report/_search",
   },
   mt: {
     create: "/request-service/mobile-toilet/v1/_create",

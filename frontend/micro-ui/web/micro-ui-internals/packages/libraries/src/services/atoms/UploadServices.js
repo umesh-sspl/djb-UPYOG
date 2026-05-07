@@ -65,4 +65,34 @@ export const UploadServices = {
       };
     }
   },
+
+  FileFetchbyid: async (fileStoreId, tenantId) => {
+    let tenantInfo = window?.globalConfigs?.getConfig("ENABLE_SINGLEINSTANCE") ? `?tenantId=${tenantId}` : "";
+    const kc = window.keycloak;
+    var config = {
+      method: "get",
+      url: `${Urls.FileFetchById}${tenantInfo}`,
+      params: {
+        tenantId: tenantId,
+        fileStoreId: fileStoreId,
+      },
+      responseType: "blob",
+      headers: { "auth-token": kc.token ? kc.token : null },
+    };
+    try {
+      const res = await Axios(config);
+
+      return res;
+    } catch (error) {
+      console.error("🚨 FileFetchById Error:", error?.response || error);
+
+      return {
+        success: false,
+        status: error?.response?.status || 500,
+        data: error?.response?.data || null,
+        message: error?.response?.data?.message || error.message || "File fetch by id failed",
+      };
+    }
+  },
 };
+
