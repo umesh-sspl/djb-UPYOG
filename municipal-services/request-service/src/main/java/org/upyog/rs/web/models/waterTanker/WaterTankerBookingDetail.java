@@ -65,7 +65,7 @@ public class WaterTankerBookingDetail {
 	@NotNull
 	private int waterQuantity;
 
-	@NotBlank
+//	@NotBlank
 	private String description;
 
 	@JsonProperty("applicantId")
