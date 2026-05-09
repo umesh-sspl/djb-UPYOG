@@ -151,5 +151,8 @@ public class RequestDetailsByDriverId {
 
         @JsonProperty("fillingPoint")
         private FillingPoint fillingPoint;
+
+        @JsonProperty("applicationType")
+        private String applicationType;
     }
 }

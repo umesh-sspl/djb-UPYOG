@@ -29,6 +29,7 @@ public class DriverDetailsRowMapper implements RowMapper<RequestDetailsByDriverI
         details.setApplicantUuid(rs.getString("applicant_uuid"));
         details.setDeliveryDate(rs.getString("delivery_date"));
         details.setDeliveryTime(rs.getString("delivery_time"));
+        details.setApplicationType(rs.getString("application_type"));
 
         details.setExtraCharge(rs.getString("extra_charge"));
         details.setVendorId(rs.getString("vendor_id"));

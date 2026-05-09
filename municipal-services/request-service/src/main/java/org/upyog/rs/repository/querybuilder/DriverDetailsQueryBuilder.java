@@ -7,7 +7,7 @@ public class DriverDetailsQueryBuilder {
     public static final String DRIVER_QUERY = new StringBuilder()
             .append("SELECT DISTINCT ON (ursbd.booking_id) ") // Prevents duplicates per booking
             .append("ursbd.booking_id, ursbd.booking_no, ursbd.tenant_id, ursbd.tanker_type, ursbd.tanker_quantity, ")
-            .append("ursbd.water_quantity, ursbd.address_detail_id, ursbd.mobile_number, ursbd.locality_code, ")
+            .append("ursbd.water_quantity, ursbd.address_detail_id, ursbd.mobile_number, ursbd.locality_code,ursbd.application_type, ")
             .append("ursbd.payment_receipt_filestore_id, ursbd.water_type, ursbd.description, ursbd.applicant_uuid, ")
             .append("ursbd.delivery_date, ursbd.delivery_time, ursbd.extra_charge, ursbd.vendor_id, ursbd.vehicle_id, ")
             .append("ursbd.driver_id, ursbd.vehicle_type, ursbd.vehicle_capacity, ursbd.booking_createdby, ")

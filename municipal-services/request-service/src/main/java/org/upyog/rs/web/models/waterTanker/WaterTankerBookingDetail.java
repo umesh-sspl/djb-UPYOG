@@ -145,4 +145,7 @@ public class WaterTankerBookingDetail {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private FillingPointMetadata fillingPointMetadata;
 
+	@JsonProperty("applicationType")
+	private String applicationType;
+
 }
