@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Card,
-  StatusTable,
-  Row,
   SubmitBar,
   Loader,
   CardSectionHeader,
@@ -18,15 +15,14 @@ import {
   Dropdown,
   AddIcon,
 } from "@djb25/digit-ui-react-components";
-
 import { useQueryClient } from "react-query";
-
 import { useHistory, useParams } from "react-router-dom";
 import ConfirmationBox from "../../../components/Confirmation";
 
 const Heading = (props) => {
   return <h1 className="heading-m">{props.label}</h1>;
 };
+
 const Close = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF">
     <path d="M0 0h24v24H0V0z" fill="none" />
@@ -42,55 +38,27 @@ const CloseBtn = (props) => {
   );
 };
 
-const DriverDetails = (props) => {
+const SurveyorDetails = (props) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
-  // const state = Digit.ULBService.getStateId();
   const { t } = useTranslation();
   const history = useHistory();
   const queryClient = useQueryClient();
-  const { id: dsoId } = useParams();
+  const { id: surveyorId } = useParams();
 
   const [displayMenu, setDisplayMenu] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
-  // const [config, setCurrentConfig] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(null);
   const [vendors, setVendors] = useState([]);
-
   const [selectedOption, setSelectedOption] = useState({});
 
-  const { data: driverData, isLoading: isLoading, isSuccess: isDsoSuccess, error: dsoError, refetch } = Digit.Hooks.fsm.useDriverDetails(
-    tenantId,
-    { ids: dsoId },
-    { staleTime: Infinity }
-  );
+  const { data: surveyorData, isLoading, refetch } = Digit.Hooks.fsm.useSurveyorDetails(tenantId, { ids: surveyorId }, { staleTime: Infinity });
 
-  const { data: vendorData, isLoading: isVendorLoading, isSuccess: isVendorSuccess, error: vendorError } = Digit.Hooks.fsm.useDsoSearch(
-    tenantId,
-    { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" },
-    {}
-  );
+  const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, {});
 
-  const {
-    isLoading: isDriverLoading,
-    isError: isDriverUpdateError,
-    data: driverUpdateResponse,
-    error: driverupdateError,
-    mutate: mutateDriver,
-  } = Digit.Hooks.fsm.useDriverUpdate(tenantId);
+  const { mutate: mutateSurveyor } = Digit.Hooks.fsm.useSurveyorUpdate(tenantId);
+  const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
 
-  const {
-    isLoading: isVendorUpdateLoading,
-    isError: isVendorUpdateError,
-    data: vendorUpdateResponse,
-    error: vendorUpdateError,
-    mutate: mutateVendor,
-  } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
-
-  function onActionSelect(action) {
-    setSelectedAction(action);
-    setDisplayMenu(false);
-  }
   useEffect(() => {
     if (vendorData) {
       let vendors = vendorData.map((data) => data.dsoDetails);
@@ -100,6 +68,7 @@ const DriverDetails = (props) => {
 
   useEffect(() => {
     refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -110,12 +79,13 @@ const DriverDetails = (props) => {
       case "DELETE_VENDOR":
         return setShowModal(true);
       case "EDIT":
-        return history.push("/digit-ui/employee/fsm/registry/modify-driver/" + dsoId);
+        return history.push("/digit-ui/employee/vendor/modify-surveyor/" + surveyorId);
       case "HOME":
-        return history.push("/digit-ui/employee/fsm/registry?selectedTabs=DRIVER");
+        return history.push("/digit-ui/employee/vendor/search-vendor?selectedTabs=SURVEYOR");
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction]);
 
   const closeToast = () => {
@@ -125,7 +95,7 @@ const DriverDetails = (props) => {
   const handleModalAction = () => {
     switch (selectedAction) {
       case "DELETE":
-        return handleDeleteDriver();
+        return handleDeleteSurveyor();
       case "DELETE_VENDOR":
         return handleDeleteVendor();
       case "ADD_VENDOR":
@@ -137,27 +107,26 @@ const DriverDetails = (props) => {
     }
   };
 
-  const handleDeleteDriver = () => {
-    let driverDetails = driverData?.[0]?.driverData;
+  const handleDeleteSurveyor = () => {
+    let details = surveyorData?.[0]?.surveyorData;
     const formData = {
-      driver: {
-        ...driverDetails,
+      surveyor: {
+        ...details,
         status: "INACTIVE",
       },
     };
 
-    mutateDriver(formData, {
-      onError: (error, variables) => {
+    mutateSurveyor(formData, {
+      onError: (error) => {
         setShowToast({ key: "error", action: error });
         setTimeout(closeToast, 5000);
       },
-      onSuccess: (data, variables) => {
-        setShowToast({ key: "success", action: "DELETE_DRIVER" });
-        queryClient.invalidateQueries("DSO_SEARCH");
-
+      onSuccess: () => {
+        setShowToast({ key: "success", action: "DELETE_SURVEYOR" });
+        queryClient.invalidateQueries("SURVEYOR_SEARCH");
         setTimeout(() => {
           closeToast();
-          history.push(`/digit-ui/employee/fsm/registry`);
+          history.push(`/digit-ui/employee/vendor/search-vendor`);
         }, 5000);
       },
     });
@@ -165,34 +134,29 @@ const DriverDetails = (props) => {
   };
 
   const handleDeleteVendor = () => {
-    let formData = {};
-    let dsoDetails = driverData?.[0]?.vendorDetails?.vendor?.[0];
-    let getDriverVendorDetails = dsoDetails?.drivers;
+    let dsoDetails = surveyorData?.[0]?.vendorDetails?.vendor?.[0];
+    let getSurveyorVendorDetails = dsoDetails?.surveyors || [];
 
-    getDriverVendorDetails = getDriverVendorDetails.map((data) => {
-      if (data.id === dsoId) {
-        data.vendorDriverStatus = "INACTIVE";
+    getSurveyorVendorDetails = getSurveyorVendorDetails.map((data) => {
+      if (data.id === surveyorId) {
+        data.vendorSurveyorStatus = "INACTIVE";
       }
       return data;
     });
 
-    formData = {
+    const formData = {
       vendor: {
         ...dsoDetails,
-        owner: {
-          ...dsoDetails.owner,
-          gender: dsoDetails.owner?.gender || "OTHERS",
-        },
-        drivers: getDriverVendorDetails,
+        surveyors: getSurveyorVendorDetails,
       },
     };
 
     mutateVendor(formData, {
-      onError: (error, variables) => {
+      onError: (error) => {
         setShowToast({ key: "error", action: error });
         setTimeout(closeToast, 5000);
       },
-      onSuccess: (data, variables) => {
+      onSuccess: () => {
         setShowToast({ key: "success", action: "DELETE_VENDOR" });
         queryClient.invalidateQueries("FSM_VENDOR_SEARCH");
         refetch();
@@ -204,27 +168,23 @@ const DriverDetails = (props) => {
 
   const handleAddVendor = () => {
     let dsoDetails = selectedOption;
-    let driverDetails = driverData?.[0]?.driverData;
-    driverDetails.vendorDriverStatus = "ACTIVE";
+    let details = surveyorData?.[0]?.surveyorData;
+    details.vendorSurveyorStatus = "ACTIVE";
     const formData = {
       vendor: {
         ...dsoDetails,
-        owner: {
-          ...dsoDetails.owner,
-          gender: dsoDetails.owner?.gender || "OTHERS",
-        },
-        drivers: dsoDetails.drivers ? [...dsoDetails.drivers, driverDetails] : [driverDetails],
+        surveyors: dsoDetails.surveyors ? [...dsoDetails.surveyors, details] : [details],
       },
     };
     mutateVendor(formData, {
-      onError: (error, variables) => {
+      onError: (error) => {
         setShowToast({ key: "error", action: error });
         refetch();
         setTimeout(closeToast, 5000);
       },
-      onSuccess: (data, variables) => {
+      onSuccess: () => {
         setShowToast({ key: "success", action: "ADD_VENDOR" });
-        queryClient.invalidateQueries("DSO_SEARCH");
+        queryClient.invalidateQueries("SURVEYOR_SEARCH");
         refetch();
         setTimeout(closeToast, 5000);
       },
@@ -235,29 +195,25 @@ const DriverDetails = (props) => {
 
   const handleEditVendor = () => {
     let dsoDetails = selectedOption;
-    let driverDetails = driverData?.[0]?.driverData;
-    driverDetails.vendorDriverStatus = "ACTIVE";
+    let details = surveyorData?.[0]?.surveyorData;
+    details.vendorSurveyorStatus = "ACTIVE";
 
     const formData = {
       vendor: {
         ...dsoDetails,
-        owner: {
-          ...dsoDetails.owner,
-          gender: dsoDetails.owner?.gender || "OTHERS",
-        },
-        drivers: dsoDetails.drivers ? [...dsoDetails.drivers, driverDetails] : [driverDetails],
+        surveyors: dsoDetails.surveyors ? [...dsoDetails.surveyors, details] : [details],
       },
     };
 
     mutateVendor(formData, {
-      onError: (error, variables) => {
+      onError: (error) => {
         setShowToast({ key: "error", action: error });
         setTimeout(closeToast, 5000);
       },
-      onSuccess: (data, variables) => {
+      onSuccess: () => {
         setShowToast({ key: "success", action: "EDIT_VENDOR" });
         refetch();
-        queryClient.invalidateQueries("DSO_SEARCH");
+        queryClient.invalidateQueries("SURVEYOR_SEARCH");
         setTimeout(closeToast, 5000);
       },
     });
@@ -275,11 +231,10 @@ const DriverDetails = (props) => {
     switch (selectedAction) {
       case "DELETE":
       case "DELETE_VENDOR":
-        return "ES_FSM_REGISTRY_DELETE_POPUP_HEADER";
+        return "ES_VENDOR_SURVEYOR_DELETE_POPUP_HEADER";
       case "ADD_VENDOR":
-        return "ES_FSM_REGISTRY_ADD_VENDOR_POPUP_HEADER";
       case "EDIT_VENDOR":
-        return "ES_FSM_REGISTRY_ADD_VENDOR_POPUP_HEADER";
+        return "ES_VENDOR_SURVEYOR_ADD_VENDOR_POPUP_HEADER";
       default:
         break;
     }
@@ -287,22 +242,9 @@ const DriverDetails = (props) => {
 
   const renderModalContent = () => {
     if (selectedAction === "DELETE" || selectedAction === "DELETE_VENDOR") {
-      return (
-        <ConfirmationBox t={t} title={"ES_FSM_REGISTRY_DELETE_TEXT"} />
-        // <div className="confirmation_box">
-        //   <span>{t(`ES_FSM_REGISTRY_DELETE_TEXT`)} </span>
-        // </div>
-      );
+      return <ConfirmationBox t={t} title={"ES_VENDOR_SURVEYOR_DELETE_TEXT"} />;
     }
-    if (selectedAction === "ADD_VENDOR") {
-      return (
-        <React.Fragment>
-          <CardText>{t(`ES_FSM_REGISTRY_SELECT_VENODOR`)}</CardText>
-          <Dropdown t={t} option={vendors} value={selectedOption} selected={selectedOption} select={setSelectedOption} optionKey={"name"} />
-        </React.Fragment>
-      );
-    }
-    if (selectedAction === "EDIT_VENDOR") {
+    if (selectedAction === "ADD_VENDOR" || selectedAction === "EDIT_VENDOR") {
       return (
         <React.Fragment>
           <CardText>{t(`ES_FSM_REGISTRY_SELECT_VENODOR`)}</CardText>
@@ -316,11 +258,11 @@ const DriverDetails = (props) => {
     return <Loader />;
   }
 
-  return !isLoading ? (
+  return (
     <React.Fragment>
       <div className="employee-form-content">
         <Card style={{ position: "relative", backgroundColor: "#fff" }}>
-          {driverData?.[0]?.employeeResponse?.map((detail, index) => (
+          {surveyorData?.[0]?.employeeResponse?.map((detail, index) => (
             <React.Fragment key={index}>
               {index > 0 && <CardSectionHeader style={{ marginBottom: "16px", marginTop: "32px" }}>{t(detail.title)}</CardSectionHeader>}
               <Card className="card-with-background" style={{ margin: "10px 16px", padding: "20px" }}>
@@ -332,28 +274,38 @@ const DriverDetails = (props) => {
                         <div className="additional-value" style={{ color: "#a82227", display: "flex", gap: "20px", alignItems: "center" }}>
                           {t(value.value) || "N/A"}
                           {value.value === "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
-                            <span className="add-details-link hover-button" onClick={() => onActionSelect("ADD_VENDOR")} style={{ cursor: "pointer" }}>
-                              <AddIcon className="" fill="#a82227" />
+                            <span
+                              className="add-details-link hover-button"
+                              onClick={() => setSelectedAction("ADD_VENDOR")}
+                              style={{ cursor: "pointer" }}
+                            >
+                              <AddIcon fill="#a82227" />
                             </span>
                           )}
                           {value.value !== "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
-                            <div className="add-details-link hover-button" onClick={() => onActionSelect("EDIT_VENDOR")} style={{ cursor: "pointer" }}>
-                              <EditIcon />
-                            </div>
-                          )}
-                          {value.value !== "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
-                            <div className="add-details-link hover-button" onClick={() => onActionSelect("DELETE_VENDOR")} style={{ cursor: "pointer" }}>
-                              <DeleteIcon className="delete" fill="#a82227" />
-                            </div>
+                            <React.Fragment>
+                              <div
+                                className="add-details-link hover-button"
+                                onClick={() => setSelectedAction("EDIT_VENDOR")}
+                                style={{ cursor: "pointer" }}
+                              >
+                                <EditIcon />
+                              </div>
+                              <div
+                                className="add-details-link hover-button"
+                                onClick={() => setSelectedAction("DELETE_VENDOR")}
+                                style={{ cursor: "pointer" }}
+                              >
+                                <DeleteIcon fill="#a82227" />
+                              </div>
+                            </React.Fragment>
                           )}
                         </div>
                       </React.Fragment>
                     ) : (
                       <React.Fragment key={index}>
                         <div className="additional-label">{t(value.title)}</div>
-                        <div className="additional-value">
-                          {t(value.value) || "N/A"}
-                        </div>
+                        <div className="additional-value">{t(value.value) || "N/A"}</div>
                       </React.Fragment>
                     );
                   })}
@@ -371,30 +323,33 @@ const DriverDetails = (props) => {
           actionCancelOnSubmit={closeModal}
           actionSaveLabel={t(selectedAction === "DELETE" || selectedAction === "DELETE_VENDOR" ? "ES_EVENT_DELETE" : "CS_COMMON_SUBMIT")}
           actionSaveOnSubmit={handleModalAction}
-          formId="modal-action"
         >
-          {selectedAction === "DELETE" || selectedAction === "DELETE_VENDOR" ? (
-            renderModalContent()
-          ) : (
-            <Card style={{ boxShadow: "none" }}>{renderModalContent()}</Card>
-          )}
+          <Card style={{ boxShadow: "none" }}>{renderModalContent()}</Card>
         </Modal>
       )}
       {showToast && (
         <Toast
-          error={showToast.key === "error" ? true : false}
-          label={t(showToast.key === "success" ? `ES_FSM_REGISTRY_${showToast.action}_SUCCESS` : showToast.action)}
+          error={showToast.key === "error"}
+          label={t(showToast.key === "success" ? `ES_VENDOR_${showToast.action}_SUCCESS` : showToast.action)}
           onClose={closeToast}
         />
       )}
       <ActionBar style={{ zIndex: "19" }}>
-        {displayMenu ? <Menu localeKeyPrefix={"ES_FSM_REGISTRY_ACTION"} options={["EDIT", "DELETE"]} t={t} onSelect={onActionSelect} /> : null}
+        {displayMenu ? (
+          <Menu
+            localeKeyPrefix={"ES_VENDOR_SURVEYOR_ACTION"}
+            options={["EDIT", "DELETE"]}
+            t={t}
+            onSelect={(a) => {
+              setDisplayMenu(false);
+              setSelectedAction(a);
+            }}
+          />
+        ) : null}
         <SubmitBar label={t("ES_COMMON_TAKE_ACTION")} onSubmit={() => setDisplayMenu(!displayMenu)} />
       </ActionBar>
     </React.Fragment>
-  ) : (
-    <Loader />
   );
 };
 
-export default DriverDetails;
+export default SurveyorDetails;

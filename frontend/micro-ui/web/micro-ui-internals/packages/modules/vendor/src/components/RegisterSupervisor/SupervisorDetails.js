@@ -1,9 +1,7 @@
-import React, { useEffect, useState, Fragment } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
-  StatusTable,
-  Row,
   SubmitBar,
   Loader,
   CardSectionHeader,
@@ -19,7 +17,7 @@ import {
 } from "@djb25/digit-ui-react-components";
 import { useQueryClient } from "react-query";
 import { useHistory, useParams } from "react-router-dom";
-import ConfirmationBox from "../../../components/Confirmation";
+import ConfirmationBox from "../Confirmation";
 
 const Heading = (props) => {
   return <h1 className="heading-m">{props.label}</h1>;
@@ -54,17 +52,9 @@ const SupervisorDetails = (props) => {
   const [vendors, setVendors] = useState([]);
   const [selectedOption, setSelectedOption] = useState({});
 
-  const { data: supervisorData, isLoading: isLoading, refetch } = Digit.Hooks.fsm.useSupervisorDetails(
-    tenantId,
-    { ids: supervisorId },
-    { staleTime: Infinity }
-  );
+  const { data: supervisorData, isLoading, refetch } = Digit.Hooks.fsm.useSupervisorDetails(tenantId, { ids: supervisorId }, { staleTime: Infinity });
 
-  const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(
-    tenantId,
-    { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" },
-    {}
-  );
+  const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, {});
 
   const { mutate: mutateSupervisor } = Digit.Hooks.fsm.useSupervisorUpdate(tenantId);
   const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
@@ -78,6 +68,7 @@ const SupervisorDetails = (props) => {
 
   useEffect(() => {
     refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -94,6 +85,7 @@ const SupervisorDetails = (props) => {
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction]);
 
   const closeToast = () => {
@@ -282,16 +274,28 @@ const SupervisorDetails = (props) => {
                         <div className="additional-value" style={{ color: "#a82227", display: "flex", gap: "20px", alignItems: "center" }}>
                           {t(value.value) || "N/A"}
                           {value.value === "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
-                            <span className="add-details-link hover-button" onClick={() => setSelectedAction("ADD_VENDOR")} style={{ cursor: "pointer" }}>
+                            <span
+                              className="add-details-link hover-button"
+                              onClick={() => setSelectedAction("ADD_VENDOR")}
+                              style={{ cursor: "pointer" }}
+                            >
                               <AddIcon fill="#a82227" />
                             </span>
                           )}
                           {value.value !== "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
                             <React.Fragment>
-                              <div className="add-details-link hover-button" onClick={() => setSelectedAction("EDIT_VENDOR")} style={{ cursor: "pointer" }}>
+                              <div
+                                className="add-details-link hover-button"
+                                onClick={() => setSelectedAction("EDIT_VENDOR")}
+                                style={{ cursor: "pointer" }}
+                              >
                                 <EditIcon />
                               </div>
-                              <div className="add-details-link hover-button" onClick={() => setSelectedAction("DELETE_VENDOR")} style={{ cursor: "pointer" }}>
+                              <div
+                                className="add-details-link hover-button"
+                                onClick={() => setSelectedAction("DELETE_VENDOR")}
+                                style={{ cursor: "pointer" }}
+                              >
                                 <DeleteIcon fill="#a82227" />
                               </div>
                             </React.Fragment>
@@ -332,7 +336,15 @@ const SupervisorDetails = (props) => {
               {detail.type && (
                 <div
                   className="add-details-link hover-button"
-                  style={{ margin: "10px 16px", color: "#a82227", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: "bold" }}
+                  style={{
+                    margin: "10px 16px",
+                    color: "#a82227",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    fontWeight: "bold",
+                  }}
                   onClick={() => history.push(`/digit-ui/employee/vendor/registry/new-surveyor?supervisorId=${supervisorId}`)}
                 >
                   <AddIcon fill="#a82227" />
@@ -363,7 +375,17 @@ const SupervisorDetails = (props) => {
         />
       )}
       <ActionBar style={{ zIndex: "19" }}>
-        {displayMenu ? <Menu localeKeyPrefix={"ES_VENDOR_SUPERVISOR_ACTION"} options={["EDIT", "DELETE"]} t={t} onSelect={(a) => { setDisplayMenu(false); setSelectedAction(a); }} /> : null}
+        {displayMenu ? (
+          <Menu
+            localeKeyPrefix={"ES_VENDOR_SUPERVISOR_ACTION"}
+            options={["EDIT", "DELETE"]}
+            t={t}
+            onSelect={(a) => {
+              setDisplayMenu(false);
+              setSelectedAction(a);
+            }}
+          />
+        ) : null}
         <SubmitBar label={t("ES_COMMON_TAKE_ACTION")} onSubmit={() => setDisplayMenu(!displayMenu)} />
       </ActionBar>
     </React.Fragment>

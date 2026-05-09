@@ -4,30 +4,26 @@ import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-com
 //import DriverConfig from "../../configs/DriverConfig";
 import { useQueryClient } from "react-query";
 import DriverConfig from "../../../config/DriverConfig";
-import Timeline from "../../../components/VENDORTimeline";
 
-const AddDriver = ({ parentUrl, heading }) => {
+const AddDriver = () => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const { t } = useTranslation();
 
   const stateId = Digit.ULBService.getStateId();
   const [showToast, setShowToast] = useState(null);
-  const [currentStep, setCurrentStep] = useState(1);
   const queryClient = useQueryClient();
-  const steps = [t("ES_FSM_REGISTRY_TITLE_NEW_DRIVER")];
 
-  const [mutationHappened, setMutationHappened, clear] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
-  const [errorInfo, setErrorInfo, clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
-  const [successData, setsuccessData, clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
+  const [, setMutationHappened] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
+  const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
+  const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { isLoading: isLoading, isError: vendorCreateError, data: updateResponse, error: updateError, mutate } = Digit.Hooks.fsm.useDriverCreate(
-    tenantId
-  );
+  const { mutate } = Digit.Hooks.fsm.useDriverCreate(tenantId);
 
   useEffect(() => {
     setMutationHappened(false);
     clearSuccessData();
     clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const Config = DriverConfig(t);
@@ -79,7 +75,7 @@ const AddDriver = ({ parentUrl, heading }) => {
     setShowToast(null);
   };
   const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
-  console.log(isCitizen,'iscitizen')
+  console.log(isCitizen, "iscitizen");
 
   const onSubmit = (data) => {
     const name = data?.driverName;
@@ -139,7 +135,7 @@ const AddDriver = ({ parentUrl, heading }) => {
             timeLine: [{ actions: t("ES_FSM_REGISTRY_TITLE_NEW_DRIVER"), currentStep: 1 }],
           },
         ]}
-        currentActiveIndex={currentStep - 1}
+        currentActiveIndex={0}
         showFinalStep={false}
       />
       <div style={{ flex: "1", overflowY: "auto" }}>

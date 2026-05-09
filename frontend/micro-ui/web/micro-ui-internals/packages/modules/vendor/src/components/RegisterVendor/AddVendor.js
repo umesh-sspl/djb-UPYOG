@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 import { useHistory } from "react-router-dom";
-// import { useQueryClient } from "react-query";
-import VendorConfig from "../../../config/VendorConfig";
+import VendorConfig from "../../config/VendorConfig";
 
 const AddVendor = ({ parentUrl, heading }) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
@@ -16,18 +15,19 @@ const AddVendor = ({ parentUrl, heading }) => {
   const [showToast, setShowToast] = useState(null);
   const [canSubmit, setCanSubmit] = useState(false);
 
-  const [mutationHappened, setMutationHappened, clear] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
+  const [, setMutationHappened] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
 
-  const [errorInfo, setErrorInfo, clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
+  const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
 
-  const [successData, setsuccessData, clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
+  const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { isLoading, isError: vendorCreateError, data: updateResponse, error: updateError, mutate } = Digit.Hooks.fsm.useVendorCreate(tenantId);
+  const { mutate } = Digit.Hooks.fsm.useVendorCreate(tenantId);
 
   useEffect(() => {
     setMutationHappened(false);
     clearSuccessData();
     clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const Config = VendorConfig(t);
@@ -105,8 +105,6 @@ const AddVendor = ({ parentUrl, heading }) => {
     const emailId = mergedData?.emailId;
     const phone = mergedData?.phone;
 
-    const dob = new Date(`${mergedData.dob}`).getTime() || new Date(`1/1/1970`).getTime();
-
     const additionalDetails = mergedData?.serviceType?.code;
 
     const formData = {
@@ -181,7 +179,7 @@ const AddVendor = ({ parentUrl, heading }) => {
 
   return (
     <React.Fragment>
-       <VerticalTimeline
+      <VerticalTimeline
         config={[
           {
             route: "vendor-details",

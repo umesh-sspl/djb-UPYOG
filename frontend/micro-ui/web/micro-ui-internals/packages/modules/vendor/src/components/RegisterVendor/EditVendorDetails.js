@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import {
   Card,
-  StatusTable,
   Row,
   SubmitBar,
   Loader,
@@ -20,7 +19,7 @@ import {
 
 import { useQueryClient } from "react-query";
 import { useHistory, useParams } from "react-router-dom";
-import ConfirmationBox from "../../../components/Confirmation";
+import ConfirmationBox from "../Confirmation";
 
 const Heading = (props) => {
   return <h1 className="heading-m">{props.label}</h1>;
@@ -49,7 +48,6 @@ const formatLabel = (key) => {
 
 const EditVendorDetails = (props) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
-  const state = Digit.ULBService.getStateId();
   const { t } = useTranslation();
   const history = useHistory();
   const queryClient = useQueryClient();
@@ -62,11 +60,7 @@ const EditVendorDetails = (props) => {
   const [drivers, setDrivers] = useState([]);
   const [selectedOption, setSelectedOption] = useState({});
 
-  const { data: dsoData, isLoading: isLoading, refetch: refetchDso } = Digit.Hooks.fsm.useDsoSearch(
-    tenantId,
-    { ids: dsoId },
-    { staleTime: Infinity }
-  );
+  const { data: dsoData, isLoading, refetch: refetchDso } = Digit.Hooks.fsm.useDsoSearch(tenantId, { ids: dsoId }, { staleTime: Infinity });
 
   const { data: vehicleData, refetch: refetchVehicle } = Digit.Hooks.fsm.useVehiclesSearch({
     tenantId,
@@ -100,6 +94,9 @@ const EditVendorDetails = (props) => {
     setSelectedAction(action);
   }
 
+  const userInfo = Digit.SessionStorage.get("User");
+  const userType = userInfo.info.type?.toLowerCase();
+
   useEffect(() => {
     switch (selectedAction) {
       case "DELETE":
@@ -107,12 +104,13 @@ const EditVendorDetails = (props) => {
       case "ADD_DRIVER":
         return setShowModal(true);
       case "EDIT":
-        return history.push("/digit-ui/employee/fsm/registry/modify-vendor/" + dsoId);
+        return history.push(`/digit-ui/${userType}/fsm/registry/modify-vendor/dsoId`);
       case "HOME":
-        return history.push("/digit-ui/employee/fsm/registry?selectedTabs=VENDOR");
+        return history.push(`/digit-ui/${userType}/fsm/registry?selectedTabs=VENDOR`);
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction]);
 
   useEffect(() => {
@@ -186,7 +184,7 @@ const EditVendorDetails = (props) => {
         refetchDriver();
         setTimeout(() => {
           closeToast();
-          if (selectedAction === "DELETE") history.push(`/digit-ui/employee/fsm/registry`);
+          if (selectedAction === "DELETE") history.push(`/digit-ui/${userType}/fsm/registry`);
         }, 5000);
       },
     });
@@ -196,10 +194,10 @@ const EditVendorDetails = (props) => {
 
   const onEdit = (details, type, id) => {
     if (type === "ES_FSM_REGISTRY_DETAILS_TYPE_DRIVER") {
-      history.push("/digit-ui/employee/fsm/registry/modify-driver/" + id);
+      history.push(`/digit-ui/${userType}/fsm/registry/modify-driver/${id}`);
     } else {
       let registrationNumber = details?.values?.find((ele) => ele.title === "ES_FSM_REGISTRY_VEHICLE_NUMBER")?.value;
-      history.push("/digit-ui/employee/fsm/registry/modify-vehicle/" + registrationNumber);
+      history.push(`/digit-ui/${userType}/fsm/registry/modify-vehicle/${registrationNumber}`);
     }
   };
 
@@ -371,14 +369,14 @@ const EditVendorDetails = (props) => {
 
                               <div
                                 className="add-details-link hover-button"
-                                onClick={() => history.push(`/digit-ui/employee/vendor/registry/additionaldetails/info?vendorId=${dsoId}`)}
+                                onClick={() => history.push(`/digit-ui/${userType}/vendor/registry/additionaldetails/info?vendorId=${dsoId}`)}
                               >
                                 {t("Edit Details")}
                               </div>
                             </Card>
                           ) : (
                             <div
-                              onClick={() => history.push(`/digit-ui/employee/vendor/registry/additionaldetails/vendor-details?vendorId=${dsoId}`)}
+                              onClick={() => history.push(`/digit-ui/${userType}/vendor/registry/additionaldetails/vendor-details?vendorId=${dsoId}`)}
                               className="add-details-link hover-button"
                             >
                               {t("Add Additional Details")}

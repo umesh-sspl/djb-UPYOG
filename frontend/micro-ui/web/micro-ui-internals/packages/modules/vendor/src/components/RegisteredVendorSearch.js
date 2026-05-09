@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import {
-  TextInput,
-  Label,
-  SubmitBar,
-  LinkLabel,
-  CloseSvg,
-  DatePicker,
-  CardLabelError,
-  Menu,
-  AddIcon,
-  Dropdown,
-} from "@djb25/digit-ui-react-components";
+import { TextInput, SubmitBar, LinkLabel, CloseSvg, DatePicker, Menu, AddIcon, Dropdown } from "@djb25/digit-ui-react-components";
 import DropdownStatus from "./inbox/DropdownStatus";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 
-const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperator, searchFields, searchParams, isInboxPage, selectedTab }) => {
+const RegisteredVendorSearch = ({
+  onSearch,
+  type,
+  onClose,
+  onTabChange,
+  isFstpOperator,
+  searchFields,
+  searchParams,
+  isInboxPage,
+  selectedTab,
+  matchedRoles,
+}) => {
   const storedSearchParams = isInboxPage
     ? Digit.SessionStorage.get("vendor/inbox/searchParams")
     : Digit.SessionStorage.get("vendor/search/searchParams");
@@ -26,11 +26,9 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
   const { register, handleSubmit, reset, watch, control } = useForm({
     defaultValues: storedSearchParams || searchParams,
   });
-  const [error, setError] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const mobileView = innerWidth <= 640;
+  const mobileView = window.Digit.Utils.browser.isMobile();
   const FSTP = Digit.UserService.hasAccess("FSM_EMP_FSTPO") || false;
-  const watchSearch = watch(["applicationNos", "mobileNumber"]);
 
   const onSubmitInput = (data) => {
     if (!data.mobileNumber) {
@@ -62,11 +60,6 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
     );
   };
 
-  // const onAddClick = () => {
-  //   console.log("clickkkkkeeeddd")
-  //   return history.push("registry/new-vendor");
-  // };
-
   const onAddClick = () => {
     setShowAddMenu(!showAddMenu);
   };
@@ -84,9 +77,9 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
       case "DRIVER":
         return history.push("/digit-ui/employee/vendor/registry/new-driver");
       case "SUPERVISOR":
-      return history.push("/digit-ui/employee/vendor/registry/new-supervisor");
+        return history.push("/digit-ui/employee/vendor/registry/new-supervisor");
       case "SURVEYOR":
-      return history.push("/digit-ui/employee/vendor/registry/new-surveyor");
+        return history.push("/digit-ui/employee/vendor/registry/new-surveyor");
       default:
         break;
     }
@@ -110,8 +103,8 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
               <DropdownStatus
                 onAssignmentChange={props.onChange}
                 value={props.value}
-                applicationStatuses={applicationStatuses}
-                areApplicationStatus={areApplicationStatus}
+                // applicationStatuses={applicationStatuses}
+                // areApplicationStatus={areApplicationStatus}
               />
             )}
             name={input.name}
@@ -153,7 +146,17 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
         );
     }
   };
+  const userInfo = Digit.SessionStorage.get("User");
+  const userType = userInfo.info.type;
+  const vendorItems = [
+    ...(userType === "EMPLOYEE" && matchedRoles?.wt?.includes("WT_VENDOR") ? ["VENDOR"] : []),
 
+    ...(matchedRoles?.wt?.includes("WT_VENDOR") ? ["DRIVER", "VEHICLE"] : []),
+
+    ...(matchedRoles?.ekyc?.includes("EKYC-VENDOR") ? ["SUPERVISOR"] : []),
+
+    ...(matchedRoles?.ekyc?.includes("EKYC_SUPERVISOR") || matchedRoles?.ekyc?.includes("EKYC-VENDOR") ? ["SURVEYOR"] : []),
+  ];
   return (
     <React.Fragment>
       <div className="search-container" style={{ width: "auto" }}>
@@ -175,51 +178,61 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
           )}
           <div className="search-tabs-container">
             <div>
-              <button
-                className={selectedTab === "VENDOR" ? "search-tab-head-selected" : "search-tab-head"}
-                onClick={() => {
-                  clearSearch({});
-                  onTabChange("VENDOR");
-                }}
-              >
-                {t("ES_FSM_REGISTRY_INBOX_TAB_VENDOR")}
-              </button>
-              <button
-                className={selectedTab === "VEHICLE" ? "search-tab-head-selected" : "search-tab-head"}
-                onClick={() => {
-                  clearSearch({});
-                  onTabChange("VEHICLE");
-                }}
-              >
-                {t("ES_FSM_REGISTRY_INBOX_TAB_VEHICLE")}
-              </button>
-              <button
-                className={selectedTab === "DRIVER" ? "search-tab-head-selected" : "search-tab-head"}
-                onClick={() => {
-                  clearSearch({});
-                  onTabChange("DRIVER");
-                }}
-              >
-                {t("ES_FSM_REGISTRY_INBOX_TAB_DRIVER")}
-              </button>
-              <button
-                className={selectedTab === "SUPERVISOR" ? "search-tab-head-selected" : "search-tab-head"}
-                onClick={() => {
-                  clearSearch({});
-                  onTabChange("SUPERVISOR");
-                }}
-              >
-                {t("ES_FSM_REGISTRY_INBOX_TAB_SUPERVISOR")}
-              </button>
-              <button
-                className={selectedTab === "SURVEYOR" ? "search-tab-head-selected" : "search-tab-head"}
-                onClick={() => {
-                  clearSearch({});
-                  onTabChange("SURVEYOR");
-                }}
-              >
-                {t("ES_FSM_REGISTRY_INBOX_TAB_SURVEYOR")}
-              </button>
+              {matchedRoles?.wt?.includes("WT_VENDOR") && (
+                <button
+                  className={selectedTab === "VENDOR" ? "search-tab-head-selected" : "search-tab-head"}
+                  onClick={() => {
+                    clearSearch({});
+                    onTabChange("VENDOR");
+                  }}
+                >
+                  {t("ES_FSM_REGISTRY_INBOX_TAB_VENDOR")}
+                </button>
+              )}
+              {matchedRoles?.wt?.includes("WT_VENDOR") && (
+                <button
+                  className={selectedTab === "VEHICLE" ? "search-tab-head-selected" : "search-tab-head"}
+                  onClick={() => {
+                    clearSearch({});
+                    onTabChange("VEHICLE");
+                  }}
+                >
+                  {t("ES_FSM_REGISTRY_INBOX_TAB_VEHICLE")}
+                </button>
+              )}
+              {matchedRoles?.wt?.includes("WT_VENDOR") && (
+                <button
+                  className={selectedTab === "DRIVER" ? "search-tab-head-selected" : "search-tab-head"}
+                  onClick={() => {
+                    clearSearch({});
+                    onTabChange("DRIVER");
+                  }}
+                >
+                  {t("ES_FSM_REGISTRY_INBOX_TAB_DRIVER")}
+                </button>
+              )}
+              {matchedRoles?.ekyc?.includes("EKYC-VENDOR") && (
+                <button
+                  className={selectedTab === "SUPERVISOR" ? "search-tab-head-selected" : "search-tab-head"}
+                  onClick={() => {
+                    clearSearch({});
+                    onTabChange("SUPERVISOR");
+                  }}
+                >
+                  {t("ES_FSM_REGISTRY_INBOX_TAB_SUPERVISOR")}
+                </button>
+              )}
+              {(matchedRoles?.ekyc?.includes("EKYC_SUPERVISOR") || matchedRoles?.ekyc?.includes("EKYC-VENDOR")) && (
+                <button
+                  className={selectedTab === "SURVEYOR" ? "search-tab-head-selected" : "search-tab-head"}
+                  onClick={() => {
+                    clearSearch({});
+                    onTabChange("SURVEYOR");
+                  }}
+                >
+                  {t("ES_FSM_REGISTRY_INBOX_TAB_SURVEYOR")}
+                </button>
+              )}
             </div>
             <div className="action-bar-wrap-registry">
               <div className="search-add" onClick={onAddClick}>
@@ -228,9 +241,7 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
                   <AddIcon className="" />
                 </div>
               </div>
-              {showAddMenu && (
-                <Menu localeKeyPrefix={"ES_FSM_ACTION_CREATE"} options={["VENDOR", "DRIVER", "VEHICLE", "SUPERVISOR", "SURVEYOR"]} t={t} onSelect={onActionSelect} />
-              )}
+              {showAddMenu && <Menu localeKeyPrefix={"ES_FSM_ACTION_CREATE"} options={vendorItems} t={t} onSelect={onActionSelect} />}
             </div>
           </div>
 
@@ -246,7 +257,7 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
                 {type === "desktop" && !mobileView && <SubmitBar className="submit-bar-search" label={t("ES_COMMON_SEARCH")} submit />}
               </div>
             </div>
-            {error ? <CardLabelError className="search-error-label">{t("ES_SEARCH_APPLICATION_ERROR")}</CardLabelError> : null}
+            {/* {error ? <CardLabelError className="search-error-label">{t("ES_SEARCH_APPLICATION_ERROR")}</CardLabelError> : null} */}
           </form>
         </div>
       </div>
@@ -254,5 +265,4 @@ const SearchApplication = ({ onSearch, type, onClose, onTabChange, isFstpOperato
   );
 };
 
-export default SearchApplication;
-
+export default RegisteredVendorSearch;

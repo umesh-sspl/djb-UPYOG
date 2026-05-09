@@ -1,52 +1,51 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 import { useQueryClient } from "react-query";
-import SurveyorConfig from "../../../config/SurveyorConfig";
+import SupervisorConfig from "../../config/SupervisorConfig";
 
-const AddSurveyor = ({ parentUrl, heading }) => {
+const AddSupervisor = ({ parentUrl, heading }) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const { t } = useTranslation();
 
   const [showToast, setShowToast] = useState(null);
-  const [currentStep, setCurrentStep] = useState(1);
   const queryClient = useQueryClient();
   const [canSubmit, setCanSubmit] = useState(false);
 
-  const { isLoading: isMutationLoading, mutate } = Digit.Hooks.fsm.useSurveyorCreate(tenantId);
+  const { mutate } = Digit.Hooks.fsm.useSupervisorCreate(tenantId);
 
   // Fetching Agencies (Vendors)
-  const { data: vendorsData, isLoading: isVendorsLoading } = Digit.Hooks.fsm.useVendorSearch(
-    tenantId,
-    { status: "ACTIVE" }
-  );
+  const { data: vendorsData } = Digit.Hooks.fsm.useVendorSearch(tenantId, { status: "ACTIVE" });
 
-  const agencies = vendorsData?.vendor?.map(v => ({
-    code: v.id,
-    name: v.name,
-    ...v
-  })) || [];
+  const agencies =
+    vendorsData?.vendor?.map((v) => ({
+      code: v.id,
+      name: v.name,
+      ...v,
+    })) || [];
 
-  // Mocking Reporting Managers (Agency Admins or Supervisors)
+  // Mocking Reporting Managers (Agency Admins)
+  // In a real scenario, this would fetch users with Agency Admin role
   const reportingManagers = [
     { code: "MGR1", name: "John Doe (Agency Admin)" },
-    { code: "SUP1", name: "Jane Smith (Supervisor)" }
+    { code: "MGR2", name: "Jane Smith (Agency Admin)" },
   ];
 
-  const Config = SurveyorConfig(t, agencies, reportingManagers);
-
-  const { supervisorId } = Digit.Hooks.useQueryParams();
+  const Config = SupervisorConfig(t, agencies, reportingManagers);
 
   const defaultValues = {
-    role: { code: "SURVEYOR", name: "Surveyor" },
-    reportingManager: reportingManagers.find((m) => m.code === supervisorId) || null,
+    role: { code: "SUPERVISOR", name: "Supervisor" },
   };
 
   const onFormValueChange = (setValue, formData) => {
     // Basic validation logic
     const isBasicDetailsFilled = formData?.fullName && formData?.mobileNumber && formData?.emailId && formData?.employeeId;
     const isRoleAccessFilled = formData?.agencyName;
-    const isAreaAssignmentFilled = formData?.areaAssignment?.zone && formData?.areaAssignment?.ward && formData?.areaAssignment?.areas?.length > 0;
+    const isAreaAssignmentFilled =
+      formData?.areaAssignment?.zone &&
+      formData?.areaAssignment?.cluster &&
+      formData?.areaAssignment?.ward &&
+      formData?.areaAssignment?.areas?.length > 0;
 
     if (isBasicDetailsFilled && isRoleAccessFilled && isAreaAssignmentFilled) {
       setCanSubmit(true);
@@ -61,7 +60,7 @@ const AddSurveyor = ({ parentUrl, heading }) => {
 
   const onSubmit = (data) => {
     const formData = {
-      surveyor: {
+      supervisor: {
         tenantId: tenantId,
         name: data?.fullName,
         employeeId: data?.employeeId,
@@ -73,7 +72,7 @@ const AddSurveyor = ({ parentUrl, heading }) => {
           emailId: data?.emailId,
           mobileNumber: data?.mobileNumber,
         },
-        vendorSurveyorStatus: "ACTIVE",
+        vendorSupervisorStatus: "ACTIVE",
         additionalDetails: {
           agencyId: data?.agencyName?.code,
           reportingManager: data?.reportingManager?.code,
@@ -88,8 +87,8 @@ const AddSurveyor = ({ parentUrl, heading }) => {
         setTimeout(closeToast, 5000);
       },
       onSuccess: () => {
-        setShowToast({ key: "success", action: "ADD_SURVEYOR" });
-        queryClient.invalidateQueries("SURVEYOR_SEARCH");
+        setShowToast({ key: "success", action: "ADD_SUPERVISOR" });
+        queryClient.invalidateQueries("SUPERVISOR_SEARCH");
         setTimeout(closeToast, 5000);
       },
     });
@@ -100,11 +99,11 @@ const AddSurveyor = ({ parentUrl, heading }) => {
       <VerticalTimeline
         config={[
           {
-            route: "surveyor-details",
-            timeLine: [{ actions: t("ES_VENDOR_SURVEYOR_DETAILS"), currentStep: 1 }],
+            route: "supervisor-details",
+            timeLine: [{ actions: t("ES_VENDOR_SUPERVISOR_DETAILS"), currentStep: 1 }],
           },
         ]}
-        currentActiveIndex={currentStep - 1}
+        currentActiveIndex={0}
         showFinalStep={false}
       />
       <div style={{ flex: "1", overflowY: "auto" }}>
@@ -136,4 +135,4 @@ const AddSurveyor = ({ parentUrl, heading }) => {
   );
 };
 
-export default AddSurveyor;
+export default AddSupervisor;

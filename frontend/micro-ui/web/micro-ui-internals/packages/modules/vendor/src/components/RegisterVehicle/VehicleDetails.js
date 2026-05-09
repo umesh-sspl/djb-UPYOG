@@ -3,8 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import {
   Card,
-  StatusTable,
-  Row,
   SubmitBar,
   Loader,
   CardSectionHeader,
@@ -58,7 +56,7 @@ const VehicleDetails = (props) => {
   const [selectedOption, setSelectedOption] = useState({});
   const [vehicleId, setVehicleId] = useState(null);
 
-  const { data: vehicleData, isLoading: isLoading, isSuccess: isVehicleSuccess, error: vehicleError, refetch } = Digit.Hooks.fsm.useVehicleDetails(
+  const { data: vehicleData, isLoading, refetch } = Digit.Hooks.fsm.useVehicleDetails(
     tenantId,
     { registrationNumber: vehicleNumber },
     { staleTime: Infinity }
@@ -70,11 +68,7 @@ const VehicleDetails = (props) => {
     }
   }, [vehicleData, isLoading]);
 
-  const { data: vendorData, isLoading: isVendorDataLoading, isSuccess: isVendorDataSuccess, error: vendorDataError } = Digit.Hooks.fsm.useDsoSearch(
-    tenantId,
-    { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" },
-    {}
-  );
+  const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, {});
 
   useEffect(() => {
     if (vendorData) {
@@ -83,21 +77,9 @@ const VehicleDetails = (props) => {
     }
   }, [vendorData]);
 
-  const {
-    isLoading: isUpdateLoading,
-    isError: vehicleUpdatError,
-    data: updateResponse,
-    error: updateError,
-    mutate,
-  } = Digit.Hooks.fsm.useUpdateVehicle(tenantId);
+  const { mutate } = Digit.Hooks.fsm.useUpdateVehicle(tenantId);
 
-  const {
-    isLoading: isVendorUpdateLoading,
-    isError: isVendorUpdateError,
-    data: vendorUpdateResponse,
-    error: vendorUpdateError,
-    mutate: mutateVendor,
-  } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
+  const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
 
   function onActionSelect(action) {
     setDisplayMenu(false);
@@ -106,6 +88,7 @@ const VehicleDetails = (props) => {
 
   useEffect(() => {
     refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -122,6 +105,7 @@ const VehicleDetails = (props) => {
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction]);
 
   const closeToast = () => {
@@ -333,17 +317,28 @@ const VehicleDetails = (props) => {
                           <div className="additional-label">{t(value.title)}</div>
                           <div className="additional-value" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             {value.value === "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
-                              <div onClick={() => onActionSelect("ADD_VENDOR")} style={{ color: "#a82227", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                              <div
+                                onClick={() => onActionSelect("ADD_VENDOR")}
+                                style={{ color: "#a82227", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                              >
                                 <AddIcon className="" fill="#a82227" /> {t(value.value) || "N/A"}
                               </div>
                             )}
                             {value.value !== "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR" && (
                               <React.Fragment>
                                 <span>{value.value}</span>
-                                <div className="add-details-link hover-button" onClick={() => onActionSelect("EDIT_VENDOR")} style={{ cursor: "pointer" }}>
+                                <div
+                                  className="add-details-link hover-button"
+                                  onClick={() => onActionSelect("EDIT_VENDOR")}
+                                  style={{ cursor: "pointer" }}
+                                >
                                   <EditIcon fill="#a82227" />
                                 </div>
-                                <div className="add-details-link hover-button" onClick={() => onActionSelect("DELETE_VENDOR")} style={{ cursor: "pointer" }}>
+                                <div
+                                  className="add-details-link hover-button"
+                                  onClick={() => onActionSelect("DELETE_VENDOR")}
+                                  style={{ cursor: "pointer" }}
+                                >
                                   <DeleteIcon className="delete" fill="#a82227" />
                                 </div>
                               </React.Fragment>

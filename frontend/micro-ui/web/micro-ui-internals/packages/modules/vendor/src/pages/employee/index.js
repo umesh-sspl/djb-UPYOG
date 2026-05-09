@@ -2,7 +2,6 @@ import { PrivateRoute, AppContainer, ModuleHeader, ArrowLeft, HomeIcon, LayoutWr
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation } from "react-router-dom";
-import SearchApp from "./SearchApp";
 
 const EmployeeApp = ({ path, url, userType }) => {
   const { t } = useTranslation();
@@ -43,7 +42,7 @@ const EmployeeApp = ({ path, url, userType }) => {
   //const Create = Digit?.ComponentRegistryService?.getComponent("VENDOREMPCreate");
   const AddVendor = Digit.ComponentRegistryService.getComponent("AddVendor");
   const SearchVendor = Digit.ComponentRegistryService.getComponent("SearchVendor");
-  //const SearchApp = Digit.ComponentRegistryService.getComponent("SearchApp");
+  const SearchApp = Digit.ComponentRegistryService.getComponent("SearchApp");
   const AddDriver = Digit.ComponentRegistryService.getComponent("AddDriver");
   const EditVendorDetails = Digit.ComponentRegistryService.getComponent("EditVendorDetails");
   const AddVehicle = Digit.ComponentRegistryService.getComponent("AddVehicle");
