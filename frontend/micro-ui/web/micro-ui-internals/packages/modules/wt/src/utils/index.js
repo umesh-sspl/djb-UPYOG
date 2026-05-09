@@ -1,12 +1,12 @@
 export const stringReplaceAll = (str = "", searcher = "", replaceWith = "") => {
-  if (searcher == "") return str;
+  if (searcher === "") return str;
   while (str.includes(searcher)) {
     str = str.replace(searcher, replaceWith);
   }
   return str;
 };
 export const checkForNotNull = (value = "") => {
-  return value && value != null && value != undefined && value != "" ? true : false;
+  return value && value != null && value !== undefined && value !== "" ? true : false;
 };
 
 export const checkForNA = (value = "") => {
