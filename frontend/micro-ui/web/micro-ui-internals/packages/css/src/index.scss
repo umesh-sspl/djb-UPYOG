@@ -702,8 +702,6 @@ input[type="number"] {
   }
 }
 
-.applications-list-container {}
-
 .complaint-summary {
   @media (min-width: 780px) {
     flex: 1 0 auto;
@@ -732,7 +730,6 @@ input[type="number"] {
 }
 
 @media (min-width: 780px) {
-
   .citizen-obps-wrapper,
   .pgr-citizen-wrapper,
   .pt-citizen,
@@ -759,7 +756,6 @@ input[type="number"] {
 }
 
 @media only screen and (max-width: 768px) {
-
   /* For mobile phones: */
   .error-boundary {
     height: 75vh;
@@ -916,6 +912,7 @@ input[type="number"] {
   display: flex;
   width: 100%;
   height: 100%;
+  max-width: 100%;
 }
 
 .flex-box-center {
