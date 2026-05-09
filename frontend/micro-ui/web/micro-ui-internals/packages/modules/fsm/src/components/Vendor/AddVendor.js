@@ -12,18 +12,17 @@ const AddVendor = ({ parentUrl, heading }) => {
   const history = useHistory();
   const queryClient = useQueryClient();
 
-  const [mutationHappened, setMutationHappened, clear] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
-  const [errorInfo, setErrorInfo, clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
-  const [successData, setsuccessData, clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
+  const [, setMutationHappened] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
+  const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
+  const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { isLoading: isLoading, isError: vendorCreateError, data: updateResponse, error: updateError, mutate } = Digit.Hooks.fsm.useVendorCreate(
-    tenantId
-  );
+  const { mutate } = Digit.Hooks.fsm.useVendorCreate(tenantId);
 
   useEffect(() => {
     setMutationHappened(false);
     clearSuccessData();
     clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { t } = useTranslation();
@@ -144,7 +143,7 @@ const AddVendor = ({ parentUrl, heading }) => {
       {/* <div>
         <Header>{t("ES_FSM_REGISTRY_TITLE_NEW_VENDOR")}</Header>
       </div> */}
-      <div style={!isMobile ? { marginLeft: "-15px" } : {}} >
+      <div style={!isMobile ? { marginLeft: "-15px" } : {}}>
         <FormComposer
           isDisabled={!canSubmit}
           label={t("ES_COMMON_APPLICATION_SUBMIT")}

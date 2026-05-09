@@ -1,13 +1,10 @@
 import React from "react";
 import {
   Card,
-  CardCaption,
   CardHeader,
-  CardLabel,
   CardSubHeader,
   StatusTable,
   Row,
-  ActionLinks,
   LinkButton,
   SubmitBar,
   CardText,
@@ -30,21 +27,8 @@ const ActionButton = ({ jumpTo }) => {
 
 const CheckPage = ({ onSubmit, value }) => {
   const { t } = useTranslation();
-  const history = useHistory();
 
-  const {
-    address,
-    propertyID,
-    propertyType,
-    subtype,
-    pitType,
-    pitDetail,
-    selectGender,
-    selectPaymentPreference,
-    selectTripNo,
-    roadWidth,
-    distancefromroad,
-  } = value;
+  const { address, propertyType, subtype, pitType, pitDetail, selectGender, selectPaymentPreference, selectTripNo, roadWidth } = value;
 
   const pitDetailValues = pitDetail ? Object.values(pitDetail).filter((value) => !!value) : null;
 
@@ -58,7 +42,7 @@ const CheckPage = ({ onSubmit, value }) => {
 
   const getAddress = (address, t) => {
     console.log("address", address);
-    if (address?.gramPanchayat?.code == "OTH1") {
+    if (address?.gramPanchayat?.code === "OTH1") {
       return `${address?.doorNo?.trim() ? `${address?.doorNo?.trim()}, ` : ""} ${address?.street?.trim() ? `${address?.street?.trim()}, ` : ""}${
         address?.propertyLocation?.code === "WITHIN_ULB_LIMITS" ? t(address?.locality?.i18nkey) : address?.newGramPanchayat
       },${t(address?.village?.code)}, ${t(address?.city.code)}`;

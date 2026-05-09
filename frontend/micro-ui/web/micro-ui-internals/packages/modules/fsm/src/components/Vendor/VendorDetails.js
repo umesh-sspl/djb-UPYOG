@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -44,33 +44,21 @@ const CloseBtn = (props) => {
 
 const VendorDetails = (props) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
-  const state = Digit.ULBService.getStateId();
   const { t } = useTranslation();
   const history = useHistory();
   const queryClient = useQueryClient();
   let { id: dsoId } = useParams();
   const [displayMenu, setDisplayMenu] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
-  const [config, setCurrentConfig] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(null);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [selectedOption, setSelectedOption] = useState({});
 
-  const { data: dsoData, isLoading: isLoading, isSuccess: isDsoSuccess, error: dsoError, refetch: refetchDso } = Digit.Hooks.fsm.useDsoSearch(
-    tenantId,
-    { ids: dsoId },
-    { staleTime: Infinity }
-  );
+  const { data: dsoData, isLoading, refetch: refetchDso } = Digit.Hooks.fsm.useDsoSearch(tenantId, { ids: dsoId }, { staleTime: Infinity });
 
-  const {
-    data: vehicleData,
-    isLoading: isVehicleDataLoading,
-    isSuccess: isVehicleSuccess,
-    error: vehicleError,
-    refetch: refetchVehicle,
-  } = Digit.Hooks.fsm.useVehiclesSearch({
+  const { data: vehicleData, refetch: refetchVehicle } = Digit.Hooks.fsm.useVehiclesSearch({
     tenantId,
     filters: {
       status: "ACTIVE",
@@ -80,13 +68,7 @@ const VendorDetails = (props) => {
     },
   });
 
-  const {
-    data: driverData,
-    isLoading: isDriverDataLoading,
-    isSuccess: isDriverSuccess,
-    error: driverError,
-    refetch: refetchDriver,
-  } = Digit.Hooks.fsm.useDriverSearch({
+  const { data: driverData, refetch: refetchDriver } = Digit.Hooks.fsm.useDriverSearch({
     tenantId,
     filters: {
       sortBy: "name",
@@ -96,13 +78,7 @@ const VendorDetails = (props) => {
     },
   });
 
-  const {
-    isLoading: isUpdateLoading,
-    isError: vendorCreateError,
-    data: updateResponse,
-    error: updateError,
-    mutate,
-  } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
+  const { mutate } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
 
   function onActionSelect(action) {
     setDisplayMenu(false);
@@ -122,6 +98,7 @@ const VendorDetails = (props) => {
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction]);
 
   useEffect(() => {
@@ -138,7 +115,7 @@ const VendorDetails = (props) => {
 
   const closeModal = () => {
     setSelectedAction(null);
-    setSelectedOption({})
+    setSelectedOption({});
     setShowModal(false);
   };
 
@@ -263,7 +240,7 @@ const VendorDetails = (props) => {
     }
     if (selectedAction === "ADD_VEHICLE") {
       return (
-        <>
+        <React.Fragment>
           <CardText>{t(`ES_FSM_REGISTRY_SELECT_VEHICLE`)}</CardText>
           <Dropdown
             t={t}
@@ -273,15 +250,15 @@ const VendorDetails = (props) => {
             select={setSelectedOption}
             optionKey={"registrationNumber"}
           />
-        </>
+        </React.Fragment>
       );
     }
     if (selectedAction === "ADD_DRIVER") {
       return (
-        <>
+        <React.Fragment>
           <CardText>{t(`ES_FSM_REGISTRY_SELECT_DRIVER`)}</CardText>
           <Dropdown t={t} option={drivers} value={selectedOption} selected={selectedOption} select={setSelectedOption} optionKey={"name"} />
-        </>
+        </React.Fragment>
       );
     }
   };

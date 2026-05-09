@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Loader, TypeSelectCard, Dropdown, FormStep, CardLabel, RadioOrSelect } from "@djb25/digit-ui-react-components";
+import React, { useState, useEffect } from "react";
+import { Loader, Dropdown, FormStep, CardLabel, RadioOrSelect } from "@djb25/digit-ui-react-components";
 import Timeline from "../components/TLTimelineInFSM";
 import { useLocation } from "react-router-dom";
 
 const SelectPropertySubtype = ({ config, onSelect, t, userType, formData }) => {
   const { pathname: url } = useLocation();
-  let property = sessionStorage?.getItem("Digit_FSM_PT")
-  if (property !== "undefined")
-  {
-    property = JSON.parse(sessionStorage?.getItem("Digit_FSM_PT"))
+  let property = sessionStorage?.getItem("Digit_FSM_PT");
+  if (property !== "undefined") {
+    property = JSON.parse(sessionStorage?.getItem("Digit_FSM_PT"));
   }
   const select = (items) => items.map((item) => ({ ...item, i18nKey: t(item.i18nKey) }));
-  const tenantId = Digit.ULBService.getCurrentTenantId();
   const stateId = Digit.ULBService.getStateId();
   const { isLoading: propertySubtypesDataLoading, data: propertySubtypesData } = Digit.Hooks.fsm.useMDMS(stateId, "FSM", "PropertySubtype", {
     select,
@@ -20,9 +18,9 @@ const SelectPropertySubtype = ({ config, onSelect, t, userType, formData }) => {
   const [subtype, setSubtype] = useState();
 
   const [subtypeOptions, setSubtypeOptions] = useState([]);
-  console.log("propertyType",formData)
-  formData.propertyType = property?.usageCategory || formData.propertyType
-  const { propertyType } =formData || {};
+  console.log("propertyType", formData);
+  formData.propertyType = property?.usageCategory || formData.propertyType;
+  const { propertyType } = formData || {};
 
   useEffect(() => {
     if (!propertySubtypesDataLoading && propertySubtypesData) {
@@ -36,12 +34,12 @@ const SelectPropertySubtype = ({ config, onSelect, t, userType, formData }) => {
         setSubtype(null);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyType, formData?.subtype, propertySubtypesData]);
 
   useEffect(() => {
-    console.log("propertyType2222",propertyType)
+    console.log("propertyType2222", propertyType);
     if (!propertySubtypesDataLoading && propertyType) {
-    
       const subTypes = propertySubtypesData.filter((item) => item.propertyType === (propertyType?.code || propertyType));
       setSubtypeOptions(subTypes);
     }
