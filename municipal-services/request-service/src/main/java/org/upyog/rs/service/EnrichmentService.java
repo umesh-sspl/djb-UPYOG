@@ -101,29 +101,29 @@ public class EnrichmentService {
 		}
 
 
-		WaterTankerBookingDetail existingWaterTankerDetail =
-				requestServiceRepository.getBookingByMobileNumber(
-						waterTankerRequest.getWaterTankerBookingDetail()
-								.getApplicantDetail().getMobileNumber());
-
-		if (existingWaterTankerDetail != null) {
-
-
-
-			waterTankerDetail.setBookingId(existingWaterTankerDetail.getBookingId());
-
-			waterTankerDetail.setBookingNo(existingWaterTankerDetail.getBookingNo());
-
-			waterTankerDetail.setApplicantId(existingWaterTankerDetail.getApplicantId());
-
-			waterTankerDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
-			waterTankerDetail.getAddress().setApplicantId(existingWaterTankerDetail.getApplicantId());
-			waterTankerDetail.getApplicantDetail().setAuditDetails(auditDetails);
-
-			waterTankerDetail.getApplicantDetail().setApplicantId(existingWaterTankerDetail.getApplicantId());
-			waterTankerDetail.getApplicantDetail().setBookingId(existingWaterTankerDetail.getBookingId());
-
-		} else {
+//		WaterTankerBookingDetail existingWaterTankerDetail =
+//				requestServiceRepository.getBookingByMobileNumber(
+//						waterTankerRequest.getWaterTankerBookingDetail()
+//								.getApplicantDetail().getMobileNumber());
+//
+//		if (existingWaterTankerDetail != null) {
+//
+//
+//
+//			waterTankerDetail.setBookingId(existingWaterTankerDetail.getBookingId());
+//
+//			waterTankerDetail.setBookingNo(existingWaterTankerDetail.getBookingNo());
+//
+//			waterTankerDetail.setApplicantId(existingWaterTankerDetail.getApplicantId());
+//
+//			waterTankerDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
+//			waterTankerDetail.getAddress().setApplicantId(existingWaterTankerDetail.getApplicantId());
+//			waterTankerDetail.getApplicantDetail().setAuditDetails(auditDetails);
+//
+//			waterTankerDetail.getApplicantDetail().setApplicantId(existingWaterTankerDetail.getApplicantId());
+//			waterTankerDetail.getApplicantDetail().setBookingId(existingWaterTankerDetail.getBookingId());
+//
+//		} else {
 
 			// ================= NEW =================
 
@@ -143,7 +143,7 @@ public class EnrichmentService {
 			waterTankerDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
 			waterTankerDetail.getAddress().setApplicantId(applicantUuid);
 
-		}
+//		}
 
 		waterTankerDetail.setMobileNumber(
 				waterTankerRequest.getWaterTankerBookingDetail()
@@ -197,6 +197,7 @@ public class EnrichmentService {
 		waterTankerDetail.setFillingPointId(waterTankerRequest.getWaterTankerBookingDetail().getFillingPointId());
 		waterTankerDetail.setDeliveryDate(waterTankerRequest.getWaterTankerBookingDetail().getDeliveryDate());
 		waterTankerDetail.setDeliveryTime(waterTankerRequest.getWaterTankerBookingDetail().getDeliveryTime());
+		waterTankerDetail.setApplicationType(waterTankerDetail.getWorkflow().getBusinessService());
 
 
 		waterTankerDetail.setBookingCreatedBy(bookingCreateBy);
