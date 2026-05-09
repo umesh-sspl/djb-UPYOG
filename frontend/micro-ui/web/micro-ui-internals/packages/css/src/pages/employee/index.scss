@@ -1,4 +1,5 @@
 @import "./login.scss";
+@import "./EmployeeModuleCard.scss";
 
 /* TODO: convert using tailwind */
 .employee {
@@ -682,6 +683,17 @@
 }
 
 @media (min-width: 640px) {
+  .add-details-link {
+    color: #a82227;
+    cursor: pointer;
+    text-decoration: underline;
+    display: flex;
+    width: fit-content;
+    &:hover {
+      padding: 0 32px;
+      margin-left: 0;
+    }
+  }
   .employee {
     display: flex;
     flex-direction: column;
@@ -707,18 +719,6 @@
       /* width: calc(100%-83px); */
     }
 
-    .add-details-link {
-      color: #a82227;
-      cursor: pointer;
-      text-decoration: underline;
-      display: flex;
-      width: fit-content;
-      &:hover {
-        padding: 0 32px;
-        margin-left: 0;
-      }
-    }
-
     .citizen-home-container {
       display: flex;
       flex-direction: unset !important;
@@ -731,13 +731,10 @@
   .citizen {
     .main {
       width: 100%;
-      padding-top: 58px;
+      padding-top: 72px;
       display: flex;
       justify-content: center;
       height: 100vh;
-    }
-
-    .center-container {
     }
   }
 }
