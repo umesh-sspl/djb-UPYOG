@@ -62,6 +62,7 @@ export const UploadServices = {
         status: error?.response?.status || 500,
         data: error?.response?.data || null,
         message: error?.response?.data?.message || error.message || "File fetch failed",
+        headers: error?.response?.headers || {},
       };
     }
   },
@@ -91,6 +92,7 @@ export const UploadServices = {
         status: error?.response?.status || 500,
         data: error?.response?.data || null,
         message: error?.response?.data?.message || error.message || "File fetch by id failed",
+        headers: error?.response?.headers || {},
       };
     }
   },
