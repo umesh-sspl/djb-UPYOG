@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.upyog.rs.config.RequestServiceConfiguration;
 import org.upyog.rs.constant.RequestServiceConstants;
+import org.upyog.rs.enums.RequestServiceStatus;
 import org.upyog.rs.exception.DuplicateMobileNumberException;
 import org.upyog.rs.repository.RequestServiceRepository;
 import org.upyog.rs.service.DemandService;
@@ -220,7 +221,7 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 	WaterTankerBookingDetail activeBooking = null;
 	if (existingBookings != null && !existingBookings.isEmpty()) {
 		activeBooking = existingBookings.stream()
-				.filter(b -> !"DELIVERED".equalsIgnoreCase(b.getBookingStatus()) &&
+				.filter(b -> !"TANKER_DELIVERED".equalsIgnoreCase(b.getBookingStatus()) &&
 						!"CANCELLED".equalsIgnoreCase(b.getBookingStatus()) &&
 						!"REJECTED".equalsIgnoreCase(b.getBookingStatus()))
 				.findFirst()
@@ -265,6 +266,7 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 		waterTankerDetail.getWorkflow().setAction("APPLY");
 	} else {
 		waterTankerDetail.getWorkflow().setAction("CREATE");
+		waterTankerDetail.setBookingStatus("IN_TRANSIT");
 	}
 
 	// User enrichment logic
