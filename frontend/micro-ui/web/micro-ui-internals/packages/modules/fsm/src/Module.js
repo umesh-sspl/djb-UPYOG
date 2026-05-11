@@ -47,9 +47,6 @@ import Inbox from "./pages/employee/Inbox";
 import { NewApplication } from "./pages/employee/NewApplication";
 import Response from "./pages/Response";
 import FSMRegistry from "./pages/employee/FSMRegistry";
-import VendorDetails from "./pages/employee/FSMRegistry/Vendor/VendorDetails";
-import AddVendor from "./pages/employee/FSMRegistry/Vendor/AddVendor";
-import EditVendor from "./pages/employee/FSMRegistry/Vendor/EditVendor";
 import VehicleDetails from "./pages/employee/FSMRegistry/Vehicle/VehicleDetails";
 import AddVehicle from "./pages/employee/FSMRegistry/Vehicle/AddVehicle";
 import EditVehicle from "./pages/employee/FSMRegistry/Vehicle/EditVehicle";
@@ -62,12 +59,15 @@ import SelectTrips from "./pageComponents/SelectTrips";
 import PlusMinusInput from "./pageComponents/PlusMinusInput";
 import ConfirmationBox from "./components/Confirmation";
 import SelectLocalityOrGramPanchayat from "./pageComponents/SelectLocalityOrGramPanchayat";
+import EditVendor from "./components/Vendor/EditVendor";
+import VendorDetails from "../../vendor/src/pageComponents/VendorDetails";
+import AddVendor from "../../vendor/src/components/RegisterVendor/AddVendor";
 
 const FSMModule = ({ stateCode, userType, tenants }) => {
   const moduleCode = "FSM";
   const { path, url } = useRouteMatch();
   const language = Digit.StoreData.getCurrentLanguage();
-  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
+  const { isLoading } = Digit.Services.useStore({ stateCode, moduleCode, language });
 
   if (isLoading) {
     return <Loader />;
@@ -83,10 +83,11 @@ const FSMModule = ({ stateCode, userType, tenants }) => {
 
 const FSMLinks = ({ matchPath, userType }) => {
   const { t } = useTranslation();
-  const [params, setParams, clearParams] = Digit.Hooks.useSessionStorage("FSM_CITIZEN_FILE_PROPERTY", {});
+  const [clearParams] = Digit.Hooks.useSessionStorage("FSM_CITIZEN_FILE_PROPERTY", {});
 
   useEffect(() => {
     clearParams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const roleBasedLoginRoutes = [
@@ -110,7 +111,7 @@ const FSMLinks = ({ matchPath, userType }) => {
       },
     ];
 
-    roleBasedLoginRoutes.map(({ role, from, loginLink, dashoardLink }) => {
+    roleBasedLoginRoutes.forEach(({ role, from, loginLink, dashoardLink }) => {
       if (Digit.UserService.hasAccess(role))
         links.push({
           link: from,

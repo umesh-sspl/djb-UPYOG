@@ -1,7 +1,7 @@
-import { Banner, Card, CardText, LinkButton, LinkLabel, Loader, Row, StatusTable, SubmitBar } from "@djb25/digit-ui-react-components";
+import { Banner, Card, LinkButton, Loader, Row, StatusTable } from "@djb25/digit-ui-react-components";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useRouteMatch } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { VendorData } from "../../../utils";
 
@@ -35,13 +35,7 @@ const BannerPicker = (props) => {
 
 const NewResponse = ({ data, onSuccess }) => {
   const { t } = useTranslation();
-
-  const tenantId = Digit.ULBService.getCurrentTenantId();
   const mutation = Digit.Hooks.vendor.useVendorAdditionaldetailsAPI(Digit.ULBService.getCurrentTenantId());
-
-  const { data: storeData } = Digit.Hooks.useStore.getInitData();
-  const match = useRouteMatch();
-  const { tenants } = storeData || {};
 
   useEffect(() => {
     try {
@@ -55,6 +49,7 @@ const NewResponse = ({ data, onSuccess }) => {
 
       console.log("mutation in acknowejkfdlgi ::: ", mutation);
     } catch (err) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // const handleDownloadPdf = async () => {

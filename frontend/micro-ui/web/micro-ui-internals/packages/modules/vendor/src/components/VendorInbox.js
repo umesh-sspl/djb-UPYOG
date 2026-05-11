@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
-import { Card, Dropdown, Loader, SubmitBar, Toast, Modal, Table, ViewsIcon } from "@djb25/digit-ui-react-components";
+import { Card, Dropdown, Loader, SubmitBar, Toast, Modal, Table, ViewsIcon, MdClose } from "@djb25/digit-ui-react-components";
 import VENDORLink from "./inbox/VENDORLink";
 import ApplicationTable from "./inbox/ApplicationTable";
 import Filter from "./inbox/Filter";
@@ -185,6 +185,10 @@ const VendorInbox = (props) => {
   const [drivers, setDrivers] = useState([]);
   const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
   const [selectedVendorForWorkOrder, setSelectedVendorForWorkOrder] = useState(null);
+  const userInfo = Digit.SessionStorage.get("User");
+
+  const userRoles = userInfo.info.roles;
+  const userType = userInfo.info.type?.toLowerCase();
 
   const openWorkOrderModal = (vendorDetails) => {
     setSelectedVendorForWorkOrder(vendorDetails);
@@ -254,6 +258,7 @@ const VendorInbox = (props) => {
           ),
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t]
   );
 
@@ -261,9 +266,9 @@ const VendorInbox = (props) => {
 
   const {
     data: vendorData,
-    isLoading: isVendorLoading,
-    isSuccess: isVendorSuccess,
-    error: vendorError,
+    // isLoading: isVendorLoading,
+    // isSuccess: isVendorSuccess,
+    // error: vendorError,
     refetch: refetchVendor,
   } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, { enabled: false });
 
@@ -277,26 +282,26 @@ const VendorInbox = (props) => {
   });
 
   const {
-    isLoading: isUpdateVendorLoading,
-    isError: vendorUpdateError,
-    data: updateVendorResponse,
-    error: updateVendorError,
+    // isLoading: isUpdateVendorLoading,
+    // isError: vendorUpdateError,
+    // data: updateVendorResponse,
+    // error: updateVendorError,
     mutate: mutateVendor,
   } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
 
   const {
-    isLoading: isUpdateVehicleLoading,
-    isError: vehicleUpdateError,
-    data: updateVehicleResponse,
-    error: updateVehicleError,
+    // isLoading: isUpdateVehicleLoading,
+    // isError: vehicleUpdateError,
+    // data: updateVehicleResponse,
+    // error: updateVehicleError,
     mutate: mutateVehicle,
   } = Digit.Hooks.fsm.useUpdateVehicle(tenantId);
 
   const {
-    isLoading: isDriverLoading,
-    isError: driverUpdateError,
-    data: updateDriverResponse,
-    error: updateDriverError,
+    // isLoading: isDriverLoading,
+    // isError: driverUpdateError,
+    // data: updateDriverResponse,
+    // error: updateDriverError,
     mutate: mutateDriver,
   } = Digit.Hooks.fsm.useDriverUpdate(tenantId);
 
@@ -309,6 +314,7 @@ const VendorInbox = (props) => {
       refetchVendor();
       refetchDriver();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedTab]);
 
   useEffect(() => {
@@ -456,7 +462,7 @@ const VendorInbox = (props) => {
   //vendor dropdown in driver
   const onVendorSelect = (row, selectedOption) => {
     let driverData = row.original;
-    let formDetails = row.original.dsoDetails;
+    // let formDetails = row.original.dsoDetails;
 
     let existingVendor = driverData?.vendor;
     let selectedVendor = selectedOption;
@@ -468,12 +474,12 @@ const VendorInbox = (props) => {
         drivers.findIndex((ele) => ele.id === driverData.id),
         1
       );
-      const formData = {
-        vendor: {
-          ...formDetails,
-          drivers: drivers,
-        },
-      };
+      // const formData = {
+      //   vendor: {
+      //     ...formDetails,
+      //     drivers: drivers,
+      //   },
+      // };
     }
     const formData = {
       vendor: {
@@ -645,15 +651,15 @@ const VendorInbox = (props) => {
   const onSelectAdd = () => {
     switch (props.selectedTab) {
       case "VENDOR":
-        return history.push("/digit-ui/employee/vendor/registry/new-vendor");
+        return history.push(`/digit-ui/${userType}/vendor/registry/new-vendor`);
       case "VEHICLE":
-        return history.push("/digit-ui/employee/fsm/registry/new-vehicle");
+        return history.push(`/digit-ui/${userType}/fsm/registry/new-vehicle`);
       case "DRIVER":
-        return history.push("/digit-ui/employee/fsm/registry/new-driver");
+        return history.push(`/digit-ui/${userType}/fsm/registry/new-driver`);
       case "SUPERVISOR":
-        return history.push("/digit-ui/employee/vendor/registry/new-supervisor");
+        return history.push(`/digit-ui/${userType}/vendor/registry/new-supervisor`);
       case "SURVEYOR":
-        return history.push("/digit-ui/employee/vendor/registry/new-surveyor");
+        return history.push(`/digit-ui/${userType}/vendor/registry/new-surveyor`);
       default:
         break;
     }
@@ -696,7 +702,7 @@ const VendorInbox = (props) => {
               return (
                 <div>
                   <span className="link">
-                    <Link to={"/digit-ui/employee/vendor/registry/vendor-details/" + row.original["id"]}>
+                    <Link to={`/digit-ui/${userType}/vendor/registry/vendor-details/` + row.original["id"]}>
                       <div>{row.original.name}</div>
                     </Link>
                   </span>
@@ -784,8 +790,8 @@ const VendorInbox = (props) => {
                 <Link
                   to={
                     hasDetails
-                      ? "/digit-ui/employee/vendor/registry/additionaldetails/info?vendorId=" + vendorId
-                      : "/digit-ui/employee/vendor/registry/additionaldetails/vendor-details?vendorId=" + vendorId
+                      ? `/digit-ui/${userType}/vendor/registry/additionaldetails/info?vendorId=` + vendorId
+                      : `/digit-ui/${userType}/vendor/registry/additionaldetails/vendor-details?vendorId=` + vendorId
                   }
                 >
                   <button
@@ -833,7 +839,7 @@ const VendorInbox = (props) => {
               return (
                 <div>
                   <span className="link">
-                    <Link to={"/digit-ui/employee/vendor/registry/vehicle-details/" + row.original["registrationNumber"]}>
+                    <Link to={`/digit-ui/${userType}/vendor/registry/vehicle-details/` + row.original["registrationNumber"]}>
                       <div>{row.original.registrationNumber}</div>
                     </Link>
                   </span>
@@ -987,7 +993,7 @@ const VendorInbox = (props) => {
               return (
                 <div>
                   <span className="link">
-                    <Link to={"/digit-ui/employee/vendor/registry/driver-details/" + row.original["id"]}>
+                    <Link to={`/digit-ui/${userType}/vendor/registry/driver-details/` + row.original["id"]}>
                       <div>{row.original.owner?.userName || "NA"}</div>
                     </Link>
                   </span>
@@ -1003,7 +1009,7 @@ const VendorInbox = (props) => {
               return (
                 <div>
                   <span className="link">
-                    <Link to={"/digit-ui/employee/vendor/registry/driver-details/" + row.original["id"]}>
+                    <Link to={`/digit-ui/${userType}/vendor/registry/driver-details/` + row.original["id"]}>
                       <div>{`${row.original.name || "N/A"}`}</div>
                     </Link>
                   </span>
@@ -1083,7 +1089,7 @@ const VendorInbox = (props) => {
               return (
                 <div>
                   <span className="link">
-                    <Link to={`/digit-ui/employee/vendor/registry/${detailsPath}/` + row.original["id"]}>
+                    <Link to={`/digit-ui/${userType}/vendor/registry/${detailsPath}/` + row.original["id"]}>
                       <div>{row.original.owner?.userName || "NA"}</div>
                     </Link>
                   </span>
@@ -1099,7 +1105,7 @@ const VendorInbox = (props) => {
               return (
                 <div>
                   <span className="link">
-                    <Link to={`/digit-ui/employee/vendor/registry/${detailsPath}/` + row.original["id"]}>
+                    <Link to={`/digit-ui/${userType}/vendor/registry/${detailsPath}/` + row.original["id"]}>
                       <div>{`${row.original.name || "N/A"}`}</div>
                     </Link>
                   </span>
@@ -1166,6 +1172,7 @@ const VendorInbox = (props) => {
       default:
         return [];
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedTab, vendors, drivers, tableData, additionalVendorData, allFillingPoints, t]);
 
   const csvExportColumns = React.useMemo(() => {
@@ -1267,66 +1274,66 @@ const VendorInbox = (props) => {
             exportAccessor: (row) => row?.status || "NA",
           },
         ];
-        case "SURVEYOR":
-          return [
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
-              exportAccessor: (row) => row?.owner?.userName || "NA",
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
-              exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
-              exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
-              exportAccessor: (row) =>
-                `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
-                  row?.vendorData?.mobileNumber ||
-                  row?.vendorData?.owner?.mobileNumber ||
-                  row?.vendor?.mobileNumber ||
-                  row?.vendor?.owner?.mobileNumber ||
-                  "NA"
-                }`,
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
-              exportAccessor: (row) => row?.status || "NA",
-            },
-          ];
-        case "SUPERVISOR":
-          return [
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
-              exportAccessor: (row) => row?.owner?.userName || "NA",
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
-              exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
-              exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
-              exportAccessor: (row) =>
-                `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
-                  row?.vendorData?.mobileNumber ||
-                  row?.vendorData?.owner?.mobileNumber ||
-                  row?.vendor?.mobileNumber ||
-                  row?.vendor?.owner?.mobileNumber ||
-                  "NA"
-                }`,
-            },
-            {
-              Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
-              exportAccessor: (row) => row?.status || "NA",
-            },
-          ];
+      case "SURVEYOR":
+        return [
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
+            exportAccessor: (row) => row?.owner?.userName || "NA",
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
+            exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
+            exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
+            exportAccessor: (row) =>
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
+                row?.vendorData?.mobileNumber ||
+                row?.vendorData?.owner?.mobileNumber ||
+                row?.vendor?.mobileNumber ||
+                row?.vendor?.owner?.mobileNumber ||
+                "NA"
+              }`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+            exportAccessor: (row) => row?.status || "NA",
+          },
+        ];
+      case "SUPERVISOR":
+        return [
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
+            exportAccessor: (row) => row?.owner?.userName || "NA",
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
+            exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
+            exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
+            exportAccessor: (row) =>
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
+                row?.vendorData?.mobileNumber ||
+                row?.vendorData?.owner?.mobileNumber ||
+                row?.vendor?.mobileNumber ||
+                row?.vendor?.owner?.mobileNumber ||
+                "NA"
+              }`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+            exportAccessor: (row) => row?.status || "NA",
+          },
+        ];
       default:
         return [];
     }
@@ -1376,11 +1383,9 @@ const VendorInbox = (props) => {
       emptyButtonText = "ES_FSM_REGISTRY_EMPTY_BUTTON_DRIVER";
     }
     result = (
-      <Card style={{ display: "flex", justifyContent: "center", minHeight: "250px" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ marginTop: "50px", marginBottom: "25px" }}>{t(emptyCardText)}</div>
-          <SubmitBar className="" label={t(emptyButtonText)} onSubmit={onSelectAdd} />
-        </div>
+      <Card className="flex-center flex-box">
+        <div style={{ marginTop: "50px", marginBottom: "25px" }}>{t(emptyCardText)}</div>
+        <SubmitBar className="" label={t(emptyButtonText)} onSubmit={onSelectAdd} />
       </Card>
     );
 
@@ -1392,14 +1397,12 @@ const VendorInbox = (props) => {
         t={t}
         data={tableData}
         columns={columns}
-        getCellProps={(cellInfo) => {
-          return {
-            style: {
-              padding: "8px 12px",
-              fontSize: "13.5px",
-            },
-          };
-        }}
+        getCellProps={() => ({
+          style: {
+            padding: "8px 12px",
+            fontSize: "13.5px",
+          },
+        })}
         onPageSizeChange={props.onPageSizeChange}
         currentPage={props.currentPage}
         onNextPage={props.onNextPage}
@@ -1416,6 +1419,30 @@ const VendorInbox = (props) => {
       />
     );
   }
+
+  const ekycRoles = {
+    ekycVendor: "EKYC-VENDOR",
+    supervisor: "EKYC_SUPERVISOR",
+  };
+
+  const wtRoles = {
+    wtVendor: "WT_VENDOR",
+  };
+
+  // Extract user role codes
+  const userRoleCodes = userRoles.map((role) => role.code);
+
+  // Get exact matched EKYC roles
+  const matchedEkycRoles = Object.values(ekycRoles).filter((role) => userRoleCodes.includes(role));
+
+  // Get exact matched WT roles
+  const matchedWtRoles = Object.values(wtRoles).filter((role) => userRoleCodes.includes(role));
+  const matchedRoles = {
+    ekyc: matchedEkycRoles,
+    wt: matchedWtRoles,
+  };
+
+  matchedRoles.ekyc.push("EKYC-VENDOR");
 
   return (
     <div className="inbox-container">
@@ -1442,6 +1469,7 @@ const VendorInbox = (props) => {
           searchParams={props.searchParams}
           onTabChange={props.onTabChange}
           selectedTab={props.selectedTab}
+          matchedRoles={matchedRoles}
         />
         <div className="result" style={{ marginLeft: FSTP || props.userRole === "FSM_ADMIN" ? "" : !props?.isSearch ? "24px" : "", flex: 1 }}>
           {result}
@@ -1467,10 +1495,7 @@ const VendorInbox = (props) => {
           }
           headerBarEnd={
             <div className="icon-bg-secondary" onClick={closeWorkOrderModal} style={{ cursor: "pointer" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF" width="24" height="24">
-                <path d="M0 0h24v24H0V0z" fill="none" />
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
-              </svg>
+              <MdClose />
             </div>
           }
           actionCancelLabel={t("CS_COMMON_CLOSE")}

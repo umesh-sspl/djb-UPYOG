@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Loader, ComplaintIcon, DropIcon, HomeIcon, Calender, DocumentIcon, HelpIcon, WhatsNewCard, CHBIcon } from "@djb25/digit-ui-react-components";
+import {
+  Loader,
+  ComplaintIcon,
+  DropIcon,
+  VendorManagementIcon,
+  HomeIcon,
+  Calender,
+  DocumentIcon,
+  HelpIcon,
+  WhatsNewCard,
+  CHBIcon,
+} from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import ChatBot from "./ChatBot";
@@ -153,10 +164,10 @@ const Home = () => {
         onClick: () => history.push("/digit-ui/citizen/ws/home"),
       },
       {
-        name: t("ACTION_TEST_WATER_AND_SEWERAGE"),
+        name: t("ACTION_VENDOR_MANAGEMENT"),
         description: t("Apply for new water connection"),
-        Icon: <DropIcon className="fill-path-primary-main" />,
-        onClick: () => history.push("/digit-ui/citizen/ws/home"),
+        Icon: <VendorManagementIcon className="fill-path-primary-main" />,
+        onClick: () => history.push("/digit-ui/citizen/vendor"),
       },
       // {
       //   name: t(citizenServicesObj?.props?.[3]?.label) === "ACTION_TEST_CHB" ? t("Community Halls") : t(citizenServicesObj?.props?.[3]?.label),
@@ -167,6 +178,7 @@ const Home = () => {
     ],
     styles: { display: "flex", flexWrap: "wrap", justifyContent: "flex-start", width: "100%" },
   };
+
   const allInfoAndUpdatesProps = {
     header: t(infoAndUpdatesObj?.headerLabel),
     sideOption: {
@@ -198,10 +210,6 @@ const Home = () => {
         Icon: <HelpIcon className="fill-path-primary-main" />,
         onClick: () => history.push(infoAndUpdatesObj?.props?.[3]?.navigationUrl),
       },
-      // {
-      //     name: t("CS_COMMON_HELP"),
-      //     Icon: <HelpIcon/>
-      // }
     ],
     styles: { display: "flex", flexWrap: "wrap", justifyContent: "flex-start", width: "100%" },
   };

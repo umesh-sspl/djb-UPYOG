@@ -49,9 +49,9 @@ import EmergencyFixedPointDispatchDetails from "./pageComponents/EmergencyFixedP
 // Parent component of module
 export const WTModule = ({ stateCode, userType, tenants }) => {
   const { path, url } = useRouteMatch();
-  const moduleCode = "WT";
-  const language = Digit.StoreData.getCurrentLanguage();
-  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
+  // const moduleCode = "WT";
+  // const language = Digit.StoreData.getCurrentLanguage();
+  // const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
   Digit.SessionStorage.set("WT_TENANTS", tenants);
   useEffect(
     () =>
@@ -61,6 +61,7 @@ export const WTModule = ({ stateCode, userType, tenants }) => {
         locale: Digit.StoreData.getCurrentLanguage(),
         tenantId: Digit.ULBService.getCurrentTenantId(),
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -71,10 +72,11 @@ export const WTModule = ({ stateCode, userType, tenants }) => {
 
 export const WTLinks = ({ matchPath, userType }) => {
   const { t } = useTranslation();
-  const [params, setParams, clearParams] = Digit.Hooks.useSessionStorage("WT", {});
+  const [, , clearParams] = Digit.Hooks.useSessionStorage("WT", {});
 
   useEffect(() => {
     clearParams();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const links = [

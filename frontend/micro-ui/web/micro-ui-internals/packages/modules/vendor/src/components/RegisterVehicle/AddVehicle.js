@@ -13,21 +13,18 @@ const AddVehicle = ({ parentUrl, heading }) => {
   const history = useHistory();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [currentStep, setCurrentStep] = useState(1);
-  const steps = [t("ES_FSM_REGISTRY_TITLE_NEW_VEHICLE")];
 
-  const [mutationHappened, setMutationHappened, clear] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
-  const [errorInfo, setErrorInfo, clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
-  const [successData, setsuccessData, clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
+  const [, setMutationHappened] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
+  const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
+  const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { isLoading: isLoading, isError: vendorCreateError, data: updateResponse, error: updateError, mutate } = Digit.Hooks.fsm.useVehicleCreate(
-    tenantId
-  );
+  const { mutate } = Digit.Hooks.fsm.useVehicleCreate(tenantId);
 
   useEffect(() => {
     setMutationHappened(false);
     clearSuccessData();
     clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const Config = VehicleConfig(t);
@@ -139,7 +136,7 @@ const AddVehicle = ({ parentUrl, heading }) => {
     const gender = data?.selectGender?.code;
     const emailId = data?.emailId;
     const dob = new Date(`${data.dob}`).getTime() || new Date(`1/1/1970`).getTime();
-const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
+    const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
     const formData = {
       vehicle: {
         tenantId: !isCitizen ? "dl.djb" : tenantId,
@@ -159,9 +156,7 @@ const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
           name: ownerName,
           fatherOrHusbandName: ownerName,
           relationship: "OTHER",
-          gender: "OTHERS",
-          dob: dob,
-          emailId: "abc@egov.com",
+
           correspondenceAddress: "",
           mobileNumber: phone,
           gender: gender,
@@ -199,7 +194,7 @@ const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
             timeLine: [{ actions: t("ES_FSM_REGISTRY_TITLE_NEW_VEHICLE"), currentStep: 1 }],
           },
         ]}
-        currentActiveIndex={currentStep - 1}
+        currentActiveIndex={0}
         showFinalStep={false}
       />
       <div style={{ flex: "1", overflowY: "auto" }}>

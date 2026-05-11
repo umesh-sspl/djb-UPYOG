@@ -1,6 +1,5 @@
-import { Card, ShippingTruck } from "@djb25/digit-ui-react-components";
-import { forEach } from "lodash";
 import React, { useEffect, useState } from "react";
+import { Card, ShippingTruck } from "@djb25/digit-ui-react-components";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +32,7 @@ const VENDORLink = ({ parentRoute, isMobile, data }) => {
   useEffect(() => {
     let linksToShow = allLinks.filter(({ roles }) => roles?.some((e) => userRoles?.map(({ code }) => code).includes(e)) || !roles?.length);
     setLinks(linksToShow);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // useEffect(() => {

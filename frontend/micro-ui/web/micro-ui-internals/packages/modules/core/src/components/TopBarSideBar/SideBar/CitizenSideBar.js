@@ -32,19 +32,24 @@ const defaultImage =
   "L+RGKCddCGmatiPyPB/+ekO/M/q/7uvbt22kTt3zEnXPzCV13T3Gel4/6NduDu66xRvlPNkM1RjjxUdv+4WhGx6TftD19Q/dfzpwcHO+rE3fAAAAAElFTkSuQmCC";
 const Profile = ({ info, stateName, t }) => {
   const [profilePic, setProfilePic] = React.useState(null);
-  React.useEffect(async () => {
-    const tenant = Digit.ULBService.getCurrentTenantId();
-    const uuid = info?.uuid;
-    if (uuid) {
-      const usersResponse = await Digit.UserService.userSearch(tenant, { uuid: [uuid] }, {});
+  React.useEffect(() => {
+    if (profilePic !== null) {
+      const tenant = Digit.ULBService.getCurrentTenantId();
+      const uuid = info?.uuid;
+      (async () => {
+        if (uuid) {
+          const usersResponse = await Digit.UserService.userSearch(tenant, { uuid: [uuid] }, {});
 
-      if (usersResponse && usersResponse.user && usersResponse.user.length) {
-        const userDetails = usersResponse.user[0];
-        const thumbs = userDetails?.photo?.split(",");
-        setProfilePic(thumbs?.at(0));
-      }
+          if (usersResponse && usersResponse.user && usersResponse.user.length) {
+            const userDetails = usersResponse.user[0];
+            const thumbs = userDetails?.photo?.split(",");
+            setProfilePic(thumbs?.at(0));
+          }
+        }
+      })();
     }
-  }, [profilePic !== null]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilePic]);
   return (
     <div className="profile-section">
       <div className="imageloader imageloader-loaded">
@@ -52,6 +57,7 @@ const Profile = ({ info, stateName, t }) => {
           className="img-responsive img-circle img-Profile"
           src={profilePic ? profilePic : defaultImage}
           style={{ objectFit: "cover", objectPosition: "center" }}
+          alt=""
         />
       </div>
       <div id="profile-location" className="label-container loc-Profile">
@@ -175,31 +181,28 @@ export const CitizenSideBar = ({
   let configEmployeeSideBar = {};
 
   if (!isEmployee) {
-    if (linkData && linkData.FSM) {
-      let FSM = [];
-      linkData.FSM.map((ele) => {
-        ele.id && ele.link && FSM.push(ele);
-      });
-      linkData.FSM = FSM;
+    if (linkData?.FSM) {
+      linkData.FSM = linkData.FSM.filter((ele) => ele.id && ele.link);
     }
     Object.keys(linkData)
       ?.filter((key) => !linkData[key][0]?.sidebarURL?.includes("wt-home"))
       ?.sort((x, y) => y.localeCompare(x))
-      ?.map((key) => {
-        if (linkData[key][0]?.sidebar === "digit-ui-links")
+      ?.forEach((key) => {
+        const item = linkData[key]?.[0];
+        if (item?.sidebar === "digit-ui-links")
           menuItems.splice(1, 0, {
-            type: linkData[key][0]?.sidebarURL?.includes("digit-ui") ? "link" : "external-link",
+            type: item.sidebarURL?.includes("digit-ui") ? "link" : "external-link",
             text: t(`ACTION_TEST_${Digit.Utils.locale.getTransformedLocale(key)}`),
             links: linkData[key],
-            icon: linkData[key][0]?.leftIcon,
-            link: linkData[key][0]?.sidebarURL,
+            icon: item.leftIcon,
+            link: item.sidebarURL,
           });
       });
   } else {
     data?.actions
       .filter((e) => e.url === "url" && e.displayName !== "Home")
       .forEach((item) => {
-        if (search == "" && item.path !== "") {
+        if (search === "" && item.path !== "") {
           let index = item.path.split(".")[0];
           if (index === "TradeLicense") index = "Trade License";
           if (!configEmployeeSideBar[index]) {

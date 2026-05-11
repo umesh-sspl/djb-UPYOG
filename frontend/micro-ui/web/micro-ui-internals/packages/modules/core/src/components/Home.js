@@ -78,7 +78,7 @@ export const processLinkData = (newData, code, t) => {
 
     const role = code === "WT" ? "WT_VENDOR" : "MT_VENDOR";
     const from = code === "WT" ? "/digit-ui/citizen/wt/wt-Vendor" : "/digit-ui/citizen/wt/mt-Vendor";
-    const loginLink = code === "WT" ? "WT_VENDOR_LOGIN" : "MT_VENDOR_LOGIN";
+    const loginLink = code === "WT" ? "WT_VENDOR_ACTIONS" : "MT_VENDOR_LOGIN";
 
     if (Digit.UserService.hasAccess(role))
       fallbackLinks.push({
@@ -161,6 +161,7 @@ const CitizenHome = ({ modules, getCitizenMenu, fetchedCitizen, isLoading }) => 
 
     let mdmsDataObj;
     if (fetchedCitizen) mdmsDataObj = fetchedCitizen ? processLinkData(getCitizenMenu, code, t) : undefined;
+
     if (mdmsDataObj?.links?.length > 0) {
       return (
         <CitizenHomeCard

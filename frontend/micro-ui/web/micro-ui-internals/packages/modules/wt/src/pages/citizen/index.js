@@ -1,7 +1,16 @@
-import { AppContainer, BackButton, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon, CitizenHomeCard, CHBIcon, PropertyHouse } from "@djb25/digit-ui-react-components";
+import {
+  AppContainer,
+  PrivateRoute,
+  ModuleHeader,
+  ArrowLeft,
+  HomeIcon,
+  CitizenHomeCard,
+  CHBIcon,
+  PropertyHouse,
+} from "@djb25/digit-ui-react-components";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Redirect, Switch, useRouteMatch, useLocation, useHistory } from "react-router-dom";
+import { Redirect, Switch, useRouteMatch, useLocation } from "react-router-dom";
 import { APPLICATION_PATH } from "../../utils";
 import SearchApp from "../employee/SearchApp";
 
@@ -9,8 +18,7 @@ import SearchApp from "../employee/SearchApp";
 const App = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const history = useHistory();
-  const { path, url, ...match } = useRouteMatch();
+  const { path } = useRouteMatch();
   const WTCreate = Digit?.ComponentRegistryService?.getComponent("WTCreate");
   const WTApplicationDetails = Digit?.ComponentRegistryService?.getComponent("WTApplicationDetails");
   const MTApplicationDetails = Digit?.ComponentRegistryService?.getComponent("MTApplicationDetails");
@@ -21,10 +29,6 @@ const App = () => {
 
   const getDynamicBreadcrumbs = () => {
     const pathname = location.pathname;
-
-    let moduleName = "WT";
-    if (pathname.includes("/mt/")) moduleName = "MT";
-    if (pathname.includes("/tp/")) moduleName = "TP";
 
     let crumbs = [
       { icon: HomeIcon, path: "/digit-ui/citizen" },
@@ -81,7 +85,7 @@ const App = () => {
               onLeftClick={() => window.history.back()}
               breadcrumbs={getDynamicBreadcrumbs()}
             />
-            <div className="employee-form-content">
+            <div className="employee-form-content abcd">
               <PrivateRoute
                 path={`${path}/inbox`}
                 component={() => (
@@ -115,14 +119,14 @@ const App = () => {
               />
 
               <PrivateRoute path={`${path}/request-service`} component={WTCreate} />
-              <PrivateRoute path={`${path}/status`} component={WTMyApplications}></PrivateRoute>
-              <PrivateRoute path={`${path}/booking/waterTanker/:acknowledgementIds/:tenantId`} component={WTApplicationDetails}></PrivateRoute>
-              <PrivateRoute path={`${path}/booking/mobileToilet/:acknowledgementIds/:tenantId`} component={MTApplicationDetails}></PrivateRoute>
-              <PrivateRoute path={`${path}/booking/treePruning/:acknowledgementIds/:tenantId`} component={TPApplicationDetails}></PrivateRoute>
+              <PrivateRoute path={`${path}/status`} component={WTMyApplications} />
+              <PrivateRoute path={`${path}/booking/waterTanker/:acknowledgementIds/:tenantId`} component={WTApplicationDetails} />
+              <PrivateRoute path={`${path}/booking/mobileToilet/:acknowledgementIds/:tenantId`} component={MTApplicationDetails} />
+              <PrivateRoute path={`${path}/booking/treePruning/:acknowledgementIds/:tenantId`} component={TPApplicationDetails} />
               <PrivateRoute path={`${path}/booking-details/:id`} component={() => <ApplicationDetails parentRoute={path} />} />
               <PrivateRoute path={`${path}/bookingsearch/booking-details/:id`} component={() => <ApplicationDetails parentRoute={path} />} />
               <PrivateRoute
-                path={`${path}/wt-Vendor`}
+                path={`${path}/vendor`}
                 component={() =>
                   Digit.UserService.hasAccess(["WT_VENDOR"]) ? (
                     <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", width: "100%", padding: "8px 0" }}>
@@ -137,9 +141,7 @@ const App = () => {
                       />
                       <CitizenHomeCard
                         header={t("TITLE_VENDOR_MANAGEMENT")}
-                        links={[
-                          { i18nKey: t("SEARCH_VENDOR"), link: `${APPLICATION_PATH}/citizen/vendor/search-vendor` },
-                        ]}
+                        links={[{ i18nKey: t("SEARCH_VENDOR"), link: `${APPLICATION_PATH}/citizen/vendor/search-vendor` }]}
                         Icon={() => <PropertyHouse className="fill-path-primary-main" />}
                       />
                     </div>
@@ -169,9 +171,7 @@ const App = () => {
                       />
                       <CitizenHomeCard
                         header={t("TITLE_VENDOR_MANAGEMENT")}
-                        links={[
-                          { i18nKey: t("SEARCH_VENDOR"), link: `${APPLICATION_PATH}/citizen/vendor/search-vendor` },
-                        ]}
+                        links={[{ i18nKey: t("SEARCH_VENDOR"), link: `${APPLICATION_PATH}/citizen/vendor/search-vendor` }]}
                         Icon={() => <PropertyHouse className="fill-path-primary-main" />}
                       />
                     </div>

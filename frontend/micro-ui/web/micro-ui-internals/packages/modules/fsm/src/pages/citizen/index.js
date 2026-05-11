@@ -1,13 +1,13 @@
-import { BackButton, PrivateRoute } from "@djb25/digit-ui-react-components";
 import React from "react";
+import { BackButton, PrivateRoute, LayoutWrapper } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import { Redirect, Switch, useLocation } from "react-router-dom";
 
 const CitizenApp = ({ path }) => {
   const location = useLocation();
   const { t } = useTranslation();
-  let isCommonPTPropertyScreen = window.location.href.includes("/ws/create-application/property-details");
-  let isAcknowledgement = window.location.href.includes("/acknowledgement") || window.location.href.includes("/disconnect-acknowledge");
+  // let isCommonPTPropertyScreen = window.location.href.includes("/ws/create-application/property-details");
+  // let isAcknowledgement = window.location.href.includes("/acknowledgement") || window.location.href.includes("/disconnect-acknowledge");
   const NewApplicationCitizen = Digit.ComponentRegistryService.getComponent("FSMNewApplicationCitizen");
   const MyApplications = Digit.ComponentRegistryService.getComponent("FSMMyApplications");
   const EmployeeApplicationDetails = Digit.ComponentRegistryService.getComponent("FSMEmployeeApplicationDetails");
@@ -17,7 +17,9 @@ const CitizenApp = ({ path }) => {
   const Response = Digit.ComponentRegistryService.getComponent("FSMResponse");
   const DsoDashboard = Digit.ComponentRegistryService.getComponent("FSMDsoDashboard");
   const Inbox = Digit.ComponentRegistryService.getComponent("FSMEmpInbox");
+  const EditVendor = Digit.ComponentRegistryService.getComponent("EditVendor");
 
+  console.log(`${path}/registry/modify-vendor/:id`);
   return (
     <React.Fragment>
       <div className="fsm-citizen-wrapper">
@@ -50,6 +52,16 @@ const CitizenApp = ({ path }) => {
           <PrivateRoute path={`${path}/rate-view/:id`} component={() => <RateView parentRoute={path} />} />
           <PrivateRoute path={`${path}/response`} component={(props) => <Response parentRoute={path} {...props} />} />
           <PrivateRoute path={`${path}/dso-dashboard`} component={() => <DsoDashboard parentRoute={path} />} />
+          <PrivateRoute path={`${path}/dso-dashboard`} component={() => <DsoDashboard parentRoute={path} />} />
+          <PrivateRoute
+            path={`${path}/registry/modify-vendor/:id`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <EditVendor {...props} />
+              </LayoutWrapper>
+            )}
+          />
+          {/* <Redirect to={`/digit-ui/citizen`} /> */}
         </Switch>
       </div>
     </React.Fragment>

@@ -11,7 +11,7 @@ const VENDORCreate = ({ parentRoute }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const history = useHistory();
-  const stateId = Digit.ULBService.getStateId();
+  // const stateId = Digit.ULBService.getStateId();
   let config = [];
   const [params, setParams, clearParams] = Digit.Hooks.useSessionStorage("VENDOR_Test", {});
 
@@ -21,8 +21,8 @@ const VENDORCreate = ({ parentRoute }) => {
       isMultiple = false,
       nextPage;
 
-    if (Number(parseInt(currentPath)) || currentPath == "0" || currentPath == "-1") {
-      if (currentPath == "-1" || currentPath == "-2") {
+    if (Number(parseInt(currentPath)) || currentPath === "0" || currentPath === "-1") {
+      if (currentPath === "-1" || currentPath === "-2") {
         currentPath = pathname.slice(0, -3);
         currentPath = currentPath.split("/").pop();
         isMultiple = true;

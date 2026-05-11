@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import {
   BreakLine,
   Card,
-  CardSubHeader,
   StatusTable,
   Row,
   SubmitBar,
@@ -20,7 +19,6 @@ import {
   ActionLinks,
   Header,
   ImageViewer,
-  MultiLink,
 } from "@djb25/digit-ui-react-components";
 
 import ActionModal from "./Modal";
@@ -30,7 +28,7 @@ import { useQueryClient } from "react-query";
 
 import { Link, useHistory, useParams } from "react-router-dom";
 import { ViewImages } from "../../../components/ViewImages";
-import getPDFData from "../../../getPDFData";
+// import getPDFData from "../../../getPDFData";
 
 const ApplicationDetails = (props) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
@@ -41,40 +39,25 @@ const ApplicationDetails = (props) => {
   let { id: applicationNumber } = useParams();
   const [displayMenu, setDisplayMenu] = useState(false);
   const [selectedAction, setSelectedAction] = useState(null);
-  const [config, setCurrentConfig] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(null);
   const [imageZoom, setImageZoom] = useState(null);
   const [showAllTimeline, setShowAllTimeline] = useState(false);
-  const [viewTimeline, setViewTimeline] = useState(false);
-  const DSO = Digit.UserService.hasAccess(["FSM_DSO"]) || false;
-  const [showOptions, setShowOptions] = useState(false);
-  const { data: storeData } = Digit.Hooks.useStore.getInitData();
+  // const DSO = Digit.UserService.hasAccess(["FSM_DSO"]) || false;
+  // const { data: storeData } = Digit.Hooks.useStore.getInitData();
 
-  const { tenants } = storeData || {};
+  // const { tenants } = storeData || {};
 
-  const { data: paymentsHistory } = Digit.Hooks.fsm.usePaymentHistory(tenantId, applicationNumber);
+  // const { data: paymentsHistory } = Digit.Hooks.fsm.usePaymentHistory(tenantId, applicationNumber);
 
-  const { isLoading, isError, data: applicationDetails, error } = Digit.Hooks.fsm.useApplicationDetail(
-    t,
-    tenantId,
-    applicationNumber,
-    {},
-    "EMPLOYEE"
-  );
-  const { isLoading: isDataLoading, isSuccess, data: applicationData } = Digit.Hooks.fsm.useSearch(
+  const { isLoading, data: applicationDetails } = Digit.Hooks.fsm.useApplicationDetail(t, tenantId, applicationNumber, {}, "EMPLOYEE");
+  const { isLoading: isDataLoading, data: applicationData } = Digit.Hooks.fsm.useSearch(
     tenantId,
     { applicationNos: applicationNumber },
     { staleTime: Infinity }
   );
 
-  const {
-    isLoading: updatingApplication,
-    isError: updateApplicationError,
-    data: updateResponse,
-    error: updateError,
-    mutate,
-  } = Digit.Hooks.fsm.useApplicationActions(tenantId);
+  const { mutate } = Digit.Hooks.fsm.useApplicationActions(tenantId);
 
   const workflowDetails = Digit.Hooks.useWorkflowDetails({
     tenantId: applicationDetails?.tenantId || tenantId,
@@ -100,6 +83,7 @@ const ApplicationDetails = (props) => {
     if (showToast) {
       workflowDetails.revalidate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showToast]);
 
   function onActionSelect(action) {
@@ -137,6 +121,7 @@ const ApplicationDetails = (props) => {
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction]);
 
   const closeModal = () => {
@@ -153,7 +138,6 @@ const ApplicationDetails = (props) => {
     if (timelineSection) {
       timelineSection.scrollIntoView({ behavior: "smooth" });
     }
-    setViewTimeline(true);
   };
   const submitAction = (data) => {
     mutate(data, {
@@ -238,53 +222,52 @@ const ApplicationDetails = (props) => {
     }
   };
 
-  const handleDownloadPdf = async () => {
-    const tenantInfo = tenants.find((tenant) => tenant.code === applicationDetails?.tenantId);
-    const data = getPDFData({ ...applicationDetails?.applicationDetailsResponse }, tenantInfo, t);
-    Digit.Utils.pdf.generate(data);
-    setShowOptions(false);
-  };
+  // const handleDownloadPdf = async () => {
+  //   const tenantInfo = tenants.find((tenant) => tenant.code === applicationDetails?.tenantId);
+  //   const data = getPDFData({ ...applicationDetails?.applicationDetailsResponse }, tenantInfo, t);
+  //   Digit.Utils.pdf.generate(data);
+  //   // setShowOptions(false);
+  // };
 
-  const downloadPaymentReceipt = async () => {
-    const receiptFile = {
-      filestoreIds: [paymentsHistory.Payments[0]?.fileStoreId],
-    };
+  // const downloadPaymentReceipt = async () => {
+  //   const receiptFile = {
+  //     filestoreIds: [paymentsHistory.Payments[0]?.fileStoreId],
+  //   };
 
-    if (!receiptFile?.fileStoreIds?.[0]) {
-      const newResponse = await Digit.PaymentService.generatePdf(state, { Payments: [paymentsHistory.Payments[0]] }, "fsm-receipt");
-      const fileStore = await Digit.PaymentService.printReciept(state, {
-        fileStoreIds: newResponse.filestoreIds[0],
-      });
-      window.open(fileStore[newResponse.filestoreIds[0]], "_blank");
-      setShowOptions(false);
-    } else {
-      const fileStore = await Digit.PaymentService.printReciept(state, {
-        fileStoreIds: receiptFile.filestoreIds[0],
-      });
-      window.open(fileStore[receiptFile.filestoreIds[0]], "_blank");
-      setShowOptions(false);
-    }
-  };
-  const [isDisplayDownloadMenu, setIsDisplayDownloadMenu] = useState(false);
+  //   if (!receiptFile?.fileStoreIds?.[0]) {
+  //     const newResponse = await Digit.PaymentService.generatePdf(state, { Payments: [paymentsHistory.Payments[0]] }, "fsm-receipt");
+  //     const fileStore = await Digit.PaymentService.printReciept(state, {
+  //       fileStoreIds: newResponse.filestoreIds[0],
+  //     });
+  //     window.open(fileStore[newResponse.filestoreIds[0]], "_blank");
+  //     // setShowOptions(false);
+  //   } else {
+  //     const fileStore = await Digit.PaymentService.printReciept(state, {
+  //       fileStoreIds: receiptFile.filestoreIds[0],
+  //     });
+  //     window.open(fileStore[receiptFile.filestoreIds[0]], "_blank");
+  //     // setShowOptions(false);
+  //   }
+  // };
 
-  let dowloadOptions =
-    paymentsHistory?.Payments?.length > 0
-      ? [
-          {
-            label: t("CS_COMMON_APPLICATION_ACKNOWLEDGEMENT"),
-            onClick: handleDownloadPdf,
-          },
-          {
-            label: t("CS_DOWNLOAD_RECEIPT"),
-            onClick: downloadPaymentReceipt,
-          },
-        ]
-      : [
-          {
-            label: t("CS_COMMON_APPLICATION_ACKNOWLEDGEMENT"),
-            onClick: handleDownloadPdf,
-          },
-        ];
+  // let dowloadOptions =
+  //   paymentsHistory?.Payments?.length > 0
+  //     ? [
+  //         {
+  //           label: t("CS_COMMON_APPLICATION_ACKNOWLEDGEMENT"),
+  //           onClick: handleDownloadPdf,
+  //         },
+  //         {
+  //           label: t("CS_DOWNLOAD_RECEIPT"),
+  //           onClick: downloadPaymentReceipt,
+  //         },
+  //       ]
+  //     : [
+  //         {
+  //           label: t("CS_COMMON_APPLICATION_ACKNOWLEDGEMENT"),
+  //           onClick: handleDownloadPdf,
+  //         },
+  //       ];
 
   if (isLoading) {
     return <Loader />;
@@ -331,7 +314,7 @@ const ApplicationDetails = (props) => {
                 )}
                 <StatusTable>
                   {detail?.values?.map((value, index) => {
-                    if (value === null) return;
+                    if (value === null) return null;
                     if (value.map === true && value.value !== "N/A") {
                       return <Row key={t(value.title)} label={t(value.title)} text={<img src={t(value.value)} alt="" />} />;
                     }
@@ -396,7 +379,7 @@ const ApplicationDetails = (props) => {
                                 <CheckPoint
                                   keyValue={index}
                                   isCompleted={index === 0}
-                                  label={t("CS_COMMON_FSM_" + `${checkpoint.performedAction === "UPDATE" ? "UPDATE_" : ""}` + checkpoint.status)}
+                                  label={t(`CS_COMMON_FSM_${checkpoint.performedAction === "UPDATE" ? "UPDATE_" : ""}${checkpoint.status}`)}
                                   customChild={getTimelineCaptions(checkpoint)}
                                 />
                               </React.Fragment>

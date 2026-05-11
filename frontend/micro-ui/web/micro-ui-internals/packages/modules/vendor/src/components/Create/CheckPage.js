@@ -2,7 +2,6 @@ import {
   Card,
   CardHeader,
   CardSubHeader,
-  CardText,
   CheckBox,
   LinkButton,
   Row,
@@ -10,13 +9,12 @@ import {
   SubmitBar,
   VerticalTimeline,
 } from "@djb25/digit-ui-react-components";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 //import { VendorData } from "../../../utils"
 
 import { checkForNA } from "../../../utils";
-import Timeline from "../../../components/VENDORTimeline";
 
 const ActionButton = ({ jumpTo }) => {
   const { t } = useTranslation();
@@ -30,13 +28,6 @@ const ActionButton = ({ jumpTo }) => {
 
 const CheckPage = ({ onSubmit, value = {} }) => {
   const { t } = useTranslation();
-  const history = useHistory();
-  const [categoriesWiseData, setCategoriesWiseData] = useState();
-  const steps = ["VENDOR_ADDITIONAL_DETAILS", "VENDOR_DOCUMENT_DETAILS", "VENDOR_SUMMARY"];
-
-  //  * get @param city & state id
-  const tenantId = Digit.ULBService.getCurrentTenantId();
-  const stateTenantId = Digit.ULBService.getStateId();
 
   const { vendordet, documents } = value;
   console.log("vendordetailssppsss", vendordet);

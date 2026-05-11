@@ -5,6 +5,7 @@ import {
   PrivateRoute,
   AdvertisementModuleCard,
   CollectionIcon,
+  AppContainer,
 } from "@djb25/digit-ui-react-components";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -113,6 +114,7 @@ const Home = ({
       },
     }
   );
+
   const isMobile = window.Digit.Utils.browser.isMobile();
   const classname = Digit.Hooks.useRouteSubscription(pathname);
   const { t } = useTranslation();
@@ -214,6 +216,7 @@ const Home = ({
         return a.orderNumber - b.orderNumber;
       });
     // }
+
     return (
       <React.Fragment key={index}>
         <Route key={index} path={`${path}/${code.toLowerCase()}-home`}>
@@ -307,122 +310,132 @@ const Home = ({
         islinkDataLoading={islinkDataLoading}
       />
 
-      <div className={`main ${hideSidebar ? "fullWidth" : "center-container"} citizen-home-container mb-25`}>
-        {hideSidebar ? null : (
-          <div className="SideBarStatic">
-            <StaticCitizenSideBar linkData={linkData} islinkDataLoading={islinkDataLoading} logout={handleLogout} />
+      <div className={`main ${hideSidebar ? "fullWidth" : "center-container"} citizen-home-container`}>
+        <div className="employee-app-wrapper">
+          <div style={{ display: "flex", width: "100vw", height: "100%" }}>
+            {hideSidebar ? null : (
+              <div className="collapsible-sidebar-container">
+                <StaticCitizenSideBar linkData={linkData} islinkDataLoading={islinkDataLoading} logout={handleLogout} />
+              </div>
+            )}
+            <Switch>
+              <Route exact path={path}>
+                <CitizenHome />
+              </Route>
+
+              <PrivateRoute path={`${path}/feedback`} component={CitizenFeedback} />
+              <PrivateRoute path={`${path}/feedback-acknowledgement`} component={AcknowledgementCF} />
+
+              <Route exact path={`${path}/select-language`}>
+                <LanguageSelection />
+              </Route>
+
+              <Route exact path={`${path}/select-location`}>
+                <LocationSelection />
+              </Route>
+              <Route path={`${path}/error`}>
+                <ErrorComponent
+                  initData={initData}
+                  goToHome={() => {
+                    history.push("/digit-ui/citizen");
+                  }}
+                />
+              </Route>
+              <Route path={`${path}/all-services`}>
+                <AppHome
+                  userType="citizen"
+                  modules={modules}
+                  getCitizenMenu={linkData}
+                  fetchedCitizen={isLinkDataFetched}
+                  isLoading={islinkDataLoading}
+                />
+              </Route>
+
+              <Route path={`${path}/login`}>
+                <Login stateCode={stateCode} />
+              </Route>
+
+              <Route path={`${path}/register`}>
+                <Register stateCode={stateCode} />
+              </Route>
+
+              <PrivateRoute path={`${path}/user/profile`}>
+                <UserProfile stateCode={stateCode} userType={"citizen"} cityDetails={cityDetails} />
+              </PrivateRoute>
+
+              <Route path={`${path}/Audit`}>
+                <Search />
+              </Route>
+              <Route path={`${path}/payment/verification`}>
+                <QRCode></QRCode>
+              </Route>
+              <Route path={`${path}/assets/services`}>
+                <AssetsQRCode />
+              </Route>
+              <Route path={`${path}/verificationsearch-home`}>
+                <VSearchCertificate />
+              </Route>
+              <Route path={`${path}/challan/details`}>
+                <ChallanQRCode />
+              </Route>
+              <Route path={`${APPLICATION_PATH}/citizen/core/edcr/scrutiny`}>
+                {/* <EDCRScrutiny config={newConfigEDCR} isSubmitBtnDisable={false}/> */}
+                <CreateAnonymousEDCR />
+              </Route>
+              <Route path={`${APPLICATION_PATH}/citizen/core/edcr/scrutiny/acknowledgement`}>
+                <EDCRAcknowledgement />
+              </Route>
+
+              <ErrorBoundary initData={initData}>
+                <div className="app-wrapper emtb-page-push">
+                  <AppContainer>
+                    {ModuleLevelLinkHomePages}
+                    {appRoutes}
+                  </AppContainer>
+                </div>
+              </ErrorBoundary>
+            </Switch>
           </div>
-        )}
-
-        <Switch>
-          <Route exact path={path}>
-            <CitizenHome />
-          </Route>
-
-          <PrivateRoute path={`${path}/feedback`} component={CitizenFeedback}></PrivateRoute>
-          <PrivateRoute path={`${path}/feedback-acknowledgement`} component={AcknowledgementCF}></PrivateRoute>
-
-          <Route exact path={`${path}/select-language`}>
-            <LanguageSelection />
-          </Route>
-
-          <Route exact path={`${path}/select-location`}>
-            <LocationSelection />
-          </Route>
-          <Route path={`${path}/error`}>
-            <ErrorComponent
-              initData={initData}
-              goToHome={() => {
-                history.push("/digit-ui/citizen");
-              }}
-            />
-          </Route>
-          <Route path={`${path}/all-services`}>
-            <AppHome
-              userType="citizen"
-              modules={modules}
-              getCitizenMenu={linkData}
-              fetchedCitizen={isLinkDataFetched}
-              isLoading={islinkDataLoading}
-            />
-          </Route>
-
-          <Route path={`${path}/login`}>
-            <Login stateCode={stateCode} />
-          </Route>
-
-          <Route path={`${path}/register`}>
-            <Register stateCode={stateCode} />
-          </Route>
-
-          <PrivateRoute path={`${path}/user/profile`}>
-            <UserProfile stateCode={stateCode} userType={"citizen"} cityDetails={cityDetails} />
-          </PrivateRoute>
-
-          <Route path={`${path}/Audit`}>
-            <Search />
-          </Route>
-          <Route path={`${path}/payment/verification`}>
-            <QRCode></QRCode>
-          </Route>
-          <Route path={`${path}/assets/services`}>
-            <AssetsQRCode></AssetsQRCode>
-          </Route>
-          <Route path={`${path}/verificationsearch-home`}>
-            <VSearchCertificate />
-          </Route>
-          <Route path={`${path}/challan/details`}>
-            <ChallanQRCode></ChallanQRCode>
-          </Route>
-          <Route path={`${APPLICATION_PATH}/citizen/core/edcr/scrutiny`}>
-            {/* <EDCRScrutiny config={newConfigEDCR} isSubmitBtnDisable={false}/> */}
-            <CreateAnonymousEDCR />
-          </Route>
-          <Route path={`${APPLICATION_PATH}/citizen/core/edcr/scrutiny/acknowledgement`}>
-            <EDCRAcknowledgement />
-          </Route>
-
-          <ErrorBoundary initData={initData}>
-            {appRoutes}
-            {ModuleLevelLinkHomePages}
-          </ErrorBoundary>
-        </Switch>
-      </div>
-
-      <div style={{ width: "100%", height: "25px", position: "fixed", bottom: 0, backgroundColor: "white", textAlign: "center" }}>
-        <div style={{ display: "flex", justifyContent: "center", color: "black" }}>
-          {/* <span style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile()?"12px":"14px", fontWeight: "400"}} onClick={() => { window.open('https://www.digit.org/', '_blank').focus();}} >Powered by DIGIT</span>
-          <span style={{ margin: "0 10px" ,fontSize: window.Digit.Utils.browser.isMobile()?"12px":"14px"}}>|</span> */}
-          {/* <a style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px", fontWeight: "400" }} href="#" target='_blank'>UPYOG License</a> */}
-
-          {/* <span className="upyog-copyright-footer" style={{ margin: "0 10px", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px" }} >|</span> */}
-          <span
-            className="upyog-copyright-footer"
-            style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px", fontWeight: "500" }}
-            onClick={() => {
-              window.open("https://delhijalboard.delhi.gov.in/", "_blank").focus();
-            }}
-          >
-            Copyright © 2026 Delhi Jal Board
-          </span>
-          <span className="upyog-copyright-footer" style={{ margin: "0 10px", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px" }}>
-            |
-          </span>
-          <span
-            className="upyog-copyright-footer"
-            style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px", fontWeight: "500" }}
-            onClick={() => {
-              window.open("https://nitcon.org/", "_blank").focus();
-            }}
-          >
-            Designed & Developed By NITCON Ltd
-          </span>
-          {/* <a style={{ cursor: "pointer", fontSize: "16px", fontWeight: "400"}} href="#" target='_blank'>UPYOG License</a> */}
         </div>
-        {/* <div className="upyog-copyright-footer-web">
-          <span className="" style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px", fontWeight: "400" }} onClick={() => { window.open('https://mcdonline.nic.in/', '_blank').focus(); }} >Copyright © 2025 Municipal Corporation of Delhi</span>
-        </div> */}
+        <div
+          style={{
+            width: "100%",
+            height: "30px",
+            position: "fixed",
+            bottom: 0,
+            backgroundColor: "#FFF",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: "100000",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "center", color: "black", opacity: "0.5" }}>
+            <span
+              className="upyog-copyright-footer"
+              style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px", fontWeight: "600" }}
+              onClick={() => {
+                window.open("https://delhijalboard.delhi.gov.in/", "_blank").focus();
+              }}
+            >
+              Copyright © 2026 Delhi Jal Board
+            </span>
+            <span className="upyog-copyright-footer" style={{ margin: "0 10px", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px" }}>
+              |
+            </span>
+            <span
+              className="upyog-copyright-footer"
+              style={{ cursor: "pointer", fontSize: window.Digit.Utils.browser.isMobile() ? "12px" : "14px", fontWeight: "600" }}
+              onClick={() => {
+                window.open("https://nitcon.org/", "_blank").focus();
+              }}
+            >
+              Designed & Developed By NITCON Ltd
+            </span>
+          </div>
+        </div>
       </div>
+
       {showDialog && <LogoutDialog onSelect={handleOnSubmit} onCancel={handleOnCancel} onDismiss={handleOnCancel} />}
     </div>
   );

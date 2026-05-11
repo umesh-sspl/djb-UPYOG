@@ -3,25 +3,56 @@ import { Route, Redirect } from "react-router-dom";
 
 export const PrivateRoute = ({ component: Component, roles, ...rest }) => {
   const kc = window.keycloak;
+
   return (
     <Route
       {...rest}
       render={(props) => {
-        const user = Digit.UserService.getUser();
-        const userType = Digit.UserService.getType();
+        const userInfo = Digit.SessionStorage.get("User");
+
+        const userType = userInfo?.info?.type?.toLowerCase();
+
+        const currentPath = props.location.pathname.toLowerCase();
+
+        const isEmployeeRoute = currentPath.includes("/employee");
+
+        const isCitizenRoute = currentPath.includes("/citizen");
+
         function getLoginRedirectionLink() {
-          if (userType === "employee") {
+          if (isEmployeeRoute) {
             return "/digit-ui/employee/user/login";
-          } else {
-            return "/digit-ui/citizen/login";
           }
-        }
-        if (!user || !kc?.authenticated) {
-          // not logged in so redirect to login page with the return url
-          return <Redirect to={{ pathname: getLoginRedirectionLink(), state: { from: props.location.pathname + props.location.search } }} />;
+
+          return "/digit-ui/citizen/login";
         }
 
-        // logged in so return component
+        // Not authenticated
+        if (!userInfo || !kc?.authenticated) {
+          return (
+            <Redirect
+              to={{
+                pathname: getLoginRedirectionLink(),
+                state: {
+                  from: props.location.pathname + props.location.search,
+                },
+              }}
+            />
+          );
+        }
+
+        // Prevent cross portal access
+        const isUnauthorized = (isEmployeeRoute && userType === "citizen") || (isCitizenRoute && userType === "employee");
+
+        if (isUnauthorized) {
+          return (
+            <Redirect
+              to={{
+                pathname: "/digit-ui/access-denied",
+              }}
+            />
+          );
+        }
+
         return <Component {...props} />;
       }}
     />

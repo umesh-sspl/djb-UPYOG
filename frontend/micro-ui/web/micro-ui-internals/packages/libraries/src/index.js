@@ -1,4 +1,3 @@
-import i18next from "i18next";
 import Enums from "./enums/index";
 import mergeConfig from "./config/mergeConfig";
 import { useStore } from "./services/index";
@@ -50,14 +49,14 @@ import { NOCSearch } from "./services/molecules/NOC/Search";
 import AccessControlService from "./services/elements/Access";
 import BillServices from "./services/elements/Bill";
 import { CFService } from "./services/elements/CF";
-import { PTRService } from "./services/elements/PTR";  
-import { ASSETService } from "./services/elements/ASSET";  
-import { CHBServices } from "./services/elements/CHB"; 
+import { PTRService } from "./services/elements/PTR";
+import { ASSETService } from "./services/elements/ASSET";
+import { CHBServices } from "./services/elements/CHB";
 import { ADSServices } from "./services/elements/ADS";
 import { SVService } from "./services/elements/SV";
 import { EwService } from "./services/elements/EW";
 import { EmployeeDashboardService } from "./services/elements/EMPDASHBOARD";
-import {CustomService} from "./services/elements/CustomService";    
+import { CustomService } from "./services/elements/CustomService";
 import { CMServices } from "./services/elements/CM";
 import { WTService } from "./services/elements/WT";
 import { VendorService } from "./services/elements/EmpVendor";
@@ -65,8 +64,6 @@ import { MTService } from "./services/elements/MT";
 import { EkycService } from "./services/elements/Ekyc";
 import { AddressService } from "./services/address";
 import useAddress from "./hooks/useAddress";
-
-
 
 const setupLibraries = (Library, props) => {
   window.Digit = window.Digit || {};
@@ -92,12 +89,12 @@ const initLibraries = () => {
   setupLibraries("CFService", CFService);
   setupLibraries("CustomService", CustomService);
   setupLibraries("TLService", TLService);
-  setupLibraries("DigiLockerService",DigiLockerService)
+  setupLibraries("DigiLockerService", DigiLockerService);
   setupLibraries("Surveys", Surveys);
   setupLibraries("HRMSService", HrmsService);
   setupLibraries("ReceiptsService", ReceiptsService);
   setupLibraries("MCollectService", MCollectService);
-  setupLibraries("ReportsService", ReportsService)
+  setupLibraries("ReportsService", ReportsService);
   setupLibraries("PaymentService", PaymentService);
   setupLibraries("EDCRService", EDCRService);
   setupLibraries("OBPSService", OBPSService);
@@ -128,7 +125,7 @@ const initLibraries = () => {
   setupLibraries("NOCSearch", NOCSearch);
   setupLibraries("AccessControlService", AccessControlService);
   setupLibraries("BillServices", BillServices);
-  setupLibraries("AuditService",AuditService);
+  setupLibraries("AuditService", AuditService);
   setupLibraries("PTRService", PTRService);
   setupLibraries("ASSETService", ASSETService);
   setupLibraries("CHBServices", CHBServices);
@@ -137,7 +134,7 @@ const initLibraries = () => {
   setupLibraries("SVService", SVService);
   setupLibraries("CMServices", CMServices);
   setupLibraries("EmployeeDashboardService", EmployeeDashboardService);
-  setupLibraries("WTService",WTService);
+  setupLibraries("WTService", WTService);
   setupLibraries("VendorService", VendorService);
   setupLibraries("MTService", MTService);
 

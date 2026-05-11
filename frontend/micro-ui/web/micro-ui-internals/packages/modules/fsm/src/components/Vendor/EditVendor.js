@@ -2,38 +2,31 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FormComposer, Loader, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 import { useHistory, useParams } from "react-router-dom";
-import VendorConfig from "../../configs/VendorConfig";
 import { useQueryClient } from "react-query";
+import VendorConfig from "../../../../vendor/src/config/VendorConfig";
 
-const EditVendor = ({ parentUrl, heading }) => {
+const EditVendor = () => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
-  const stateId = Digit.ULBService.getStateId();
   let { id: dsoId } = useParams();
   const [showToast, setShowToast] = useState(null);
   const [canSubmit, setSubmitValve] = useState(false);
   const [defaultValues, setDefaultValues] = useState({});
   const [dsoDetails, setDsoDetails] = useState({});
   const queryClient = useQueryClient();
-  const [currentStep, setCurrentStep] = useState(1);
 
-  const [mutationHappened, setMutationHappened, clear] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
-  const [errorInfo, setErrorInfo, clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
-  const [successData, setsuccessData, clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
+  const [, setMutationHappened] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
+  const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
+  const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { data: dsoData, isLoading: daoDataLoading, isSuccess: isDsoSuccess, error: dsoError } = Digit.Hooks.fsm.useDsoSearch(
-    tenantId,
-    { ids: dsoId },
-    { staleTime: Infinity }
-  );
+  const { data: dsoData, isLoading: daoDataLoading } = Digit.Hooks.fsm.useDsoSearch(tenantId, { ids: dsoId }, { staleTime: Infinity });
 
-  const { isLoading: isLoading, isError: vendorCreateError, data: updateResponse, error: updateError, mutate } = Digit.Hooks.fsm.useVendorUpdate(
-    tenantId
-  );
+  const { mutate } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
 
   useEffect(() => {
     setMutationHappened(false);
     clearSuccessData();
     clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -177,7 +170,7 @@ const EditVendor = ({ parentUrl, heading }) => {
     <React.Fragment>
       <VerticalTimeline
         config={[{ timeLine: [{ actions: t("ES_FSM_REGISTRY_TITLE_EDIT_VENDOR"), currentStep: 1 }] }]}
-        currentActiveIndex={currentStep - 1}
+        currentActiveIndex={0}
         showFinalStep={false}
       />
       <div style={{ flex: "1", overflowY: "auto" }}>
