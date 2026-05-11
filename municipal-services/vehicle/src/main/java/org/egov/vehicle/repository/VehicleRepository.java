@@ -1,9 +1,6 @@
 package org.egov.vehicle.repository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -55,6 +52,12 @@ public class VehicleRepository {
 	private static final String QUERY_VEHICLE_TRIP_DETAIL = "SELECT id,tenantid,trip_id,referenceno,referencestatus,additionaldetails,status,itemstarttime, "
 			+ "itemendtime, volume from eg_vehicle_trip_detail ";
 
+
+	private static final String INSERT_DRIVER_HISTORY =
+			"INSERT INTO eg_vehicle_driver_history " +
+					"(id, vehicle_id, driver_id, status, createdby, createdtime, lastmodifiedby, lastmodifiedtime) " +
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
 	public void save(VehicleRequest vehicleRequest) {
 		vehicleProducer.push(config.getSaveTopic(), vehicleRequest);
 	}
@@ -72,16 +75,74 @@ public class VehicleRepository {
 					"ON CONFLICT (vehicle_id, driver_id) DO UPDATE SET status = EXCLUDED.status";
 
 
+	private static final String INSERT_DRIVER_HISTORY_BY_VEHICLE =
+			"INSERT INTO eg_vehicle_driver_history " +
+					"(id, vehicle_id, driver_id, status, createdby, createdtime, lastmodifiedby, lastmodifiedtime) " +
+					"SELECT ?, vehicle_id, driver_id, status, ?, ?, ?, ? " +
+					"FROM eg_vehicle_driver_mapping " +
+					"WHERE vehicle_id = ?";
+
+	private static final String INSERT_DRIVER_HISTORY_BY_DRIVER =
+			"INSERT INTO eg_vehicle_driver_history " +
+					"(id, vehicle_id, driver_id, status, createdby, createdtime, lastmodifiedby, lastmodifiedtime) " +
+					"SELECT ?, vehicle_id, driver_id, status, ?, ?, ?, ? " +
+					"FROM eg_vehicle_driver_mapping " +
+					"WHERE driver_id = ?";
+
+	private static final String DELETE_MAPPING_BY_VEHICLE =
+			"DELETE FROM eg_vehicle_driver_mapping WHERE vehicle_id = ?";
+
+	private static final String DELETE_MAPPING_BY_DRIVER =
+			"DELETE FROM eg_vehicle_driver_mapping WHERE driver_id = ?";
+
 	public void updateDriver(VehicleRequest vehicleRequest) {
 		String vehicleId = vehicleRequest.getVehicle().getId();
 		String driverId = vehicleRequest.getVehicle().getDriver().getId();
 		String status = vehicleRequest.getVehicle().getDriver().getStatus().toString();
 
-		log.info("Direct DB: setting old driver INACTIVE for vehicleId={}", vehicleId);
-		jdbcTemplate.update(UPDATE_DRIVER_MAPPING_INACTIVE, vehicleId);
+				// CHECK DRIVER ALREADY ASSIGNED TO ANOTHER VEHICLE
+
+				Integer driverCount = getDriverMappingCount(driverId, vehicleId);
+
+				if (driverCount > 0) {
+
+				//  Save old mapping of this driver into history
+					jdbcTemplate.update(
+							INSERT_DRIVER_HISTORY_BY_DRIVER,
+							UUID.randomUUID().toString(),
+							vehicleRequest.getVehicle().getAuditDetails().getCreatedBy(),
+							vehicleRequest.getVehicle().getAuditDetails().getCreatedTime(),
+							vehicleRequest.getVehicle().getAuditDetails().getLastModifiedBy(),
+							vehicleRequest.getVehicle().getAuditDetails().getLastModifiedTime()
+					        ,driverId);
+
+					// Delete old mapping of this driver
+					jdbcTemplate.update(DELETE_MAPPING_BY_DRIVER, driverId);
+                  }
+
+				// CHECK VEHICLE ALREADY ASSIGNED TO ANOTHER DRIVER
+
+				Integer vehicleCount = getVehicleMappingCount(vehicleId, driverId);
+
+				if (vehicleCount > 0) {
+
+					//  Save old mapping of this vehicle into history
+					jdbcTemplate.update(
+							INSERT_DRIVER_HISTORY_BY_VEHICLE,
+							UUID.randomUUID().toString(),
+							vehicleRequest.getVehicle().getAuditDetails().getCreatedBy(),
+							vehicleRequest.getVehicle().getAuditDetails().getCreatedTime(),
+							vehicleRequest.getVehicle().getAuditDetails().getLastModifiedBy(),
+							vehicleRequest.getVehicle().getAuditDetails().getLastModifiedTime(),
+							vehicleId
+					);
+					//  Delete old mapping of this vehicle
+					jdbcTemplate.update(DELETE_MAPPING_BY_VEHICLE, vehicleId);
+				}
 
 		log.info("Direct DB: inserting driver mapping vehicleId={}, driverId={}, status={}", vehicleId, driverId, status);
 		jdbcTemplate.update(INSERT_DRIVER_MAPPING, vehicleId, driverId, status);
+
 	}
 
 	private static final String UPDATE_FILLING_POINT_QUERY =
@@ -116,6 +177,34 @@ public class VehicleRepository {
 			count = jdbcTemplate.queryForObject(query, preparedStmtList.toArray(), Integer.class);
 		} catch (Exception e) {
 			log.info("Exception getVehicleCount: " + e);
+		}
+		return count;
+	}
+
+	public Integer getDriverMappingCount(String driverId, String vehicleId) {
+
+		List<Object> preparedStmtList = new ArrayList<>();
+		String query = queryBuilder.getDriverMappingCountQuery(driverId, vehicleId, preparedStmtList);
+		Integer count = null;
+		try {
+			count = jdbcTemplate.queryForObject(query, preparedStmtList.toArray(), Integer.class);
+
+		} catch (Exception e) {
+			log.info("Exception getDriverMappingCount: " + e);
+		}
+		return count;
+	}
+
+	public Integer getVehicleMappingCount(String vehicleId, String driverId) {
+
+		List<Object> preparedStmtList = new ArrayList<>();
+		String query = queryBuilder.getVehicleMappingCountQuery(vehicleId, driverId, preparedStmtList);
+		Integer count = null;
+
+		try {
+			count = jdbcTemplate.queryForObject(query, preparedStmtList.toArray(), Integer.class);
+		} catch (Exception e) {
+			log.info("Exception getVehicleMappingCount: " + e);
 		}
 		return count;
 	}

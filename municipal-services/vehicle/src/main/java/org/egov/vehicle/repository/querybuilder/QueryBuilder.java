@@ -36,6 +36,17 @@ public class QueryBuilder {
 			"LEFT JOIN upyog_rs_water_tanker_filling_point fp ON veh.filling_point_id = fp.id ";
 	private static final String VEH_EXISTS_QUERY = " SELECT COUNT(*) FROM eg_vehicle WHERE tenantid=? AND registrationNumber=? AND STATUS= ?";
 
+	private static final String DRIVER_MAPPING_COUNT_QUERY =
+			"SELECT COUNT(*) " +
+					"FROM eg_vehicle_driver_mapping " +
+					"WHERE driver_id = ? " +
+					"AND vehicle_id != ?";
+
+	private static final String VEHICLE_MAPPING_COUNT_QUERY =
+			"SELECT COUNT(*) " +
+					"FROM eg_vehicle_driver_mapping " +
+					"WHERE vehicle_id = ? " +
+					"AND driver_id != ?";
 
 	private static final String VEHICLE_NO_DRIVER_QUERY =
 			"SELECT DISTINCT(vehicle.id) " +
@@ -283,6 +294,20 @@ public class QueryBuilder {
 		preparedStmtList.add(vehicle.getTenantId());
 		preparedStmtList.add(vehicle.getRegistrationNumber());
 		return VEH_EXISTS_QUERY;
+
+	}
+
+
+	public String getDriverMappingCountQuery(String driverId, String vehicleId, List<Object> preparedStmtList) {
+		preparedStmtList.add(driverId);
+		preparedStmtList.add(vehicleId);
+		return DRIVER_MAPPING_COUNT_QUERY;
+	}
+
+	public String getVehicleMappingCountQuery(String vehicleId, String driverId, List<Object> preparedStmtList) {
+		preparedStmtList.add(vehicleId);
+		preparedStmtList.add(driverId);
+		return VEHICLE_MAPPING_COUNT_QUERY;
 	}
 
 	public String getVehicleLikeQuery(VehicleSearchCriteria criteria, List<Object> preparedStmtList) {
