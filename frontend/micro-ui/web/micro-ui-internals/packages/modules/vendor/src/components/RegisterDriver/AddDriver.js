@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 //import DriverConfig from "../../configs/DriverConfig";
 import { useQueryClient } from "react-query";
-import DriverConfig from "../../../config/DriverConfig";
+import DriverConfig from "../../config/DriverConfig";
+// import DriverConfig from "../../../config/DriverConfig";
 
 const AddDriver = () => {
   const tenantId = Digit.ULBService.getCurrentTenantId();

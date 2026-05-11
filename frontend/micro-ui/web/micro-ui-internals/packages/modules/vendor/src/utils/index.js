@@ -1,5 +1,5 @@
 export const checkForNotNull = (value = "") => {
-  return value && value != null && value != undefined && value != "" ? true : false;
+  return value && value != null && value !== undefined && value !== "" ? true : false;
 };
 
 export const convertDotValues = (value = "") => {
@@ -21,17 +21,17 @@ export const shouldHideBackButton = (config = []) => {
 
 export const CompareTwoObjects = (ob1, ob2) => {
   let comp = 0;
-  Object.keys(ob1).map((key) => {
-    if (typeof ob1[key] == "object") {
-      if (key == "institution") {
-        if ((ob1[key].name || ob2[key].name) && ob1[key]?.name !== ob2[key]?.name) comp = 1;
+  Object.keys(ob1).forEach((key) => {
+    if (typeof ob1[key] == "object" && ob1[key] !== null) {
+      if (key === "institution") {
+        if ((ob1[key]?.name || ob2[key]?.name) && ob1[key]?.name !== ob2[key]?.name) comp = 1;
         else if (ob1[key]?.type?.code !== ob2[key]?.type?.code) comp = 1;
       } else if (ob1[key]?.code !== ob2[key]?.code) comp = 1;
     } else {
       if ((ob1[key] || ob2[key]) && ob1[key] !== ob2[key]) comp = 1;
     }
   });
-  if (comp == 1) return false;
+  if (comp === 1) return false;
   else return true;
 };
 
@@ -46,14 +46,13 @@ export const pdfDownloadLink = (documents = {}, fileStoreId = "", format = "") =
 
   let downloadLink = documents[fileStoreId] || "";
   let differentFormats = downloadLink?.split(",") || [];
-  let fileURL = "";
-  differentFormats.length > 0 &&
-    differentFormats.map((link) => {
-      if (!link.includes("large") && !link.includes("medium") && !link.includes("small")) {
-        fileURL = link;
-      }
-    });
-  return fileURL;
+  // Default original file
+  if (!format) {
+    return differentFormats.find((link) => !link.includes("large") && !link.includes("medium") && !link.includes("small")) || "";
+  }
+
+  // Return requested format
+  return differentFormats.find((link) => link.includes(format)) || "";
 };
 
 /*   method to get filename  from fielstore url*/
@@ -72,7 +71,7 @@ export const convertEpochToDate = (dateEpoch, businessService) => {
     let year = dateFromApi.getFullYear();
     month = (month > 9 ? "" : "0") + month;
     day = (day > 9 ? "" : "0") + day;
-    if (businessService == "asset-create") return `${day}-${month}-${year}`;
+    if (businessService === "asset-create") return `${day}-${month}-${year}`;
     else return `${day}/${month}/${year}`;
   } else {
     return null;
@@ -119,7 +118,7 @@ export const VendorData = (data) => {
 };
 
 export const stringReplaceAll = (str = "", searcher = "", replaceWith = "") => {
-  if (searcher == "") return str;
+  if (searcher === "") return str;
   while (str.includes(searcher)) {
     str = str.replace(searcher, replaceWith);
   }
