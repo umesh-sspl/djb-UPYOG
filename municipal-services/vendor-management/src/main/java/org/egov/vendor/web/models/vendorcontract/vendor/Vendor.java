@@ -3,20 +3,18 @@ package org.egov.vendor.web.models.vendorcontract.vendor;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import jakarta.persistence.*;
 import lombok.*;
-import org.egov.common.contract.request.User;
+import org.egov.vendor.web.models.vendorcontract.user.User;
 import org.egov.vendor.web.models.AuditDetails;
 import org.egov.vendor.web.models.vendorcontract.driver.Driver;
 import org.egov.vendor.web.models.vendorcontract.location.Address;
 import org.egov.vendor.web.models.vendorcontract.vehicle.Vehicle;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.validator.constraints.SafeHtml;
 import org.springframework.validation.annotation.Validated;
 
-import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
@@ -36,123 +34,122 @@ import java.util.List;
 @Entity
 @Immutable
 @Table(name = "eg_Vendor")
-@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+//@TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 public class Vendor {
 
-	@SafeHtml
-	@Id
-	@JsonProperty("id")
-	@Column(name = "id", nullable = false, length = 64)
-	private String id = null;
+    @Id
+    @JsonProperty("id")
+    @Column(name = "id", nullable = false, length = 64)
+    private String id = null;
 
-	@JsonProperty("vendorId")
-	@SafeHtml
-	@Size(max=64)
-	@Column(name = "vendor_idgen", length = 64)
-	private String vendorIdGen = null;
-	
-	@JsonProperty("tenantId")
-	@SafeHtml
-	@Size(max=64)
-	@Column(name = "tenantid", length = 64)
-	private String tenantId = null;
+    @JsonProperty("vendorId")
 
-	@JsonProperty("name")
-	@SafeHtml
-	@Size(max=128)
-	@Column(name = "name", length = 128)
-	private String name = null;
+    @Size(max = 64)
+    @Column(name = "vendor_idgen", length = 64)
+    private String vendorIdGen = null;
 
-	//@Transient
-	//@Embedded
-	@OneToOne(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
-	private Address address = null;
+    @JsonProperty("tenantId")
 
-	@Transient
-	@JsonProperty("owner")
-	@Valid
-	private User owner = null;
+    @Size(max = 64)
+    @Column(name = "tenantid", length = 64)
+    private String tenantId = null;
 
-	@Transient
-	@JsonProperty("vehicles")
-	@Valid
-	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
+    @JsonProperty("name")
 
-	@Transient
-	@JsonProperty("drivers")
-	@Valid
-	private List<Driver> drivers = null;
+    @Size(max = 128)
+    @Column(name = "name", length = 128)
+    private String name = null;
 
-	//@Transient
-	@JsonProperty("additionalDetails")
-	@Type(type = "jsonb") // Ensure Hibernate recognizes it as JSONB
-	@Column(columnDefinition = "jsonb", name = "additionalDetails")
-	private Object additionalDetails = null;
+    //@Transient
+    //@Embedded
+    @OneToOne(mappedBy = "vendor", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    private Address address = null;
 
-	@SafeHtml
-	@JsonProperty("source")
-	@Column(name = "source", length = 256)
-	private String source = null;
+    @Transient
+    @JsonProperty("owner")
+    @Valid
+    private User owner = null;
 
-	@SafeHtml
-	@JsonProperty("description")
-	@Column(name = "description", length = 256)
-	private String description = null;
-	
-	@JsonProperty("ownerId")
-	@SafeHtml
-	@Size(max=64)
-	private String ownerId = null;
+    @Transient
+    @JsonProperty("vehicles")
+    @Valid
+    private List<Vehicle> vehicles = new ArrayList<Vehicle>();
 
-	@JsonProperty("agencyType")
-	@SafeHtml
-	@Size(max=128)
-	@Column(name = "agencytype", length = 128, nullable = false)
-	private String agencyType = null;
-	
-	@JsonProperty("paymentPreference")
-	@SafeHtml
-	@Size(max=128)
-	@Column(name = "paymentpreference", length = 128, nullable = false)
-	private String paymentPreference = null;
-	
-		
-	/**
-	 * Inactive records will be consider as soft deleted
-	 */
-	public enum StatusEnum {
-		ACTIVE("ACTIVE"),
-		INACTIVE("INACTIVE"),
-		DISABLED("DISABLED");
+    @Transient
+    @JsonProperty("drivers")
+    @Valid
+    private List<Driver> drivers = null;
 
-		private String value;
+    //@Transient
+    @JsonProperty("additionalDetails")
+	@Type(JsonBinaryType.class) // Ensure Hibernate recognizes it as JSONB
+    @Column(columnDefinition = "jsonb", name = "additionalDetails")
+    private Object additionalDetails = null;
 
-		StatusEnum(String value) {
-			this.value = value;
-		}
 
-		@Override
-		@JsonValue
-		public String toString() {
-		
-			return String.valueOf(value);
-		}
+    @JsonProperty("source")
+    @Column(name = "source", length = 256)
+    private String source = null;
 
-		@JsonCreator
-		public static StatusEnum fromValue(String text) {
-			for (StatusEnum b : StatusEnum.values()) {
-				if (String.valueOf(b.value).equals(text)) {
-					return b;
-				}
-			}
-			return null;
-		}
-	}
 
-	@Enumerated(EnumType.STRING)
-	@JsonProperty("status")
-	private StatusEnum status = null;
+    @JsonProperty("description")
+    @Column(name = "description", length = 256)
+    private String description = null;
 
-	@JsonProperty("auditDetails")
-	private AuditDetails auditDetails = null;
+    @JsonProperty("ownerId")
+
+    @Size(max = 64)
+    private String ownerId = null;
+
+    @JsonProperty("agencyType")
+
+    @Size(max = 128)
+    @Column(name = "agencytype", length = 128, nullable = false)
+    private String agencyType = null;
+
+    @JsonProperty("paymentPreference")
+
+    @Size(max = 128)
+    @Column(name = "paymentpreference", length = 128, nullable = false)
+    private String paymentPreference = null;
+
+
+    /**
+     * Inactive records will be consider as soft deleted
+     */
+    public enum StatusEnum {
+        ACTIVE("ACTIVE"),
+        INACTIVE("INACTIVE"),
+        DISABLED("DISABLED");
+
+        private String value;
+
+        StatusEnum(String value) {
+            this.value = value;
+        }
+
+        @Override
+        @JsonValue
+        public String toString() {
+
+            return String.valueOf(value);
+        }
+
+        @JsonCreator
+        public static StatusEnum fromValue(String text) {
+            for (StatusEnum b : StatusEnum.values()) {
+                if (String.valueOf(b.value).equals(text)) {
+                    return b;
+                }
+            }
+            return null;
+        }
+    }
+
+    @Enumerated(EnumType.STRING)
+    @JsonProperty("status")
+    private StatusEnum status = null;
+
+    @JsonProperty("auditDetails")
+    private AuditDetails auditDetails = null;
 }

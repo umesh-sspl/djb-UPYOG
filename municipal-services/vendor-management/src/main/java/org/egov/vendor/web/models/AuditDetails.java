@@ -1,11 +1,12 @@
 package org.egov.vendor.web.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.*;
 import org.springframework.validation.annotation.Validated;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+
 import java.util.Objects;
 
 @Validated
