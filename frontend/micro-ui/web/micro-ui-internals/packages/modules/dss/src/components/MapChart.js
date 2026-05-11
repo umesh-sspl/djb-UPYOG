@@ -1,15 +1,10 @@
-import React, { useState, Fragment } from "react";
+import React, { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import ReactTooltip from "react-tooltip";
 import { useTranslation } from "react-i18next";
 import { get } from "lodash";
-import FilterContext from "./FilterContext";
-import { endOfMonth, getTime, startOfMonth } from "date-fns";
-import { Loader } from "@djb25/digit-ui-react-components"
+import { Loader, CustomTooltip } from "@djb25/digit-ui-react-components";
 import { ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
-
-
 
 const PROJECTION_CONFIG = { scale: 280, center: [85.9629, 22.5937] };
 
@@ -19,7 +14,6 @@ const COLOR_RANGE = ["#54D140", "#298CFF", "#a82227", "#D1D1D1"];
 const STATUS = ["Live", "OnBoarded", "None"];
 const DEFAULT_COLOR = "#D1D1D1";
 const key = "DSS_FILTERS";
-
 
 const getInitialRange = () => {
   const data = Digit.SessionStorage.get(key);
@@ -72,20 +66,12 @@ const geographyStyle = {
   },
 };
 
-const MapChart = ({
-  data,
-  drillDown = false,
-  setselectedState,
-  setdrilldownId,
-  settotalCount,
-  setliveCount
-}) => {
-
+const MapChart = ({ data, drillDown = false, setselectedState, setdrilldownId, settotalCount, setliveCount }) => {
   const { t } = useTranslation();
   const { id } = data;
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const [tooltipContent, settooltipContent] = useState("");
-  const { startDate, endDate, interval, } = getInitialRange();
+  const { startDate, endDate, interval } = getInitialRange();
   const requestDate = {
     startDate: startDate.getTime(),
     endDate: endDate.getTime(),
@@ -101,11 +87,9 @@ const MapChart = ({
     enabled: true,
   });
 
-  const mapData = get(topoJSON, "objects.india.geometries", [])?.map(
-    (ee) => {
-      return { state: ee.properties.name, value: 0, id: ee.id };
-    }
-  );
+  const mapData = get(topoJSON, "objects.india.geometries", [])?.map((ee) => {
+    return { state: ee.properties.name, value: 0, id: ee.id };
+  });
   let DataObj =
     mapData?.reduce((acc, curr) => {
       acc[curr.state] = { ...curr };
@@ -119,83 +103,64 @@ const MapChart = ({
     requestDate: requestDate,
   });
 
-  let data1 = !isLoading ? response?.responseData?.data?.filter((dat) => 
-  {
-    let totalCount = dat?.plots[3]?.value;
-    let liveCount = dat?.plots[4]?.value ;
-    let live = dat?.plots[4]?.strValue > 0 ? true : true;
-    DataObj[dat.headerName] = {
-      ...DataObj?.[dat.headerName],
-      status: dat?.plots[2]?.strValue,
-      value: live ? liveCount : totalCount,
-      live,
-      totalCount,
-      liveCount,
-    };
-  }) : null; 
-  
+  let data1 = !isLoading
+    ? response?.responseData?.data?.foreach((dat) => {
+        let totalCount = dat?.plots[3]?.value;
+        let liveCount = dat?.plots[4]?.value;
+        let live = dat?.plots[4]?.strValue > 0 ? true : true;
+        DataObj[dat.headerName] = {
+          ...DataObj?.[dat.headerName],
+          status: dat?.plots[2]?.strValue,
+          value: live ? liveCount : totalCount,
+          live,
+          totalCount,
+          liveCount,
+        };
+      })
+    : null;
 
   if (!data1) {
     return <div>Loading...</div>;
   }
 
-
   const onMouseEnter = (geo, current = { value: "0" }, event) => {
     return settooltipContent(`${t(`${geo.properties.name}`)}: ${current.value ? Number(current.value).toFixed() + " ULBs" : "NA"} `);
-  }
-  const onMouseClick = (geo, current = { value: "NA" }, event) => {
-    /*  to make the map clickable only on the live states */
-    if (current && current.value > 0 && current.status === "Live")
-      setselectedState(current.state);
-    setdrilldownId(response?.responseData?.drillDownChartId);
-    settotalCount(current.totalCount);
-    setliveCount(current.liveCount);
-  }
+  };
+  // const onMouseClick = (geo, current = { value: "NA" }, event) => {
+  //   /*  to make the map clickable only on the live states */
+  //   if (current && current.value > 0 && current.status === "Live") setselectedState(current.state);
+  //   setdrilldownId(response?.responseData?.drillDownChartId);
+  //   settotalCount(current.totalCount);
+  //   setliveCount(current.liveCount);
+  // };
   const onMouseLeave = (geo, current = { value: "NA" }, event) => {
     settooltipContent("");
-  }
-
+  };
 
   if (isLoading || isLoadingNAT) {
-    return <Loader />
+    return <Loader />;
   }
 
-    return (
-    <ResponsiveContainer
-      width="40%"
-      height={220}
-      
-    >
+  return (
+    <ResponsiveContainer width="40%" height={220}>
       <div style={{ position: "relative" }}>
-        <ReactTooltip>{tooltipContent}</ReactTooltip>
-        <ComposableMap
-          projectionConfig={PROJECTION_CONFIG}
-          projection="geoMercator"
-          width={240}
-          height={170}
-          data-tip=""
-        >
+        <CustomTooltip>{tooltipContent}</CustomTooltip>
+        <ComposableMap projectionConfig={PROJECTION_CONFIG} projection="geoMercator" width={240} height={170} data-tip="">
           <Geographies geography={topoJSON}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const current = Object.values(DataObj).find(
-                  (s) => s.id === geo.id
-                );
+                const current = Object.values(DataObj).find((s) => s.id === geo.id);
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
                     fill={getColor(current)}
                     style={geographyStyle}
-                    onMouseEnter={(event) =>
-                      onMouseEnter(geo, current, event)
-                    }
+                    onMouseEnter={(event) => onMouseEnter(geo, current, event)}
                     // onClick={(event) =>
                     //   onMouseClick(geo, current, event)
                     // }
-                    onMouseLeave={(event) =>
-                      onMouseLeave(geo, current, event)
-                    }
+                    onMouseLeave={(event) => onMouseLeave(geo, current, event)}
                   />
                 );
               })
@@ -206,19 +171,15 @@ const MapChart = ({
           {STATUS.map((sta) => {
             return (
               <span className="map-row">
-                <span
-                  className="map-box"
-                  style={{ background: getColor({ status: sta }) }}
-                ></span>
-                <span className="map-text">
-                  {t(`DSS_${sta.toUpperCase()}`)}
-                </span>
+                <span className="map-box" style={{ background: getColor({ status: sta }) }}></span>
+                <span className="map-text">{t(`DSS_${sta.toUpperCase()}`)}</span>
               </span>
             );
           })}
         </span>
       </div>
-    </ResponsiveContainer>);
-}
+    </ResponsiveContainer>
+  );
+};
 
 export default MapChart;

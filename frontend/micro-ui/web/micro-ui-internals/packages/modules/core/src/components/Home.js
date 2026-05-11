@@ -314,23 +314,14 @@ const EmployeeHome = ({ modules }) => {
   };
 
   React.useEffect(() => {
-    let isMounted = true;
+    if (!showToast) return;
 
-    if (showToast) {
-      const timer = setTimeout(() => {
-        if (isMounted) {
-          clearToast();
-        }
-      }, 3000);
-
-      return () => {
-        isMounted = false;
-        clearTimeout(timer);
-      };
-    }
+    const timer = setTimeout(() => {
+      setShowToast(null);
+    }, 3000);
 
     return () => {
-      isMounted = false;
+      clearTimeout(timer);
     };
   }, [showToast]);
 

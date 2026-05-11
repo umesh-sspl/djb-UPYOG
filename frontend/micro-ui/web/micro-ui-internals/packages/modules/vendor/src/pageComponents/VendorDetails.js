@@ -1,32 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { FormStep, TextInput, CardLabel, Dropdown, VerticalTimeline, Tooltip, MobileNumber, LabelFieldPair } from "@djb25/digit-ui-react-components";
+import {
+  FormStep,
+  TextInput,
+  CardLabel,
+  Dropdown,
+  VerticalTimeline,
+  CustomTooltip,
+  MobileNumber,
+  LabelFieldPair,
+} from "@djb25/digit-ui-react-components";
 import { Controller, useForm } from "react-hook-form";
 
 const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) => {
   let index = 0;
-  let validation = {};
 
-  //   const user = Digit.UserService.getUser().info;
-  //   const [applicantName, setName] = useState(
-  //     (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].applicantName) || formData?.ownerKey?.applicantName || ""
-  //   );
-  // const [emailId, setEmail] = useState(
-  //   (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].emailId) || formData?.ownerKey?.emailId || ""
-  // );
-  //   const [mobileNumber, setMobileNumber] = useState(
-  //     (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].mobileNumber) || formData?.ownerKey?.mobileNumber || user?.mobileNumber
-  //   );
-  //   const [altMobileNumber, setAltMobileNumber] = useState(
-  //     (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].altMobileNumber) || formData?.ownerKey?.altmobileNumber || ""
-  //   );
+  const user = Digit.UserService.getUser().info;
+  const applicantName =
+    (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].applicantName) || formData?.ownerKey?.applicantName || "";
+
+  const emailId = (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].emailId) || formData?.ownerKey?.emailId || "";
+
+  const mobileNumber =
+    (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].mobileNumber) ||
+    formData?.ownerKey?.mobileNumber ||
+    user?.mobileNumber;
+
+  const altMobileNumber =
+    (formData.ownerKey && formData.ownerKey[index] && formData.ownerKey[index].altMobileNumber) || formData?.ownerKey?.altmobileNumber || "";
 
   // States for vendor Additionals details
 
-  const [VendorCompany, setVendorCompany] = useState("");
-  const [VendorPhone, setVendorPhone] = useState("");
-  const [VendorAddress, setVendorAddress] = useState("");
   const [VendorCategory, setVendorCategory] = useState("");
-  const [VendorEmail, setVendorEmail] = useState();
   const [VendorId, setVendorId] = useState(""); // Added VendorId state
   const [userName, setUserName] = useState("");
   const [Bank, setBank] = useState("");
@@ -44,9 +48,8 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
   const [micrNo, setmicrNo] = useState("");
   const [PhoneNo, setPhoneNo] = useState("");
   const [ContactPerson, setContactPerson] = useState("");
-  const [Company, setCompany] = useState("");
 
-  const [showToast, setShowToast] = useState(null);
+  // const [showToast, setShowToast] = useState(null);
 
   //function for setting the values of the vendor details
 
@@ -59,13 +62,13 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
             setBank(data.BANK);
             setBankbranchName(data.BRANCH);
             setmicrNo(data.MICR);
-            setShowToast({ error: false, label: t("VALID_IFSC_CODE") });
+            // setShowToast({ error: false, label: t("VALID_IFSC_CODE") });
           } else {
-            setShowToast({ error: true, label: t("INVALID_IFSC_CODE") });
+            // setShowToast({ error: true, label: t("INVALID_IFSC_CODE") });
           }
         })
         .catch(() => {
-          setShowToast({ error: true, label: t("INVALID_IFSC_CODE") });
+          // setShowToast({ error: true, label: t("INVALID_IFSC_CODE") });
         });
     } else {
       if (IFSC.length === 11 && Bank && BankbranchName) {
@@ -78,6 +81,7 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
         setmicrNo("");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [IFSC]);
 
   function setvendorbank(e) {
@@ -123,9 +127,9 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
     setEsiNo(e.target.value);
   }
 
-  function setphoneno(e) {
-    setPhoneNo(e.target.value);
-  }
+  // function setphoneno(e) {
+  //   setPhoneNo(e.target.value);
+  // }
 
   function setcontactperson(e) {
     setContactPerson(e.target.value);
@@ -135,7 +139,7 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const { control } = useForm();
 
-  const { data: dsoData, isLoading: daoDataLoading, isSuccess: isDsoSuccess, error: dsoError } = Digit.Hooks.fsm.useDsoSearch(tenantId, {
+  const { data: dsoData } = Digit.Hooks.fsm.useDsoSearch(tenantId, {
     staleTime: Infinity,
   });
 
@@ -161,11 +165,7 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
     } else {
       ownerStep = {
         ...owner,
-        VendorCompany,
-        VendorPhone,
-        VendorAddress,
         VendorCategory,
-        VendorEmail,
         name: userName,
         VendorId: VendorId,
         Bank,
@@ -183,24 +183,20 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
         micrNo,
         PhoneNo,
         ContactPerson,
-        Company,
       };
       onSelect(config.key, ownerStep, false, index);
     }
   };
 
-  const onSkip = () => onSelect();
+  // const onSkip = () => onSelect();
 
   useEffect(() => {
     if (userType === "citizen") {
       goNext();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    VendorCompany,
-    VendorPhone,
-    VendorAddress,
     VendorCategory,
-    VendorEmail,
     VendorId,
     userName,
     Bank,
@@ -218,8 +214,6 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
     micrNo,
     PhoneNo,
     ContactPerson,
-    Company,
-    goNext,
     userType,
   ]);
 
@@ -258,17 +252,17 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
                 style={{ width: "100%" }}
                 maxLength={11}
                 ValidationRequired={false}
-                {...(validation = {
+                validation={{
                   isRequired: true,
                   pattern: "^[a-zA-Z0-9/-]{1,20}$", // validation for IFSC code
                   type: "text",
                   title: t("INVALID_VENDOR_ID"),
-                })}
+                }}
               />
             </div> */}
           <LabelFieldPair>
             <CardLabel className="card-label-smaller">
-              <Tooltip label={`${t("IFSC_CODE")}`} isMandatory={false} message={t("INVALID_IFSC_CODE_ERROR_MESSAGE")} />
+              <CustomTooltip label={`${t("IFSC_CODE")}`} isMandatory={false} message={t("INVALID_IFSC_CODE_ERROR_MESSAGE")} />
             </CardLabel>
             <TextInput
               t={t}
@@ -282,12 +276,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               style={{ width: "100%" }}
               maxLength={11}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[A-Z]{4}0[A-Z0-9]{6}$", // validation for IFSC code
                 type: "text",
                 title: t("INVALID_IFSC_CODE_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>
@@ -353,12 +347,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setvendoraccountno}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "[0-9]{9,18}", // validation for account number
                 type: "text",
                 title: t("INVALID_ACCOUNT_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
 
@@ -374,13 +368,13 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setphoneno}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "[0-9]{9,18}", // validation for account number
                 type: "text",
                 title: t("INVALID_ACCOUNT_NO_ERROR_MESSAGE"),
                 length: 10,
-              })}
+              }}
             /> */}
 
             <MobileNumber value={PhoneNo} name="PhoneNo" onChange={setPhoneNo} style={{ width: "100%" }} />
@@ -397,12 +391,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setcontactperson}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[a-zA-Z0-9/-]{1,20}$", // validation for account number
                 type: "text",
                 title: t("INVALID_ACCOUNT_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           {/* <LabelFieldPair>
@@ -417,12 +411,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
                 onChange={setCompany}
                 style={{ width: "100%" }}
                 ValidationRequired={true}
-                {...(validation = {
+                validation={{
                   isRequired: true,
                   pattern: "^[a-zA-Z0-9/-]{1,20}$", // validation for account number
                   type: "text",
                   title: t("INVALID_ACCOUNT_NO_ERROR_MESSAGE"),
-                })}
+                }}
               />
             </LabelFieldPair> */}
           <LabelFieldPair>
@@ -437,12 +431,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setpanno}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "[A-Z]{5}[0-9]{4}[A-Z]{1}", // validation for PAN number
                 type: "text",
                 title: t("INVALID_PAN_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>
@@ -457,12 +451,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setgstno}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}[Z]{1}[A-Z0-9]{1}$", // validation for GST number
                 type: "text",
                 title: t("INVALID_GST_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>
@@ -477,12 +471,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setgststate}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[a-zA-Z0-9/-]{1,20}$", // validation for GST state
                 type: "text",
                 title: t("PT_NAME_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>
@@ -497,12 +491,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setregistrationno}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[a-zA-Z0-9/-]{1,20}$", // validation for registration number
                 type: "text",
                 title: t("INVALID_REGISTRATION_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>
@@ -517,12 +511,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setepfno}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[a-zA-Z0-9/-]{1,15}$", // validation for EPF number
                 type: "text",
                 title: t("INVALID_EPF_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>
@@ -537,12 +531,12 @@ const VendorDetails = ({ t, config, onSelect, userType, formData, ownerIndex }) 
               onChange={setesino}
               style={{ width: "100%" }}
               ValidationRequired={true}
-              {...(validation = {
+              validation={{
                 isRequired: true,
                 pattern: "^[a-zA-Z0-9/-]{1,20}$", // validation for ESI number
                 type: "text",
                 title: t("INVALID_ESI_NO_ERROR_MESSAGE"),
-              })}
+              }}
             />
           </LabelFieldPair>
           <LabelFieldPair>

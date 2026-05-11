@@ -1,6 +1,6 @@
 import React from "react";
 import { Controller } from "react-hook-form";
-import { CardLabelError, TextInput, Tooltip, Label } from "@djb25/digit-ui-react-components";
+import { CardLabelError, TextInput, CustomTooltip, Label } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 
 const SearchFormFieldsComponents = ({ searchFormState, controlSearchForm }) => {
@@ -13,7 +13,7 @@ const SearchFormFieldsComponents = ({ searchFormState, controlSearchForm }) => {
       <span className="mobile-input">
         <Label className="flex-roww flex-gap-2">
           {t("EKYC_K_NUMBER") || "K Number"}
-          <Tooltip message={t("EKYC_K_NUMBER_MESSAGE")} />
+          <CustomTooltip message={t("EKYC_K_NUMBER_MESSAGE")} />
         </Label>
 
         <Controller
@@ -36,7 +36,7 @@ const SearchFormFieldsComponents = ({ searchFormState, controlSearchForm }) => {
       {/* <span className="mobile-input">
         <Label className="flex-roww flex-gap-2">
           {t("EKYC_K_NAME") || "K Name"}
-          <Tooltip message={t("EKYC_K_NAME_MESSAGE")} />
+          <CustomTooltip message={t("EKYC_K_NAME_MESSAGE")} />
         </Label>
 
         <Controller

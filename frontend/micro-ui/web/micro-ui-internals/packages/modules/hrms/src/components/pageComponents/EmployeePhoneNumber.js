@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LabelFieldPair, CardLabel, TextInput, CardLabelError, Tooltip } from "@djb25/digit-ui-react-components";
+import { LabelFieldPair, CardLabel, TextInput, CardLabelError, CustomTooltip } from "@djb25/digit-ui-react-components";
 
 const SelectEmployeePhoneNumber = ({ t, config, onSelect, formData = {}, userType, register, errors }) => {
   const [iserror, setError] = useState(false);
@@ -34,11 +34,7 @@ const SelectEmployeePhoneNumber = ({ t, config, onSelect, formData = {}, userTyp
         <React.Fragment key={index}>
           <LabelFieldPair>
             <CardLabel className="card-label-smaller" style={{ display: "flex", alignItems: "center" }}>
-              <Tooltip
-                message={t("HR_MOBILE_NO_CHECK")}
-                label={t(input.label)}
-                isMandatory={input.isMandatory}
-              />
+              <CustomTooltip message={t("HR_MOBILE_NO_CHECK")} label={t(input.label)} isMandatory={input.isMandatory} />
             </CardLabel>
             <div className="field-container" style={{ width: isMobile ? "100%" : "", display: "block" }}>
               <div>
@@ -63,11 +59,7 @@ const SelectEmployeePhoneNumber = ({ t, config, onSelect, formData = {}, userTyp
                     style={{ borderRadius: "0 6px 6px 0", marginBottom: "10px" }}
                   />
                 </div>
-                <div>
-                  {iserror && (
-                    <CardLabelError style={{ width: "100%" }}>{t(input.populators.error)}</CardLabelError>
-                  )}
-                </div>
+                <div>{iserror && <CardLabelError style={{ width: "100%" }}>{t(input.populators.error)}</CardLabelError>}</div>
               </div>
             </div>
           </LabelFieldPair>

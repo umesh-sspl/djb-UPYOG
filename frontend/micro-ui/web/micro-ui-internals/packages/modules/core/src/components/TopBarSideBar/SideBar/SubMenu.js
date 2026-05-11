@@ -1,9 +1,9 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   ArrowForward,
   ArrowVectorDown,
-  ArrowDirection,
+  CustomTooltip,
   HomeIcon,
   ComplaintIcon,
   BPAHomeIcon,
@@ -18,7 +18,6 @@ import {
   CollectionIcon,
 } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
-import ReactTooltip from "react-tooltip";
 
 const SubMenu = ({ item }) => {
   const [subnav, setSubnav] = useState(false);
@@ -54,18 +53,20 @@ const SubMenu = ({ item }) => {
         <div className={`sidebar-link  ${pathname === item?.navigationURL ? "active" : ""}`}>
           <div className="actions">
             {leftIcon}
-            {item.navigationURL?.indexOf("/digit-ui") === -1? (
+            {item.navigationURL?.indexOf("/digit-ui") === -1 ? (
               <a
                 data-tip="React-tooltip"
                 data-for={`jk-side-${getModuleName}`}
                 className="custom-link"
-                href={getOrigin + `${item.navigationURL.includes("/workbench-ui")?"":"/employee/"}`+ item.navigationURL}
+                href={getOrigin + `${item.navigationURL.includes("/workbench-ui") ? "" : "/employee/"}` + item.navigationURL}
               >
                 <span> {trimModuleName} </span>
 
-               {trimModuleName?.includes("...") &&<ReactTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
-                  {t(`ACTION_TEST_${getModuleName}`)}
-                </ReactTooltip>}
+                {trimModuleName?.includes("...") && (
+                  <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                    {t(`ACTION_TEST_${getModuleName}`)}
+                  </CustomTooltip>
+                )}
               </a>
             ) : (
               // <a className="custom-link" href={getOrigin + "/employee/" + item.navigationURL}>
@@ -78,9 +79,11 @@ const SubMenu = ({ item }) => {
                 <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
                   <span> {trimModuleName} </span>
 
-                 {trimModuleName?.includes("...") && <ReactTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
-                    {t(`ACTION_TEST_${getModuleName}`)}
-                  </ReactTooltip>}
+                  {trimModuleName?.includes("...") && (
+                    <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                      {t(`ACTION_TEST_${getModuleName}`)}
+                    </CustomTooltip>
+                  )}
                 </div>
                 {/* <div className="tooltip">
                   <p className="p1">{trimModuleName}</p>
@@ -102,9 +105,11 @@ const SubMenu = ({ item }) => {
               <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
                 <span> {trimModuleName} </span>
 
-                {trimModuleName?.includes("...") && <ReactTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
-                  {t(`ACTION_TEST_${getModuleName}`)}
-                </ReactTooltip>}
+                {trimModuleName?.includes("...") && (
+                  <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                    {t(`ACTION_TEST_${getModuleName}`)}
+                  </CustomTooltip>
+                )}
               </div>
               {/* <div className="tooltip">
                 <p className="p1">{trimModuleName}</p>
@@ -117,7 +122,7 @@ const SubMenu = ({ item }) => {
 
         {subnav &&
           item.links
-          .sort((a, b) => a.orderNumber - b.orderNumber)
+            .sort((a, b) => a.orderNumber - b.orderNumber)
             .filter((item) => item.url === "url" || item.url !== "")
             .map((item, index) => {
               const getChildName = item?.displayName?.toUpperCase()?.replace(/[ -]/g, "_");
@@ -134,9 +139,11 @@ const SubMenu = ({ item }) => {
                   >
                     <div className="actions" data-tip="React-tooltip" data-for={`jk-side-${index}`}>
                       <span> {trimModuleName} </span>
-                    {trimModuleName?.includes("...") && <ReactTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
-                        {t(`ACTION_TEST_${getChildName}`)}
-                      </ReactTooltip>}
+                      {trimModuleName?.includes("...") && (
+                        <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
+                          {t(`ACTION_TEST_${getChildName}`)}
+                        </CustomTooltip>
+                      )}
                     </div>
                     {/* <div className="actions">
                       <div className="tooltip">
@@ -155,9 +162,11 @@ const SubMenu = ({ item }) => {
                 >
                   <div className="actions" data-tip="React-tooltip" data-for={`jk-side-${index}`}>
                     <span> {trimModuleName} </span>
-                   {trimModuleName?.includes("...") &&<ReactTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
-                      {t(`ACTION_TEST_${getChildName}`)}
-                    </ReactTooltip>}
+                    {trimModuleName?.includes("...") && (
+                      <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
+                        {t(`ACTION_TEST_${getChildName}`)}
+                      </CustomTooltip>
+                    )}
                     {/* <div className="tooltip">
                       <p className="p1">{trimModuleName}</p>
                       <span className="tooltiptext">{t(`ACTION_TEST_${getChildName}`)}</span>

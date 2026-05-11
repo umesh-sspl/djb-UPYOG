@@ -13,8 +13,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 //import { VendorData } from "../../../utils"
-
-import { checkForNA } from "../../../utils";
+import { checkForNA } from "../../utils";
 
 const ActionButton = ({ jumpTo }) => {
   const { t } = useTranslation();

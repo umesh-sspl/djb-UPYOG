@@ -1,9 +1,7 @@
 import React from "react";
-import { LabelFieldPair, CardLabel, TextInput, CardLabelError, Tooltip } from "@djb25/digit-ui-react-components";
-import { useLocation } from "react-router-dom";
+import { LabelFieldPair, CardLabel, TextInput, CardLabelError, CustomTooltip } from "@djb25/digit-ui-react-components";
 
 const SelectEmployeeId = ({ t, config, onSelect, formData = {}, userType, register, errors }) => {
-  const { pathname: url } = useLocation();
   const isEdit = window.location.pathname.includes("/edit/");
   const inputs = [
     {
@@ -27,11 +25,7 @@ const SelectEmployeeId = ({ t, config, onSelect, formData = {}, userType, regist
           {errors[input.name] && <CardLabelError>{t(input.error)}</CardLabelError>}
           <LabelFieldPair>
             <CardLabel className="card-label-smaller">
-              <Tooltip
-                label={t(input.label)}
-                isMandatory={input.isMandatory}
-                message={t("HR_EMP_ID_MESSAGE")}
-              />
+              <CustomTooltip label={t(input.label)} isMandatory={input.isMandatory} message={t("HR_EMP_ID_MESSAGE")} />
             </CardLabel>
             <div className="field">
               <TextInput

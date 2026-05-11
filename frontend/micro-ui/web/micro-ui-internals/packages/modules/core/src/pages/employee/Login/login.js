@@ -29,36 +29,42 @@ const Login = () => {
   };
 
   useEffect(() => {
-    const kc = window.keycloak;
+    let isMounted = true;
 
-    if (!kc) {
-      const isEmployee = window.location.pathname.includes("employee");
-
-      const redirectPath = isEmployee ? "/digit-ui/employee/user/login" : "/digit-ui/citizen";
-
-      const from = encodeURIComponent(window.location.pathname + window.location.search);
-
-      window.location.href = `${redirectPath}?from=${from}`;
-    }
-  }, []);
-
-  useEffect(() => {
     const loadUser = async () => {
       try {
         const kc = window.keycloak;
 
-        if (!kc?.authenticated) {
+        // Redirect if keycloak missing
+        if (!kc) {
+          const isEmployee = window.location.pathname.includes("employee");
+
+          const redirectPath = isEmployee ? "/digit-ui/employee/user/login" : "/digit-ui/citizen";
+
+          const from = encodeURIComponent(window.location.pathname + window.location.search);
+
+          window.location.href = `${redirectPath}?from=${from}`;
+          return;
+        }
+
+        // Login if not authenticated
+        if (!kc.authenticated) {
           kc.login({
             redirectUri: window.location.origin + "/digit-ui/employee",
           });
           return;
         }
+
         const tenantId = "dl.djb";
 
         // First API
         const userDetailsResponse = await fetchUserDetails(kc);
+
+        if (!isMounted) return;
+
         const userInfoFromFirstCall = userDetailsResponse?.user || userDetailsResponse?.UserRequest || userDetailsResponse || {};
 
+        // Second API
         const response = await axios.post(
           "/user/_search",
           {
@@ -73,9 +79,13 @@ const Login = () => {
             },
           },
           {
-            headers: { Authorization: `Bearer ${kc.token}` },
+            headers: {
+              Authorization: `Bearer ${kc.token}`,
+            },
           }
         );
+
+        if (!isMounted) return;
 
         const finalUser = response?.data?.user?.[0] || userInfoFromFirstCall;
 
@@ -83,12 +93,19 @@ const Login = () => {
           info: finalUser,
         });
       } catch (err) {
+        if (!isMounted) return;
+
         console.error("User load failed:", err);
         setError("Failed to load user details");
       }
     };
 
     loadUser();
+
+    return () => {
+      isMounted = false;
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

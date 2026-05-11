@@ -1,5 +1,5 @@
 import React from "react";
-const { DatePicker, Dropdown } = require("@djb25/digit-ui-react-components");
+const { Dropdown } = require("@djb25/digit-ui-react-components");
 
 const SurveyorConfig = (t, agencies = [], reportingManagers = [], disabled = false) => {
   return [
@@ -98,15 +98,7 @@ const SurveyorConfig = (t, agencies = [], reportingManagers = [], disabled = fal
           type: "custom",
           populators: {
             name: "agencyName",
-            component: (props, customProps) => (
-              <Dropdown
-                option={agencies}
-                optionKey="name"
-                select={props.onChange}
-                selected={props.value}
-                t={t}
-              />
-            ),
+            component: (props, customProps) => <Dropdown option={agencies} optionKey="name" select={props.onChange} selected={props.value} t={t} />,
           },
         },
         {
@@ -116,13 +108,7 @@ const SurveyorConfig = (t, agencies = [], reportingManagers = [], disabled = fal
           populators: {
             name: "reportingManager",
             component: (props, customProps) => (
-              <Dropdown
-                option={reportingManagers}
-                optionKey="name"
-                select={props.onChange}
-                selected={props.value}
-                t={t}
-              />
+              <Dropdown option={reportingManagers} optionKey="name" select={props.onChange} selected={props.value} t={t} />
             ),
           },
         },

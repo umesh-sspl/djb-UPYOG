@@ -20,7 +20,7 @@ import {
 import { useQueryClient } from "react-query";
 
 import { useHistory, useParams } from "react-router-dom";
-import ConfirmationBox from "../../../components/Confirmation";
+import ConfirmationBox from "../../components/Confirmation";
 
 const Heading = (props) => {
   return <h1 className="heading-m">{props.label}</h1>;

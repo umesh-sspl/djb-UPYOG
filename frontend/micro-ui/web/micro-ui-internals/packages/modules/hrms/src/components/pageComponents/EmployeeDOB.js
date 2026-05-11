@@ -1,5 +1,5 @@
 import React from "react";
-import { LabelFieldPair, CardLabel, CardLabelError, DatePicker, Tooltip } from "@djb25/digit-ui-react-components";
+import { LabelFieldPair, CardLabel, CardLabelError, DatePicker, CustomTooltip } from "@djb25/digit-ui-react-components";
 // import { useLocation } from "react-router-dom";
 import { convertEpochToDate } from "../Utils/index";
 
@@ -28,10 +28,7 @@ const SelectDateofBirthEmployment = ({ t, config, onSelect, formData = {}, userT
           {errors[input.name] && <CardLabelError>{t(input.error)}</CardLabelError>}
           <LabelFieldPair>
             <CardLabel className="card-label-smaller">
-              <Tooltip
-                label={t(input.label)}
-                isMandatory={input.isMandatory}
-              />
+              <CustomTooltip label={t(input.label)} isMandatory={input.isMandatory} />
             </CardLabel>
             <div className="field">
               <DatePicker
@@ -47,7 +44,9 @@ const SelectDateofBirthEmployment = ({ t, config, onSelect, formData = {}, userT
               {formData?.[config.key]?.[input.name] &&
                 new Date(formData[config.key][input.name]) > new Date(new Date().setFullYear(new Date().getFullYear() - 18)) && (
                   <CardLabelError>
-                    {t("HR_ERROR_AGE_VALIDATION_18") === "HR_ERROR_AGE_VALIDATION_18" ? "Age must be 18 years or above" : t("HR_ERROR_AGE_VALIDATION_18")}
+                    {t("HR_ERROR_AGE_VALIDATION_18") === "HR_ERROR_AGE_VALIDATION_18"
+                      ? "Age must be 18 years or above"
+                      : t("HR_ERROR_AGE_VALIDATION_18")}
                   </CardLabelError>
                 )}
             </div>
