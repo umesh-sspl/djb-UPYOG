@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.SafeHtml;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Objects;
@@ -21,7 +20,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class GeoLocation {
 
-	@SafeHtml
+	
 	@JsonProperty("id")
 	private String id = null;
 

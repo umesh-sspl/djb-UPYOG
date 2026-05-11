@@ -4,9 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.egov.pt.models.enums.Channel;
 import org.egov.pt.models.enums.Status;
 import org.egov.pt.models.workflow.ProcessInstance;
@@ -20,7 +19,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.SafeHtml;
 
 @Data
 @AllArgsConstructor
@@ -29,26 +27,26 @@ import org.hibernate.validator.constraints.SafeHtml;
 public class Assessment {
 
 
-	@SafeHtml
+	
 	@JsonProperty("id")
 	private String id ;
 
 	@JsonProperty("tenantId")
-	@SafeHtml
+	
 	@NotNull
 	private String tenantId ;
 
-	@SafeHtml
+	
 	@JsonProperty("assessmentNumber")
 	private String assessmentNumber ;
 
 	@JsonProperty("financialYear")
-	@SafeHtml
+	
 	@NotNull
 	private String financialYear ;
 
 	@JsonProperty("propertyId")
-	@SafeHtml
+	
 	@NotNull
 	private String propertyId;
 

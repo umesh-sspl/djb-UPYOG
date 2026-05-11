@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import org.egov.common.contract.request.Role;
 import org.springframework.validation.annotation.Validated;
 

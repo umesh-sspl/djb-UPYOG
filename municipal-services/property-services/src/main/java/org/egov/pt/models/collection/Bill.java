@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
 
+import jakarta.validation.Valid;
 import org.egov.pt.models.AuditDetails;
 import org.springframework.util.CollectionUtils;
 

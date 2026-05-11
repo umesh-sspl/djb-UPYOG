@@ -195,13 +195,8 @@ public class VendorValidator {
         long currentTime = System.currentTimeMillis();
         long validFrom = workOrder.getValidFrom();
         long validTo = workOrder.getValidTo();
-        
-        // Check validFrom is not in past
-        if (validFrom < currentTime) {
-            throw new CustomException("EG_VWO_PAST_VALID_FROM", 
-                "Valid from date cannot be in the past");
-        }
-        
+
+
         // Check validTo is after validFrom
         if (validTo <= validFrom) {
             throw new CustomException("EG_VWO_INVALID_DATE_RANGE", 

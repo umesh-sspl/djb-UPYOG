@@ -2,8 +2,8 @@ package org.egov.pt.models.oldProperty;
 
 import java.util.Objects;
 
-import javax.validation.constraints.Size;
 
+import jakarta.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 

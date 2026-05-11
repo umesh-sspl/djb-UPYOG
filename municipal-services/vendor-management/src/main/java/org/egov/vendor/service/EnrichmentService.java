@@ -1,6 +1,5 @@
 package org.egov.vendor.service;
 
-import digit.models.coremodels.IdResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.vendor.config.VendorConfiguration;
 import org.egov.vendor.repository.IdGenRepository;
@@ -12,6 +11,7 @@ import org.egov.vendor.utils.VendorUtil;
 import org.egov.vendor.web.models.AuditDetails;
 import org.egov.vendor.web.models.VendorAdditionalDetails;
 import org.egov.vendor.web.models.VendorAdditionalDetailsRequest;
+import org.egov.vendor.web.models.vendorcontract.IdResponse;
 import org.egov.vendor.web.models.vendorcontract.workorder.VendorWorkOrderRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

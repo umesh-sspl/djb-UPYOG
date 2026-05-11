@@ -1,9 +1,10 @@
 package org.egov.pt.models.oldProperty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Size;
+
 import lombok.*;
 
-import javax.validation.constraints.Size;
 
 @Getter
 @Setter

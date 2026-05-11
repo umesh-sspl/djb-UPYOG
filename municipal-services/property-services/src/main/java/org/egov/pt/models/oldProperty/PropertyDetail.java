@@ -6,14 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 import org.egov.pt.models.Institution;
 import org.egov.pt.models.OwnerInfo;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

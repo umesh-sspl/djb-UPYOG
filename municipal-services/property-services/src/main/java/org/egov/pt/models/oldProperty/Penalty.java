@@ -2,9 +2,9 @@ package org.egov.pt.models.oldProperty;
 
 import java.util.Objects;
 
-import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Size;
 
 /**
  * Penalty
@@ -90,7 +90,7 @@ public class Penalty   {
    * @return fromFY
   **/
 
-@Size(min=2,max=128) 
+@Size(min=2,max=128)
   public String getFromFY() {
     return fromFY;
   }

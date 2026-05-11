@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.exception.InvalidTenantIdException;
 import org.egov.common.utils.MultiStateInstanceUtil;
-import org.egov.encryption.config.EncProperties;
 import org.egov.pt.config.PropertyConfiguration;
 import org.egov.pt.models.*;
 import org.egov.pt.models.user.User;

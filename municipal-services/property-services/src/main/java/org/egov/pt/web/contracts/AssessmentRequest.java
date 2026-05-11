@@ -1,5 +1,7 @@
 package org.egov.pt.web.contracts;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.pt.models.Assessment;
 
@@ -12,8 +14,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 /**
  * The request to create or update an assessment. Contains the RequestHeader and the assessment details

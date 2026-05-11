@@ -1,8 +1,8 @@
 
 package org.egov.vendor.web.controller;
 
-import digit.models.coremodels.RequestInfoWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.egov.common.contract.models.RequestInfoWrapper;
 import org.egov.common.contract.response.ResponseInfo;
 import org.egov.vendor.repository.dto.VendorDetailsDTO;
 import org.egov.vendor.utils.ResponseInfoFactory;

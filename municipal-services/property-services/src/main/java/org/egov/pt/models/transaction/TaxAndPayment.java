@@ -1,8 +1,8 @@
 package org.egov.pt.models.transaction;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Getter
