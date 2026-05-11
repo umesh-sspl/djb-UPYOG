@@ -2,8 +2,8 @@ package org.egov.pt.models.oldProperty;
 
 import java.util.Objects;
 
-import javax.validation.constraints.Size;
 
+import jakarta.validation.constraints.Size;
 import org.springframework.validation.annotation.Validated;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -95,7 +95,7 @@ public class Rebate   {
    * @return fromFY
   **/
 
-@Size(min=2,max=128) 
+@Size(min=2,max=128)
   public String getFromFY() {
     return fromFY;
   }

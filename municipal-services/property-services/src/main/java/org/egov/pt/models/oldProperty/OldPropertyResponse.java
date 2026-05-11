@@ -3,8 +3,10 @@ package org.egov.pt.models.oldProperty;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
+import jakarta.validation.constraints.Size;
 import org.egov.common.contract.response.ResponseInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

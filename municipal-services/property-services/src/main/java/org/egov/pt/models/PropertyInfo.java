@@ -2,8 +2,8 @@ package org.egov.pt.models;
 
 import java.util.List;
 
-import javax.validation.Valid;
 
+import jakarta.validation.Valid;
 import lombok.experimental.SuperBuilder;
 import org.egov.pt.models.enums.Status;
 

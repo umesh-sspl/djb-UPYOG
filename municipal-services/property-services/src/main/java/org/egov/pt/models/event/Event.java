@@ -1,10 +1,10 @@
 package org.egov.pt.models.event;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 @Validated
 @AllArgsConstructor

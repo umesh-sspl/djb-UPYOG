@@ -11,8 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Size;
-
+import jakarta.validation.constraints.Size;
 /**
  * This object holds list of documents attached during the transaciton for a property
  */

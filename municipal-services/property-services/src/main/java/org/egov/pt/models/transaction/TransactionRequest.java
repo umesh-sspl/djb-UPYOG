@@ -5,8 +5,10 @@ import lombok.*;
 import org.egov.common.contract.request.RequestInfo;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
+import jakarta.validation.constraints.Size;
 /**
  * The payment object, containing all necessary information for initiating a payment and the request body metadata
  */

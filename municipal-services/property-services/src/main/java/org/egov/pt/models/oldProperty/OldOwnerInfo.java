@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.egov.common.contract.request.Role;
 import org.springframework.validation.annotation.Validated;
 

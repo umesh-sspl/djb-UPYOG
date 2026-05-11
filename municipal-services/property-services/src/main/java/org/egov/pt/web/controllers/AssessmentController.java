@@ -3,8 +3,10 @@ package org.egov.pt.web.controllers;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
+import jakarta.validation.constraints.Size;
 import org.egov.common.contract.response.ResponseInfo;
 import org.egov.pt.models.Assessment;
 import org.egov.pt.models.AssessmentSearchCriteria;
