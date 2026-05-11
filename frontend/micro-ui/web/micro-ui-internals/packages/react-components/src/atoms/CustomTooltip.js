@@ -1,7 +1,7 @@
 import React from "react";
 import { InfoBannerIcon } from "./svgindex";
 
-const Tooltip = ({ children, message, label, isMandatory }) => {
+const CustomTooltip = ({ children, message, label, isMandatory }) => {
   return (
     <div
       style={{ position: "relative", display: "flex", alignItems: "center", gap: "5px" }}
@@ -47,4 +47,4 @@ const Tooltip = ({ children, message, label, isMandatory }) => {
   );
 };
 
-export default Tooltip;
+export default CustomTooltip;

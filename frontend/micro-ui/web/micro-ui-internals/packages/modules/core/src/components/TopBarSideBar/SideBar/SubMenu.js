@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   ArrowForward,
   ArrowVectorDown,
-  Tooltip,
+  CustomTooltip,
   HomeIcon,
   ComplaintIcon,
   BPAHomeIcon,
@@ -63,9 +63,9 @@ const SubMenu = ({ item }) => {
                 <span> {trimModuleName} </span>
 
                 {trimModuleName?.includes("...") && (
-                  <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                  <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
                     {t(`ACTION_TEST_${getModuleName}`)}
-                  </Tooltip>
+                  </CustomTooltip>
                 )}
               </a>
             ) : (
@@ -80,9 +80,9 @@ const SubMenu = ({ item }) => {
                   <span> {trimModuleName} </span>
 
                   {trimModuleName?.includes("...") && (
-                    <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                    <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
                       {t(`ACTION_TEST_${getModuleName}`)}
-                    </Tooltip>
+                    </CustomTooltip>
                   )}
                 </div>
                 {/* <div className="tooltip">
@@ -106,9 +106,9 @@ const SubMenu = ({ item }) => {
                 <span> {trimModuleName} </span>
 
                 {trimModuleName?.includes("...") && (
-                  <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                  <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
                     {t(`ACTION_TEST_${getModuleName}`)}
-                  </Tooltip>
+                  </CustomTooltip>
                 )}
               </div>
               {/* <div className="tooltip">
@@ -140,9 +140,9 @@ const SubMenu = ({ item }) => {
                     <div className="actions" data-tip="React-tooltip" data-for={`jk-side-${index}`}>
                       <span> {trimModuleName} </span>
                       {trimModuleName?.includes("...") && (
-                        <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
+                        <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
                           {t(`ACTION_TEST_${getChildName}`)}
-                        </Tooltip>
+                        </CustomTooltip>
                       )}
                     </div>
                     {/* <div className="actions">
@@ -163,9 +163,9 @@ const SubMenu = ({ item }) => {
                   <div className="actions" data-tip="React-tooltip" data-for={`jk-side-${index}`}>
                     <span> {trimModuleName} </span>
                     {trimModuleName?.includes("...") && (
-                      <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
+                      <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${index}`}>
                         {t(`ACTION_TEST_${getChildName}`)}
-                      </Tooltip>
+                      </CustomTooltip>
                     )}
                     {/* <div className="tooltip">
                       <p className="p1">{trimModuleName}</p>

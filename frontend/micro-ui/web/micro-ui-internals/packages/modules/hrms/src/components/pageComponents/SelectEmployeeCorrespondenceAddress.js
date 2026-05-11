@@ -1,5 +1,5 @@
 import React from "react";
-import { LabelFieldPair, CardLabel, TextInput, CardLabelError, Tooltip } from "@djb25/digit-ui-react-components";
+import { LabelFieldPair, CardLabel, TextInput, CardLabelError, CustomTooltip } from "@djb25/digit-ui-react-components";
 // import { useLocation } from "react-router-dom";
 
 const SelectEmployeeCorrespondenceAddress = ({ t, config, onSelect, formData = {}, userType, register, errors }) => {
@@ -10,7 +10,7 @@ const SelectEmployeeCorrespondenceAddress = ({ t, config, onSelect, formData = {
       type: "text",
       name: "correspondenceAddress",
       validation: {
-        pattern: Digit.Utils.getPattern('Address'),
+        pattern: Digit.Utils.getPattern("Address"),
         isRequired: true,
         title: t("CORE_COMMON_APPLICANT_NAME_INVALID"),
       },
@@ -25,30 +25,32 @@ const SelectEmployeeCorrespondenceAddress = ({ t, config, onSelect, formData = {
   return (
     <div>
       {inputs?.map((input, index) => {
-        let currentValue = formData && formData[config.key] && formData[config.key][input.name] || '';
-        return (<React.Fragment key={index}>
-          {errors[input.name] && <CardLabelError>{t(input.error)}</CardLabelError>}
-          <LabelFieldPair>
-            <CardLabel className="card-label-smaller">
-              <Tooltip
-                label={t(input.label)}
-                isMandatory={input.isMandatory}
-              />
-            </CardLabel>
-            <div className="field">
-              <TextInput
-                key={input.name}
-                value={(formData && formData[config.key] && formData[config.key][input.name]) || ""}
-                onChange={(e) => setValue(e.target.value, input.name)}
-                disable={false}
-                defaultValue={""}
-                {...input.validation}
-              />
-              {currentValue && currentValue.length > 0 && !currentValue.match(Digit.Utils.getPattern('Address')) && <CardLabelError style={{ width: "100%", marginTop: '-15px', fontSize: '16px', marginBottom: '12px' }}>{t("CORE_COMMON_APPLICANT_ADDRESS_INVALID")}</CardLabelError>}
-            </div>
-          </LabelFieldPair>
-        </React.Fragment>
-        )
+        let currentValue = (formData && formData[config.key] && formData[config.key][input.name]) || "";
+        return (
+          <React.Fragment key={index}>
+            {errors[input.name] && <CardLabelError>{t(input.error)}</CardLabelError>}
+            <LabelFieldPair>
+              <CardLabel className="card-label-smaller">
+                <CustomTooltip label={t(input.label)} isMandatory={input.isMandatory} />
+              </CardLabel>
+              <div className="field">
+                <TextInput
+                  key={input.name}
+                  value={(formData && formData[config.key] && formData[config.key][input.name]) || ""}
+                  onChange={(e) => setValue(e.target.value, input.name)}
+                  disable={false}
+                  defaultValue={""}
+                  {...input.validation}
+                />
+                {currentValue && currentValue.length > 0 && !currentValue.match(Digit.Utils.getPattern("Address")) && (
+                  <CardLabelError style={{ width: "100%", marginTop: "-15px", fontSize: "16px", marginBottom: "12px" }}>
+                    {t("CORE_COMMON_APPLICANT_ADDRESS_INVALID")}
+                  </CardLabelError>
+                )}
+              </div>
+            </LabelFieldPair>
+          </React.Fragment>
+        );
       })}
     </div>
   );

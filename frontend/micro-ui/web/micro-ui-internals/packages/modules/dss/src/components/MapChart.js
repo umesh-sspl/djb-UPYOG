@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { useTranslation } from "react-i18next";
 import { get } from "lodash";
-import { Loader, Tooltip } from "@djb25/digit-ui-react-components";
+import { Loader, CustomTooltip } from "@djb25/digit-ui-react-components";
 import { ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 
@@ -144,7 +144,7 @@ const MapChart = ({ data, drillDown = false, setselectedState, setdrilldownId, s
   return (
     <ResponsiveContainer width="40%" height={220}>
       <div style={{ position: "relative" }}>
-        <Tooltip>{tooltipContent}</Tooltip>
+        <CustomTooltip>{tooltipContent}</CustomTooltip>
         <ComposableMap projectionConfig={PROJECTION_CONFIG} projection="geoMercator" width={240} height={170} data-tip="">
           <Geographies geography={topoJSON}>
             {({ geographies }) =>

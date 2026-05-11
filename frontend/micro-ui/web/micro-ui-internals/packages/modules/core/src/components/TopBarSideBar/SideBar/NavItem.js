@@ -14,7 +14,7 @@ import {
   CollectionsBookmarIcons,
   FinanceChartIcon,
   CollectionIcon,
-  Tooltip,
+  CustomTooltip,
 } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 
@@ -65,9 +65,9 @@ const NavItem = (props) => {
             <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
               <span /*className={style.navLabel}*/ style={{ fontSize: "14px" }}>{trimModuleName}</span>
               {trimModuleName?.includes("...") && (
-                <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
                   {t(`ACTION_TEST_${getModuleName}`)}
-                </Tooltip>
+                </CustomTooltip>
               )}
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { LabelFieldPair, CardLabel, TextInput, CardLabelError, Tooltip } from "@djb25/digit-ui-react-components";
+import { LabelFieldPair, CardLabel, TextInput, CardLabelError, CustomTooltip } from "@djb25/digit-ui-react-components";
 // import { useLocation } from "react-router-dom";
 
 const SelectEmployeeName = ({ t, config, onSelect, formData = {}, userType, register, errors }) => {
@@ -31,7 +31,7 @@ const SelectEmployeeName = ({ t, config, onSelect, formData = {}, userType, regi
             {errors[input.name] && <CardLabelError>{t(input.error)}</CardLabelError>}
             <LabelFieldPair>
               <CardLabel className="card-label-smaller">
-                <Tooltip label={t(input.label)} isMandatory={input.isMandatory} />
+                <CustomTooltip label={t(input.label)} isMandatory={input.isMandatory} />
               </CardLabel>
               <div className="field">
                 <TextInput

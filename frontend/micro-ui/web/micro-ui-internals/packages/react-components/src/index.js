@@ -105,7 +105,7 @@ import TextInputCard from "./molecules/TextInputCard";
 import Timeline from "./molecules/Timeline";
 import Toast from "./atoms/Toast";
 import ToggleSwitch from "./atoms/ToggleSwitch";
-import Tooltip from "./atoms/Tooltip";
+import CustomTooltip from "./atoms/CustomTooltip";
 import TopBar from "./atoms/TopBar";
 import TypeSelectCard from "./molecules/TypeSelectCard";
 import ULBHomeCard from "./atoms/ULBHomeCard";
@@ -527,7 +527,7 @@ export {
   TLIcon,
   Toast,
   ToggleSwitch,
-  Tooltip,
+  CustomTooltip,
   TopBar,
   TypeSelectCard,
   ULBHomeCard,

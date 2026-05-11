@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Tooltip, Loader, Rating, RemoveableTag, Table } from "@djb25/digit-ui-react-components";
+import { CustomTooltip, Loader, Rating, RemoveableTag, Table } from "@djb25/digit-ui-react-components";
 import { subYears } from "date-fns";
 import { useTranslation } from "react-i18next";
 import FilterContext from "./FilterContext";
@@ -476,9 +476,9 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
           <span className="tooltip" data-tip="React-tooltip" data-for={`jk-table-${index}`}>
             {renderHeader(plot)}
 
-            <Tooltip textColor="#fff" backgroundColor="#555" place="bottom" type="info" effect="solid" id={`jk-table-${index}`}>
+            <CustomTooltip textColor="#fff" backgroundColor="#555" place="bottom" type="info" effect="solid" id={`jk-table-${index}`}>
               {t(`TIP_DSS_HEADER_${Digit.Utils.locale.getTransformedLocale(plot?.name)}`)}
-            </Tooltip>
+            </CustomTooltip>
             {/* <span
               className="tooltiptext"
               style={{

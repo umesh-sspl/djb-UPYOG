@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import {
   ArrowForward,
   ArrowVectorDown,
-  Tooltip,
+  CustomTooltip,
   HomeIcon,
   ComplaintIcon,
   BPAHomeIcon,
@@ -72,9 +72,9 @@ const NavItemHeader = (props) => {
             <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
               <span style={{ color: expanded ? "#a82227" : "" }}>{trimModuleName}</span>
               {trimModuleName?.includes("...") && (
-                <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
                   {t(`ACTION_TEST_${getModuleName}`)}
-                </Tooltip>
+                </CustomTooltip>
               )}
             </div>
           </div>
@@ -120,9 +120,9 @@ const NavItemHeader = (props) => {
                 <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
                   <span style={{ fontSize: "14px" }}>{trimModuleName}</span>
                   {trimModuleName?.includes("...") && (
-                    <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                    <CustomTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
                       {t(`ACTION_TEST_${getModuleName}`)}
-                    </Tooltip>
+                    </CustomTooltip>
                   )}
                 </div>
               </NavLink>

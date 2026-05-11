@@ -12,17 +12,15 @@ export const initKeycloak = async () => {
     // redirectUri: window.location.origin,
   });
 
-  const authenticated = await _kc.init({
-    onLoad: "check-sso",
-    pkceMethod: "S256",
-    checkLoginIframe: false,
-  });
-
-  // if (!authenticated) {
-  //   await _kc.login({
-  //     redirectUri: window.location.href,
-  //   });
-  // }
+  try {
+    await _kc.init({
+      onLoad: "check-sso",
+      pkceMethod: "S256",
+      checkLoginIframe: false,
+    });
+  } catch (err) {
+    console.error("Keycloak init failed", err);
+  }
 
   return _kc;
 };
