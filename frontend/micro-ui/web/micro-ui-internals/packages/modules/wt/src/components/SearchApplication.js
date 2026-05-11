@@ -21,24 +21,73 @@ import CollapsibleCardPage from "./CollapseCard";
 const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, setShowToast, moduleCode, isFixedPoint }) => {
   const isMobile = window.Digit.Utils.browser.isMobile();
   const user = Digit.UserService.getUser().info;
-  const [showWorkOrderModal, setShowWorkOrderModal] = useState(false);
-  const [selectedVendorForWorkOrder, setSelectedVendorForWorkOrder] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isImageLoading, setIsImageLoading] = useState(false);
 
   const handleViewDocument = useCallback(async (fileStoreId) => {
     if (!fileStoreId) return;
+    setIsImageLoading(true);
+    setShowImageModal(true);
     try {
       const response = await Digit.UploadServices.FileFetchbyid(fileStoreId, tenantId);
-      if (response && response.data) {
-        const file = new Blob([response.data], { type: response.headers["content-type"] });
+      if (response?.status === 200 && response?.data) {
+        const file = new Blob([response.data], { type: response.headers?.["content-type"] || "image/jpeg" });
         const fileUrl = URL.createObjectURL(file);
-        window.open(fileUrl, "_blank");
+        setSelectedImage(fileUrl);
+      } else {
+        throw new Error("Failed to fetch image");
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsImageLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
-  const DriverReportColumns = useMemo(
+
+  const defaultValues = {
+    offset: 0,
+    limit: 10,
+    sortBy: "commencementDate",
+    sortOrder: "DESC",
+    bookingNo: "",
+    mobileNumber: "",
+    applicantName: "",
+    status: "",
+    fromDate: "",
+    toDate: "",
+  };
+
+  const { register, control, handleSubmit, setValue, getValues, reset, formState, watch } = useForm({
+    defaultValues,
+  });
+
+  const fromDateValue = watch("fromDate");
+  const { data: fillingPointsData } = Digit.Hooks.wt.useFillPointSearch(
+    { tenantId: Digit.ULBService.getCurrentTenantId(), filters: { limit: 1000 } },
+    { enabled: !!isFixedPoint }
+  );
+  const fillingPoints = fillingPointsData?.fillingPoints || [];
+  
+  const { data: allReportsData, isLoading: isAllReportsLoading } = Digit.Hooks.wt.useDriverTripReportSearch(
+    { tenantId, filters: { bookingNo: Array.isArray(data) ? data.map(d => d.bookingNo).join(",") : null } },
+    { enabled: !!data && Array.isArray(data) && data.length > 0 && moduleCode === "WT" }
+  );
+
+  const mergedData = useMemo(() => {
+    if (!data || !Array.isArray(data)) return data;
+    if (moduleCode !== "WT" || !allReportsData?.driverTripReports) return data;
+
+    return data.map(booking => {
+      const report = allReportsData.driverTripReports.find(r => r.bookingNo === booking.bookingNo);
+      return { ...booking, ...report };
+    });
+  }, [data, allReportsData, moduleCode]);
+
+  const GetCell = (value) => <span className="cell-text">{value}</span>;
+
+  const columns = useMemo(
     () => [
       {
         Header: t("S.No"),
@@ -47,7 +96,35 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
       {
         Header: t("WT_BOOKING_NO"),
         accessor: "bookingNo",
+        disableSortBy: true,
+        Cell: ({ row }) => {
+          const bookingNo = row.original["bookingNo"];
+          const userTypePath = user.type === "EMPLOYEE" ? "employee" : "citizen";
+          return (
+            <div>
+              <span className="link">
+                <Link to={`${APPLICATION_PATH}/${userTypePath}/wt/bookingsearch/booking-details/${bookingNo}`}>{bookingNo}</Link>
+              </span>
+            </div>
+          );
+        },
       },
+      {
+        Header: t("WT_APPLICANT_NAME"),
+        disableSortBy: true,
+        Cell: ({ row }) => GetCell(row.original?.applicantDetail?.["name"]),
+      },
+      {
+        Header: t("WT_MOBILE_NUMBER"),
+        disableSortBy: true,
+        Cell: ({ row }) => GetCell(row.original?.applicantDetail?.["mobileNumber"]),
+      },
+      {
+        Header: t("PT_COMMON_TABLE_COL_STATUS_LABEL"),
+        disableSortBy: true,
+        Cell: ({ row }) => GetCell(t(row.original["bookingStatus"])),
+      },
+
       {
         Header: t("WT_VEHICLE_NO"),
         accessor: "vehicleRegistrationNo",
@@ -93,126 +170,30 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
           ),
       },
     ],
-    [t, handleViewDocument]
-  );
-
-
-  const openWorkOrderModal = (vendorDetails) => {
-    setSelectedVendorForWorkOrder(vendorDetails);
-    setShowWorkOrderModal(true);
-  };
-
-  const closeWorkOrderModal = () => {
-    setSelectedVendorForWorkOrder(null);
-    setShowWorkOrderModal(false);
-  };
-  const defaultValues = {
-    offset: 0,
-    limit: 10,
-    sortBy: "commencementDate",
-    sortOrder: "DESC",
-    bookingNo: "",
-    mobileNumber: "",
-    applicantName: "",
-    status: "",
-    fromDate: "",
-    toDate: "",
-  };
-
-  const { register, control, handleSubmit, setValue, getValues, reset, formState, watch } = useForm({
-    defaultValues,
-  });
-
-  const fromDateValue = watch("fromDate");
-  const { data: fillingPointsData } = Digit.Hooks.wt.useFillPointSearch(
-    { tenantId: Digit.ULBService.getCurrentTenantId(), filters: { limit: 1000 } },
-    { enabled: !!isFixedPoint }
-  );
-  const fillingPoints = fillingPointsData?.fillingPoints || [];
-
-  const { data: tripReportsData, isLoading: isTripReportsLoading } = Digit.Hooks.wt.useDriverTripReportSearch(
-    { tenantId, filters: { bookingNo: selectedVendorForWorkOrder?.bookingNo } },
-    { enabled: !!selectedVendorForWorkOrder?.bookingNo }
-  );
-
-  const GetCell = (value) => <span className="cell-text">{value}</span>;
-
-  const columns = useMemo(
-    () => [
-      {
-        Header: t("WT_BOOKING_NO"),
-        accessor: "bookingNo",
-        disableSortBy: true,
-        Cell: ({ row }) => {
-          const bookingNo = row.original["bookingNo"];
-          const userTypePath = user.type === "EMPLOYEE" ? "employee" : "citizen";
-          return (
-            <div>
-              <span className="link">
-                <Link to={`${APPLICATION_PATH}/${userTypePath}/wt/bookingsearch/booking-details/${bookingNo}`}>{bookingNo}</Link>
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        Header: t("WT_APPLICANT_NAME"),
-        disableSortBy: true,
-        Cell: ({ row }) => GetCell(row.original?.applicantDetail?.["name"]),
-      },
-      {
-        Header: t("WT_MOBILE_NUMBER"),
-        disableSortBy: true,
-        Cell: ({ row }) => GetCell(row.original?.applicantDetail?.["mobileNumber"]),
-      },
-      {
-        Header: t("PT_COMMON_TABLE_COL_STATUS_LABEL"),
-        disableSortBy: true,
-        Cell: ({ row }) => GetCell(t(row.original["bookingStatus"])),
-      },
-      {
-        Header: t("VIEW_REPORTS"),
-        disableSortBy: true,
-        Cell: ({ row }) => {
-          return (
-            <button
-              className="submit-bar"
-              style={{
-                backgroundColor: "#417505",
-                color: "white",
-              }}
-              onClick={() => openWorkOrderModal(row.original)}
-            >
-              {t("VIEW_REPORTS")}
-            </button>
-          );
-        },
-      },
-    ],
     [t, user.type]
   );
 
   const statusOptions =
     moduleCode === "TP"
       ? [
-        { i18nKey: "TP_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("TP_BOOKING_CREATED") },
-        { i18nKey: "TP_PENDING_FOR_APPROVAL", code: "PENDING_FOR_APPROVAL", value: t("TP_PENDING_FOR_APPROVAL") },
-        { i18nKey: "TP_PAYMENT_PENDING", code: "PAYMENT_PENDING", value: t("TP_PAYMENT_PENDING") },
-        {
-          i18nKey: "TP_TEAM_ASSIGNMENT_FOR_VERIFICATION",
-          code: "TEAM_ASSIGNMENT_FOR_VERIFICATION",
-          value: t("TP_TEAM_ASSIGNMENT_FOR_VERIFICATION"),
-        },
-        { i18nKey: "TP_TEAM_ASSIGNMENT_FOR_EXECUTION", code: "TEAM_ASSIGNMENT_FOR_EXECUTION", value: t("TP_TEAM_ASSIGNMENT_FOR_EXECUTION") },
-        { i18nKey: "TP_TREE_PRUNING_SERVICE_COMPLETED", code: "TREE_PRUNING_SERVICE_COMPLETED", value: t("TP_TREE_PRUNING_SERVICE_COMPLETED") },
-      ]
+          { i18nKey: "TP_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("TP_BOOKING_CREATED") },
+          { i18nKey: "TP_PENDING_FOR_APPROVAL", code: "PENDING_FOR_APPROVAL", value: t("TP_PENDING_FOR_APPROVAL") },
+          { i18nKey: "TP_PAYMENT_PENDING", code: "PAYMENT_PENDING", value: t("TP_PAYMENT_PENDING") },
+          {
+            i18nKey: "TP_TEAM_ASSIGNMENT_FOR_VERIFICATION",
+            code: "TEAM_ASSIGNMENT_FOR_VERIFICATION",
+            value: t("TP_TEAM_ASSIGNMENT_FOR_VERIFICATION"),
+          },
+          { i18nKey: "TP_TEAM_ASSIGNMENT_FOR_EXECUTION", code: "TEAM_ASSIGNMENT_FOR_EXECUTION", value: t("TP_TEAM_ASSIGNMENT_FOR_EXECUTION") },
+          { i18nKey: "TP_TREE_PRUNING_SERVICE_COMPLETED", code: "TREE_PRUNING_SERVICE_COMPLETED", value: t("TP_TREE_PRUNING_SERVICE_COMPLETED") },
+        ]
       : [
-        { i18nKey: "WT_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("WT_BOOKING_CREATED") },
-        { i18nKey: "WT_VENDOR_ASSIGNED", code: "VENDOR_ASSIGNED", value: t("WT_VENDOR_ASSIGNED") },
-        { i18nKey: "WT_DELIVERY_PENDING", code: "DELIVERY_PENDING", value: t("WT_DELIVERY_PENDING") },
-        { i18nKey: "WT_DELIVERED", code: "DELIVERED", value: t("WT_DELIVERED") },
-        { i18nKey: "WT_REQUEST_REJECTED", code: "REQUEST_REJECTED", value: t("WT_REQUEST_REJECTED") },
-      ];
+          { i18nKey: "WT_BOOKING_CREATED", code: "BOOKING_CREATED", value: t("WT_BOOKING_CREATED") },
+          { i18nKey: "WT_VENDOR_ASSIGNED", code: "VENDOR_ASSIGNED", value: t("WT_VENDOR_ASSIGNED") },
+          { i18nKey: "WT_DELIVERY_PENDING", code: "DELIVERY_PENDING", value: t("WT_DELIVERY_PENDING") },
+          { i18nKey: "WT_DELIVERED", code: "DELIVERED", value: t("WT_DELIVERED") },
+          { i18nKey: "WT_REQUEST_REJECTED", code: "REQUEST_REJECTED", value: t("WT_REQUEST_REJECTED") },
+        ];
 
   const onSort = useCallback(
     (args) => {
@@ -264,7 +245,11 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
             <form onSubmit={handleSubmit(onSubmit)}>
               {/* --- SMART SEARCH --- */}
               {activeTab === t("WT_SMART_SEARCH") && (
-                <div className="wt-search-grid" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "24px" }}>
+                <div className="formcomposer-section-grid">
+                  <div className="search-field-wrapper">
+                    <label>{t("WT_BOOKING_NO")}</label>
+                    <TextInput name="bookingNo" inputRef={register({})} />
+                  </div>
                   <div className="search-field-wrapper">
                     <label>{t("WT_MOBILE_NUMBER")}</label>
                     <MobileNumber
@@ -279,11 +264,6 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
                     />
                     <CardLabelError>{formState?.errors?.["mobileNumber"]?.message}</CardLabelError>
                   </div>
-
-                  {/* <div className="search-field-wrapper">
-                    <label>{t("WT_APPLICANT_NAME")}</label>
-                    <TextInput name="applicantName" inputRef={register({})} />
-                  </div> */}
                 </div>
               )}
 
@@ -409,7 +389,7 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
         ) : !isLoading && data !== "" ? (
           <Table
             t={t}
-            data={data}
+            data={mergedData}
             totalRecords={count}
             columns={columns}
             getCellProps={(cellInfo) => ({
@@ -432,46 +412,28 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
           (data !== "" || isLoading) && <Loader />
         )}
       </div>
-      {showWorkOrderModal && (
+      {showImageModal && (
         <Modal
-          headerBarMain={
-            <h1 className="heading-m" style={{ margin: 0 }}>
-              {t("VIEW_DRIVER_TRIP_REPORTS")}
-            </h1>
-          }
+          headerBarMain={<h1 className="heading-m">{t("WT_VIEW_PHOTO")}</h1>}
           headerBarEnd={
-            <div className="icon-bg-secondary" onClick={closeWorkOrderModal} style={{ cursor: "pointer" }}>
+            <div className="icon-bg-secondary" onClick={() => { setShowImageModal(false); setSelectedImage(null); }} style={{ cursor: "pointer" }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF" width="24" height="24">
                 <path d="M0 0h24v24H0V0z" fill="none" />
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
               </svg>
             </div>
           }
-          actionCancelLabel={t("CS_COMMON_CLOSE")}
-          actionCancelOnSubmit={closeWorkOrderModal}
           hideSubmit={true}
-          formId="modal-action"
+          actionCancelLabel={t("CS_COMMON_CLOSE")}
+          actionCancelOnSubmit={() => { setShowImageModal(false); setSelectedImage(null); }}
         >
-          <div style={{ padding: "16px" }}>
-            {isTripReportsLoading ? (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}>
+            {isImageLoading ? (
               <Loader />
-            ) : tripReportsData?.driverTripReports?.length > 0 ? (
-              <Table
-                t={t}
-                data={tripReportsData.driverTripReports}
-                columns={DriverReportColumns}
-                getCellProps={(cellInfo) => {
-                  return {
-                    style: {
-                      minWidth: "150px",
-                      padding: "8px 12px",
-                      fontSize: "13.5px",
-                    },
-                  };
-                }}
-              />
+            ) : selectedImage ? (
+              <img src={selectedImage} alt="View" style={{ maxWidth: "100%", maxHeight: "500px" }} />
             ) : (
-              <p style={{ textAlign: "center", marginTop: "20px" }}>{t("ES_VENDOR_NO_WORKORDERS")}</p>
+              <p>{t("CS_COMMON_NO_DATA")}</p>
             )}
           </div>
         </Modal>
