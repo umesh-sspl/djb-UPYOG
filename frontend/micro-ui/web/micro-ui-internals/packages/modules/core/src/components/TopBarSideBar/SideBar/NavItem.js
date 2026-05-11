@@ -1,6 +1,6 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import NavItemHeader from './NavItemHeader';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import NavItemHeader from "./NavItemHeader";
 import {
   HomeIcon,
   ComplaintIcon,
@@ -14,11 +14,11 @@ import {
   CollectionsBookmarIcons,
   FinanceChartIcon,
   CollectionIcon,
+  Tooltip,
 } from "@djb25/digit-ui-react-components";
-import ReactTooltip from 'react-tooltip';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
-const NavItem = props => {
+const NavItem = (props) => {
   let { label, icon, to, children } = props.item;
   const { t } = useTranslation();
   const IconsObject = {
@@ -37,11 +37,11 @@ const NavItem = props => {
     collections: <CollectionIcon />,
   };
   const leftIconArray = icon?.split?.(":")?.[1];
-  const leftIcon = IconsObject[leftIconArray] || IconsObject.collections;
-  const iconArr=icon?.leftIcon?.split?.(":")|| leftIcon?.split?.(":");
-  if(iconArr?.[0]=='dynamic'){
+  let leftIcon = IconsObject[leftIconArray] || IconsObject.collections;
+  const iconArr = icon?.leftIcon?.split?.(":") || leftIcon?.split?.(":");
+  if (iconArr?.[0] === "dynamic") {
     var IconComp = require("@djb25/digit-ui-react-components")?.[iconArr?.[1]];
-    leftIcon=IconComp?<IconComp/>:leftIcon;
+    leftIcon = IconComp ? <IconComp /> : leftIcon;
   }
   const getModuleName = label?.replace(/[ -]/g, "_").toUpperCase();
   const appendTranslate = t(`ACTION_TEST_${getModuleName.toUpperCase()}`);
@@ -52,26 +52,27 @@ const NavItem = props => {
   }
 
   return (
-    <div className={`${"submenu-container"}`} style={{marginLeft:"19px", marginBottom:"15px",marginTop:"15px"}}>
-    <NavLink
-      exact
-      to={to}
-      //className={`${"submenu-container"}`}
-      //activeClassName={`${"submenu-container"}`}
-    >
-      <div classname="sidebar-link">
-      <div className='actions' style={{padding:"0px"}}>
-      {leftIcon /*className={style.navIcon}*/ }
-      <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
-      <span /*className={style.navLabel}*/ style={{fontSize:"14px"}}>{trimModuleName}</span>
-      {trimModuleName?.includes("...") && <ReactTooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
-                    {t(`ACTION_TEST_${getModuleName}`)}
-                  </ReactTooltip>}
-                </div>
-      </div>
-      </div>
-      
-    </NavLink>
+    <div className={`${"submenu-container"}`} style={{ marginLeft: "19px", marginBottom: "15px", marginTop: "15px" }}>
+      <NavLink
+        exact
+        to={to}
+        //className={`${"submenu-container"}`}
+        //activeClassName={`${"submenu-container"}`}
+      >
+        <div classname="sidebar-link">
+          <div className="actions" style={{ padding: "0px" }}>
+            {leftIcon /*className={style.navIcon}*/}
+            <div data-tip="React-tooltip" data-for={`jk-side-${getModuleName}`}>
+              <span /*className={style.navLabel}*/ style={{ fontSize: "14px" }}>{trimModuleName}</span>
+              {trimModuleName?.includes("...") && (
+                <Tooltip textColor="white" backgroundColor="grey" place="right" type="info" effect="solid" id={`jk-side-${getModuleName}`}>
+                  {t(`ACTION_TEST_${getModuleName}`)}
+                </Tooltip>
+              )}
+            </div>
+          </div>
+        </div>
+      </NavLink>
     </div>
   );
 };

@@ -1,12 +1,11 @@
-import { DownwardArrow, Loader, Rating, RemoveableTag, Table, UpwardArrow } from "@djb25/digit-ui-react-components";
-import { differenceInCalendarDays, subYears } from "date-fns";
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Tooltip, Loader, Rating, RemoveableTag, Table } from "@djb25/digit-ui-react-components";
+import { subYears } from "date-fns";
 import { useTranslation } from "react-i18next";
 import FilterContext from "./FilterContext";
 import NoData from "./NoData";
 import { ArrowDownwardElement } from "./ArrowDownward";
 import { ArrowUpwardElement } from "./ArrowUpward";
-import ReactTooltip from "react-tooltip";
 
 const rowNamesToBeLocalised = ["Department", "", "Usage Type", "Ward", "Wards", "City Name"];
 
@@ -14,27 +13,29 @@ const InsightView = ({ rowValue, insight, t, isFinance }) => {
   return (
     <span>
       {rowValue}
-      {!(isFinance) && <div>
-      {` `}
-      {insight >= 0 ? ArrowUpwardElement() : ArrowDownwardElement()}
-      {` `}
-      {isNaN(insight) ? `0%` : `${Digit.Utils.dss.formatter(Math.abs(insight), "number", "Lac", true, t)}%`}
-      </div>}
+      {!isFinance && (
+        <div>
+          {` `}
+          {insight >= 0 ? ArrowUpwardElement() : ArrowDownwardElement()}
+          {` `}
+          {isNaN(insight) ? `0%` : `${Digit.Utils.dss.formatter(Math.abs(insight), "number", "Lac", true, t)}%`}
+        </div>
+      )}
     </span>
   );
 };
 
-const calculateFSTPCapacityUtilization = (value, totalCapacity, numberOfDays = 1) => {
-  if (value === undefined) return value;
-  return Math.round((value / (totalCapacity * numberOfDays)) * 100);
-};
+// const calculateFSTPCapacityUtilization = (value, totalCapacity, numberOfDays = 1) => {
+//   if (value === undefined) return value;
+//   return Math.round((value / (totalCapacity * numberOfDays)) * 100);
+// };
 
 const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, moduleCode }) => {
   const { id } = data;
   const [chartKey, setChartKey] = useState(id);
   const [filterStack, setFilterStack] = useState([{ id: chartKey }]);
   const { t } = useTranslation();
-  const { value, setValue, ulbTenants, fstpMdmsData } = useContext(FilterContext);
+  const { value } = useContext(FilterContext);
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const dssTenants = Digit.SessionStorage.get("DSS_TENANTS");
   let isFinance = window.location.href.includes("/employee/dss/dashboard/finance");
@@ -72,23 +73,23 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
     // Get the current year and calculate the last three financial years dynamically
     const currentYear = new Date().getFullYear();
     const lastThreeYears = [
-      `${currentYear - 1}-${currentYear}`,    // 2023-2024
+      `${currentYear - 1}-${currentYear}`, // 2023-2024
       `${currentYear - 2}-${currentYear - 1}`, // 2022-2023
-      `${currentYear}-${currentYear + 1}`  // 2024-2025
+      `${currentYear}-${currentYear + 1}`, // 2024-2025
     ];
 
     // Iterate over the data array
-    data.forEach(item => {
-        lastThreeYears.forEach(year => {
-            // Check if the year is missing in the object, if so, add it with value 0
-            if (!item[year]) {
-                item[year] = 0;
-            }
-        });
+    data.forEach((item) => {
+      lastThreeYears.forEach((year) => {
+        // Check if the year is missing in the object, if so, add it with value 0
+        if (!item[year]) {
+          item[year] = 0;
+        }
+      });
     });
 
     return data;
-};
+  };
 
   useEffect(() => {
     const { id } = data;
@@ -145,22 +146,21 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
         acc[t(`DSS_HEADER_${Digit.Utils.locale.getTransformedLocale(row?.name)}`)] =
           insight !== null ? { value: cellValue, insight } : row?.name === "S.N." ? id + 1 : cellValue;
         acc["key"] = rows?.headerName;
-        console.log("accacc",acc)
+        console.log("accacc", acc);
         return acc;
       }, {});
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response, lastYearResponse]);
- 
 
   useEffect(() => {
     if (tableData) {
-      if(window.location.href.includes("national-propertytax") && tableData?.[0]?.State =="Jharkhand")
-      {
+      if (window.location.href.includes("national-propertytax") && tableData?.[0]?.State === "Jharkhand") {
         const updatedData = addMissingFinancialYears(tableData);
 
-        console.log("updatedData",updatedData)
+        console.log("updatedData", updatedData);
         const result = updatedData?.map((row) => {
-          console.log("tableDatatableData",tableData)
+          console.log("tableDatatableData", tableData);
           return Object.keys(row).reduce((acc, key) => {
             if (key === "key") return acc;
             acc[key] = typeof row?.[key] === "object" ? row?.[key]?.value : row?.[key];
@@ -168,10 +168,9 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
           }, {});
         });
         setChartData(result);
-      }
-      else {
+      } else {
         const result = tableData?.map((row) => {
-          console.log("tableDatatableData",tableData)
+          console.log("tableDatatableData", tableData);
           return Object.keys(row).reduce((acc, key) => {
             if (key === "key") return acc;
             acc[key] = typeof row?.[key] === "object" ? row?.[key]?.value : row?.[key];
@@ -180,14 +179,13 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
         });
         setChartData(result);
       }
-   
     } else {
       const result = [];
       setChartData(result);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableData]);
 
- 
   const filterValue = useCallback((rows, id, filterValue = "") => {
     return rows.filter((row) => {
       const res = Object.keys(row?.values).find((key) => {
@@ -219,6 +217,7 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
       });
       return res;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const renderUnits = (denomination) => {
@@ -242,14 +241,14 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
     return t(code);
   };
 
-  const getDrilldownCharts = (value, filterKey, label, filters = []) => {   
+  const getDrilldownCharts = (value, filterKey, label, filters = []) => {
     if (response?.responseData?.drillDownChartId && response?.responseData?.drillDownChartId !== "none") {
       let currentValue = value;
       if (filterKey === "tenantId") {
         currentValue = dssTenants
           ?.filter((tenant) => tenant?.city?.ddrName === value || tenant?.code === value || tenant?.description === value)
           .map((tenant) => tenant?.code);
-        if (currentValue?.length == 0 && value) {
+        if (currentValue?.length === 0 && value) {
           currentValue = [value];
         }
         /*  Removed this mdms active tenants filter logic as per RAIN-5454
@@ -260,12 +259,12 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
 
       let newStack = { id: response?.responseData?.drillDownChartId, name: value, filterKey, filterValue: currentValue, label };
       if (filters.length > 1) {
-        let newFilter = filters.filter((ele) => ele.key != filterKey);
+        let newFilter = filters.filter((ele) => ele.key !== filterKey);
         newStack["addlFilter"] = { [newFilter?.[0]?.key]: filterStack?.[filterStack?.length - 1]?.filterValue };
-        newFilter.map((fil) => {
+        newFilter.forEach((fil) => {
           newStack["addlFilter"][fil?.key] =
-            filterStack?.filter((e) => e.filterKey == fil?.key)?.[0]?.filterValue ||
-            filterStack?.filter((e) => e.filterKey == "tenantId")?.[0]?.filterValue;
+            filterStack?.filter((e) => e.filterKey === fil?.key)?.[0]?.filterValue ||
+            filterStack?.filter((e) => e.filterKey === "tenantId")?.[0]?.filterValue;
         });
       }
       setFilterStack([...filterStack, newStack]);
@@ -287,8 +286,11 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
     return (originalRow, rowIndex, columns) => {
       const cellValue = originalRow?.[name];
       if (plot?.symbol === "amount") {
-        return typeof cellValue === "object" 
-          ? { value: Digit.Utils.dss.formatter(convertDenomination(cellValue?.value), "number", "Lac", true, t, isFinance ? true : true), insight: cellValue?.insight }
+        return typeof cellValue === "object"
+          ? {
+              value: Digit.Utils.dss.formatter(convertDenomination(cellValue?.value), "number", "Lac", true, t, isFinance ? true : true),
+              insight: cellValue?.insight,
+            }
           : String(Digit.Utils.dss.formatter(convertDenomination(cellValue), "number", "Lac", true, t, isFinance ? true : true));
       } else if (plot?.symbol === "number" || plot?.symbol === "percentage") {
         return typeof cellValue === "object"
@@ -299,181 +301,174 @@ const CustomTable = ({ data = {}, onSearch, setChartData, setChartDenomination, 
       return originalRow[name];
     };
   };
-  const isMobile = window.Digit.Utils.browser.isMobile();
+  // const isMobile = window.Digit.Utils.browser.isMobile();
 
-  const getTooltipStyles = (name) => {
-    if (isMobile)
-      return {
-        height: "fit-content",
-        background: "#555",
-        padding: "5px",
-        wordBreak: name?.length > 100 ? "break-all" : "break-word",
-        overflowWrap: "break-word",
-        borderRadius: "6px",
-        maxWidth: "205px",
-      };
-    else
-      return {
-        height: "fit-content",
-        background: "#555",
-        width: "fit-content",
-        padding: "5px",
-        wordBreak: name?.length > 100 ? "break-all" : "break-word",
-        overflowWrap: "break-word",
-        borderRadius: "6px",
-      };
-  };
+  // const getTooltipStyles = (name) => {
+  //   if (isMobile)
+  //     return {
+  //       height: "fit-content",
+  //       background: "#555",
+  //       padding: "5px",
+  //       wordBreak: name?.length > 100 ? "break-all" : "break-word",
+  //       overflowWrap: "break-word",
+  //       borderRadius: "6px",
+  //       maxWidth: "205px",
+  //     };
+  //   else
+  //     return {
+  //       height: "fit-content",
+  //       background: "#555",
+  //       width: "fit-content",
+  //       padding: "5px",
+  //       wordBreak: name?.length > 100 ? "break-all" : "break-word",
+  //       overflowWrap: "break-word",
+  //       borderRadius: "6px",
+  //     };
+  // };
 
   const tableColumns = useMemo(() => {
     // const columns = response?.responseData?.data?.find((row) =>!!row);
-let columns=[]
-if(chartKey == "xptFyByStatesv3")
-{
-   columns= {
-    "headerName": "",
-    "headerValue": 5,
-    "headerSymbol": null,
-    "insight": null,
-    "plots": [
-        {
-            "label": "5",
-            "name": "S.N.",
-            "value": null,
-            "strValue": null,
-            "symbol": "text"
-        },
-        {
-            "label": "",
-            "name": "State",
-            "value": null,
-            "strValue": null,
-            "symbol": "text"
-        },
-       
-        {
-            "label": null,
-            "name": "2022-23",
-            "value": "",
-            "strValue": null,
-            "symbol": "number"
-        },
-        {
-            "label": null,
-            "name": "2023-24",
-            "value": "",
-            "strValue": null,
-            "symbol": "number"
-        },
-        {
-          "label": null,
-          "name": "2024-25",
-          "value": "",
-          "strValue": null,
-          "symbol": "number"
+    let columns = [];
+    if (chartKey === "xptFyByStatesv3") {
+      columns = {
+        headerName: "",
+        headerValue: 5,
+        headerSymbol: null,
+        insight: null,
+        plots: [
+          {
+            label: "5",
+            name: "S.N.",
+            value: null,
+            strValue: null,
+            symbol: "text",
+          },
+          {
+            label: "",
+            name: "State",
+            value: null,
+            strValue: null,
+            symbol: "text",
+          },
+
+          {
+            label: null,
+            name: "2022-23",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+          {
+            label: null,
+            name: "2023-24",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+          {
+            label: null,
+            name: "2024-25",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+        ],
+      };
+    } else if (chartKey === "xptFyByUlbv3") {
+      columns = {
+        headerName: "",
+        headerValue: 5,
+        headerSymbol: null,
+        insight: null,
+        plots: [
+          {
+            label: "5",
+            name: "S.N.",
+            value: null,
+            strValue: null,
+            symbol: "text",
+          },
+          {
+            label: "",
+            name: "Ulb",
+            value: null,
+            strValue: null,
+            symbol: "text",
+          },
+
+          {
+            label: null,
+            name: "2022-23",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+          {
+            label: null,
+            name: "2023-24",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+          {
+            label: null,
+            name: "2024-25",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+        ],
+      };
+    } else if (chartKey === "xptFyByWardv3") {
+      columns = {
+        headerName: "",
+        headerValue: 5,
+        headerSymbol: null,
+        insight: null,
+        plots: [
+          {
+            label: "5",
+            name: "S.N.",
+            value: null,
+            strValue: null,
+            symbol: "text",
+          },
+          {
+            label: "",
+            name: "Ward",
+            value: null,
+            strValue: null,
+            symbol: "text",
+          },
+          {
+            label: null,
+            name: "2022-23",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+          {
+            label: null,
+            name: "2023-24",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+          {
+            label: null,
+            name: "2024-25",
+            value: "",
+            strValue: null,
+            symbol: "number",
+          },
+        ],
+      };
+    } else {
+      columns = response?.responseData?.data?.find((row) => !!row);
+      if (columns?.plots?.length === 13) {
+        columns?.plots?.splice(3, 6);
       }
-    ]
-  }
-  
-}else if (chartKey == "xptFyByUlbv3")
-{
-  columns= {
-    "headerName": "",
-    "headerValue": 5,
-    "headerSymbol": null,
-    "insight": null,
-    "plots": [
-        {
-            "label": "5",
-            "name": "S.N.",
-            "value": null,
-            "strValue": null,
-            "symbol": "text"
-        },
-        {
-            "label": "",
-            "name": "Ulb",
-            "value": null,
-            "strValue": null,
-            "symbol": "text"
-        },
-      
-        {
-            "label": null,
-            "name": "2022-23",
-            "value": "",
-            "strValue": null,
-            "symbol": "number"
-        },
-        {
-            "label": null,
-            "name": "2023-24",
-            "value": "",
-            "strValue": null,
-            "symbol": "number"
-        },
-        {
-          "label": null,
-          "name": "2024-25",
-          "value": "",
-          "strValue": null,
-          "symbol": "number"
-      }
-    ]
-  }
-}
-else if (chartKey == "xptFyByWardv3")
-{
-  columns= {
-    "headerName": "",
-    "headerValue": 5,
-    "headerSymbol": null,
-    "insight": null,
-    "plots": [
-        {
-            "label": "5",
-            "name": "S.N.",
-            "value": null,
-            "strValue": null,
-            "symbol": "text"
-        },
-        {
-            "label": "",
-            "name": "Ward",
-            "value": null,
-            "strValue": null,
-            "symbol": "text"
-        },
-        {
-            "label": null,
-            "name": "2022-23",
-            "value": "",
-            "strValue": null,
-            "symbol": "number"
-        },
-        {
-            "label": null,
-            "name": "2023-24",
-            "value": "",
-            "strValue": null,
-            "symbol": "number"
-        },
-        {
-          "label": null,
-          "name": "2024-25",
-          "value": "",
-          "strValue": null,
-          "symbol": "number"
-      },
-    ]
-  }
-}
-else {
- columns = response?.responseData?.data?.find((row) =>!!row);
- if(columns?.plots?.length == 13)
- {
-  columns?.plots?.splice(3,6)
- }
-}
+    }
     return columns?.plots
       ?.filter((plot) => plot?.name !== "TankCapacity")
       .map((plot, index) => ({
@@ -481,9 +476,9 @@ else {
           <span className="tooltip" data-tip="React-tooltip" data-for={`jk-table-${index}`}>
             {renderHeader(plot)}
 
-            <ReactTooltip textColor="#fff" backgroundColor="#555" place="bottom" type="info" effect="solid" id={`jk-table-${index}`}>
+            <Tooltip textColor="#fff" backgroundColor="#555" place="bottom" type="info" effect="solid" id={`jk-table-${index}`}>
               {t(`TIP_DSS_HEADER_${Digit.Utils.locale.getTransformedLocale(plot?.name)}`)}
-            </ReactTooltip>
+            </Tooltip>
             {/* <span
               className="tooltiptext"
               style={{
@@ -544,6 +539,7 @@ else {
           return String(t(cellValue));
         },
       }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response, value?.denomination, value?.range]);
 
   const convertDenomination = (val) => {
@@ -571,9 +567,11 @@ else {
   }
   return (
     <div style={{ width: "100%" }}>
-      { !(isFinance) && <span className={"dss-table-subheader"} style={{ position: "sticky", left: 0 }}>
-        {t("DSS_CMN_TABLE_INFO")}
-      </span> }
+      {!isFinance && (
+        <span className={"dss-table-subheader"} style={{ position: "sticky", left: 0 }}>
+          {t("DSS_CMN_TABLE_INFO")}
+        </span>
+      )}
       {filterStack?.length > 1 && (
         <div className="tag-container">
           <span style={{ marginTop: "20px" }}>{t("DSS_FILTERS_APPLIED")}: </span>
