@@ -25,7 +25,7 @@ public class Address {
 	@JsonProperty("tenantId")
 	private String tenantId;
 
-	@JsonProperty("doorNo")
+	@JsonProperty("houseNo")
 	private String doorNo;
 
 	@JsonProperty("plotNo")
