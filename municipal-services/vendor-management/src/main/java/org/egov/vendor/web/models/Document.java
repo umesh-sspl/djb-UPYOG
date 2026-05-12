@@ -8,14 +8,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 import org.springframework.validation.annotation.Validated;
-
+import jakarta.annotation.Generated;
 
 /**
  * This object holds list of documents attached during the transaciton for a property
  */
 @ApiModel(description = "This object holds list of documents attached during the transaciton for a property")
 @Validated
-@javax.annotation.Generated(value = "org.egov.codegen.SpringBootCodegen", date = "2024-04-12T12:56:34.514+05:30")
+@Generated(value = "org.egov.codegen.SpringBootCodegen", date = "2024-04-12T12:56:34.514+05:30")
 
 
 
