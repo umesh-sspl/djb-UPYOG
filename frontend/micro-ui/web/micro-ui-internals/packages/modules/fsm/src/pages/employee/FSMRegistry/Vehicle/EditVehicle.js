@@ -72,7 +72,7 @@ const EditVehicle = ({ parentUrl, heading }) => {
   const { t } = useTranslation();
   const history = useHistory();
 
-  const Config = VehicleConfig(t, true);
+  const Config = VehicleConfig(t, false);
 
   Config[0].body.forEach((item) => {
     if (item.label === "ES_FSM_REGISTRY_VEHICLE_NUMBER") {
@@ -87,8 +87,61 @@ const EditVehicle = ({ parentUrl, heading }) => {
     }
   });
 
+  const formatVehicleNumber = (input) => {
+    const cleaned = input.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (cleaned.length <= 2) return cleaned;
+
+    const state = cleaned.slice(0, 2);
+    const rest = cleaned.slice(2);
+    if (!rest) return state;
+
+    const rtoMatch = rest.match(/^(\d{1,2})/);
+    if (!rtoMatch) return state + "-" + rest;
+
+    const rtoDigits = rtoMatch[1];
+    const afterRto = rest.slice(rtoDigits.length);
+
+    const lettersMatch = afterRto.match(/^([A-Z]*)/);
+    const middleLetters = lettersMatch ? lettersMatch[1] : "";
+    const number = afterRto.slice(middleLetters.length);
+
+    if (!number) {
+      // No number digits yet — still typing the middle part
+      return state + "-" + rtoDigits + middleLetters;
+    }
+
+    // Number has started — determine 3-group vs 4-group format
+    if (middleLetters.length >= 3) {
+      // 4-group: split letters (1 + rest for 3 letters, 2 + 2 for 4 letters)
+      const splitAt = middleLetters.length <= 3 ? 1 : 2;
+      const series = middleLetters.slice(0, splitAt);
+      const subSeries = middleLetters.slice(splitAt);
+      return state + "-" + rtoDigits + series + "-" + subSeries + "-" + number.slice(0, 4);
+    }
+    // 3-group: RTO digits + series letters combined
+    return state + "-" + rtoDigits + middleLetters + "-" + number.slice(0, 4);
+  };
+
   const onFormValueChange = (setValue, formData) => {
-    if (formData?.registrationNumber && formData?.ownerName && formData?.phone && formData?.vehicle?.modal && formData?.vehicle?.type) {
+    if (formData?.registrationNumber) {
+      let updatedRegNo = formatVehicleNumber(formData.registrationNumber);
+      if (updatedRegNo.length > 15) {
+        updatedRegNo = updatedRegNo.slice(0, 15);
+      }
+      if (updatedRegNo !== formData.registrationNumber) {
+        setValue("registrationNumber", updatedRegNo);
+      }
+    }
+    if (
+      formData?.registrationNumber &&
+      formData?.ownerName &&
+      formData?.phone &&
+      (formData?.vehicle?.modal?.code || formData?.vehicle?.modal) &&
+      (formData?.vehicle?.type?.code || formData?.vehicle?.type) &&
+      formData?.selectGender &&
+      formData?.dob &&
+      new Date(formData?.dob).getTime() <= new Date().setFullYear(new Date().getFullYear() - 18)
+    ) {
       setSubmitValve(true);
     } else {
       setSubmitValve(false);
@@ -108,9 +161,12 @@ const EditVehicle = ({ parentUrl, heading }) => {
     const roadTax = data?.roadTax > 0 || data?.roadTax?.length > 0 ? new Date(`${data?.roadTax}`).getTime() : null;
     const fitnessValidity = data?.fitnessValidity > 0 || data?.fitnessValidity?.length > 0 ? new Date(`${data?.fitnessValidity}`).getTime() : null;
     const additionalDetails = data?.additionalDetails;
+    const gender = data?.selectGender?.code || data?.selectGender || vehicleDetails.owner?.gender || "OTHER";
+    const dob = data?.dob ? new Date(`${data.dob}`).getTime() : vehicleDetails.owner?.dob;
     const formData = {
       vehicle: {
         ...vehicleDetails,
+        registrationNumber: data?.registrationNumber,
         model: vehicleModal,
         type: vehicleType,
         tankCapacity: tankCapacity,
@@ -124,8 +180,8 @@ const EditVehicle = ({ parentUrl, heading }) => {
         },
         owner: {
           ...vehicleDetails.owner,
-          gender: data?.selectGender || vehicleDetails.owner?.gender || "OTHER",
-          dob: data?.dob || vehicleDetails.owner?.dob,
+          gender: gender,
+          dob: dob,
           emailId: data?.emailId || "abc@egov.com",
           name: data?.ownerName || vehicleDetails.owner?.name,
           mobileNumber: data?.phone || vehicleDetails.owner?.mobileNumber,
@@ -143,7 +199,7 @@ const EditVehicle = ({ parentUrl, heading }) => {
         queryClient.invalidateQueries("DSO_SEARCH");
         setTimeout(() => {
           closeToast();
-          history.push(`/digit-ui/employee/fsm/registry/vehicle-details/${dsoId}`);
+          history.push(`/digit-ui/employee/fsm/registry/vehicle-details/${data?.registrationNumber || dsoId}`);
         }, 5000);
       },
     });
