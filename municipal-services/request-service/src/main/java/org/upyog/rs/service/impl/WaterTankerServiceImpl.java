@@ -219,14 +219,13 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 
 	// 2. Identify if there's an ACTIVE (Not yet Delivered/Cancelled) booking
 	WaterTankerBookingDetail activeBooking = null;
-	if (existingBookings != null && !existingBookings.isEmpty()) {
-		activeBooking = existingBookings.stream()
-				.filter(b -> !"TANKER_DELIVERED".equalsIgnoreCase(b.getBookingStatus()) &&
-						!"CANCELLED".equalsIgnoreCase(b.getBookingStatus()) &&
-						!"REJECTED".equalsIgnoreCase(b.getBookingStatus()))
-				.findFirst()
-				.orElse(null);
-	}
+	activeBooking = existingBookings.stream()
+			.filter(b -> !"TANKER_DELIVERED".equalsIgnoreCase(b.getBookingStatus()) &&
+					!"CANCELLED".equalsIgnoreCase(b.getBookingStatus()) &&
+					!"REJECTED".equalsIgnoreCase(b.getBookingStatus()) &&
+					!"MISSED".equalsIgnoreCase(b.getBookingStatus()))
+			.findFirst()
+			.orElse(null);
 
 	// 3. CASE A: UPDATE EXISTING (An active request is still in progress)
 	if (activeBooking != null) {
@@ -264,9 +263,12 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 	String businessService = waterTankerDetail.getWorkflow().getBusinessService();
 	if ("watertanker".equalsIgnoreCase(businessService)) {
 		waterTankerDetail.getWorkflow().setAction("APPLY");
-	} else {
+	} else if ("watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
 		waterTankerDetail.getWorkflow().setAction("CREATE");
-		waterTankerDetail.setBookingStatus("IN_TRANSIT");
+		waterTankerDetail.setBookingStatus("SCHEDULED");
+	} else {
+		throw new CustomException("INVALID_BUSINESS_SERVICE",
+				"Unknown business service: " + businessService);
 	}
 
 	// User enrichment logic
