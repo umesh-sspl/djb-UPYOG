@@ -19,6 +19,8 @@ import { APPLICATION_PATH } from "../utils";
 import CollapsibleCardPage from "./CollapseCard";
 
 const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, setShowToast, moduleCode, isFixedPoint }) => {
+  console.log("WTSearchApplication Rendered", { moduleCode, isFixedPoint });
+
   const isMobile = window.Digit.Utils.browser.isMobile();
   const user = Digit.UserService.getUser().info;
   const [showImageModal, setShowImageModal] = useState(false);
@@ -264,6 +266,15 @@ const WTSearchApplication = ({ tenantId, isLoading, t, onSubmit, data, count, se
                     />
                     <CardLabelError>{formState?.errors?.["mobileNumber"]?.message}</CardLabelError>
                   </div>
+                  <div className="search-field-wrapper">
+                    <label>{t("WT_BOOKING_NO")}</label>
+                    <TextInput name="bookingNo" inputRef={register({})} id="wt-booking-no-input" />
+                  </div>
+
+                  {/* <div className="search-field-wrapper">
+                    <label>{t("WT_APPLICANT_NAME")}</label>
+                    <TextInput name="applicantName" inputRef={register({})} />
+                  </div> */}
                 </div>
               )}
 

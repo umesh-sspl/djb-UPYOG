@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, Link } from "react-router-dom";
 import LocalityModal from "./LocalityModal";
 import ApplicationTable from "./inbox/ApplicationTable";
+import PointAddressMap from "./PointAddressMap";
 
 const SearchFillingPointAddress = () => {
   const { t } = useTranslation();
@@ -58,6 +59,17 @@ const SearchFillingPointAddress = () => {
 
   const allFillingPoints = allFillingPointsData?.fillingPoints || [];
 
+  // ✅ Hook to fetch all fixed points for mapping dropdown
+  const { isLoading: isAllFixedPointsLoading, data: allFixedPointsData } = Digit.Hooks.wt.useFixedPointSearchAPI(
+    {
+      tenantId,
+      filters: { limit: 1000 },
+    },
+    { enabled: true }
+  );
+
+  const allFixedPoints = allFixedPointsData?.waterTankerBookingDetail || [];
+
   // ✅ Hook for Mapping
   const { mutate: mapFixedFilling } = Digit.Hooks.wt.useVendorFillingMapping(tenantId);
 
@@ -93,6 +105,10 @@ const SearchFillingPointAddress = () => {
     FILLING_POINT: {
       label: "WT_FILLING_POINT_NAME",
       placeholder: "WT_ENTER_FILLING_POINT_NAME",
+    },
+    VIEW_ON_MAP: {
+      label: "WT_VIEW_ON_MAP",
+      placeholder: "",
     },
   };
 
@@ -572,6 +588,14 @@ const SearchFillingPointAddress = () => {
             >
               {t("WT_FILLING_POINT")}
             </button>
+
+            <button
+              className={selectedTab === "VIEW_ON_MAP" ? "search-tab-head-selected" : "search-tab-head"}
+              onClick={() => onTabChange("VIEW_ON_MAP")}
+              style={{ width: isMobile ? "50%" : "auto" }}
+            >
+              {t("WT_VIEW_ON_MAP")}
+            </button>
           </div>
 
           <div className="action-bar-wrap-registry" style={{ alignSelf: isMobile ? "flex-end" : "auto" }}>
@@ -589,11 +613,12 @@ const SearchFillingPointAddress = () => {
         </div>
 
         {/* 🔥 Search Section (same card) */}
-        <div className="finance-mainlayout">
-          <div className="finance-mainlayout-col1">
-            <Label>{t(label)}</Label>
-            <TextInput value={searchValue} onChange={(e) => setSearchValue(e.target.value)} placeholder={t(placeholder)} />
-          </div>
+        {selectedTab !== "VIEW_ON_MAP" && (
+          <div className="finance-mainlayout">
+            <div className="finance-mainlayout-col1">
+              <Label>{t(label)}</Label>
+              <TextInput value={searchValue} onChange={(e) => setSearchValue(e.target.value)} placeholder={t(placeholder)} />
+            </div>
 
           <div className="finance-mainlayout-col1">
             <Label>{t("WT_MOBILE_NUMBER")}</Label>
@@ -607,83 +632,95 @@ const SearchFillingPointAddress = () => {
             />
           </div>
 
-          {selectedTab === "FIXED_POINT" && (
-            <div className="finance-mainlayout-col1">
-              <Label>{t("WT_FIXED_POINT_STATUS")}</Label>
-              <Dropdown option={FixedPointStatus} optionKey="i18nKey" selected={fixedPointStatus} select={setFixedPointStatus} t={t} />
-            </div>
-          )}
+            {selectedTab === "FIXED_POINT" && (
+              <div className="finance-mainlayout-col1">
+                <Label>{t("WT_FIXED_POINT_STATUS")}</Label>
+                <Dropdown option={FixedPointStatus} optionKey="i18nKey" selected={fixedPointStatus} select={setFixedPointStatus} t={t} />
+              </div>
+            )}
 
-          {selectedTab === "FIXED_POINT" && (
-            <div className="finance-mainlayout-col1">
-              <Label>{t("WT_FILLING_POINT")}</Label>
-              <Dropdown
-                option={allFillingPoints}
-                optionKey="fillingPointName"
-                selected={selectedFillingPoint}
-                select={setSelectedFillingPoint}
-                t={t}
-                placeholder={t("ES_COMMON_STATUS")}
-              />
-            </div>
-          )}
+            {selectedTab === "FIXED_POINT" && (
+              <div className="finance-mainlayout-col1">
+                <Label>{t("WT_FILLING_POINT")}</Label>
+                <Dropdown
+                  option={allFillingPoints}
+                  optionKey="fillingPointName"
+                  selected={selectedFillingPoint}
+                  select={setSelectedFillingPoint}
+                  t={t}
+                  placeholder={t("ES_COMMON_STATUS")}
+                />
+              </div>
+            )}
 
-          {selectedTab === "FILLING_POINT" && (
-            <div className="finance-mainlayout-col1">
-              <Label>{t("WT_FILLING_POINT_DESIGNATION")}</Label>
-              <Dropdown option={statusOptions} optionKey="i18nKey" selected={status} select={setStatus} t={t} placeholder={t("ES_COMMON_STATUS")} />
-            </div>
-          )}
+            {selectedTab === "FILLING_POINT" && (
+              <div className="finance-mainlayout-col1">
+                <Label>{t("WT_FILLING_POINT_DESIGNATION")}</Label>
+                <Dropdown option={statusOptions} optionKey="i18nKey" selected={status} select={setStatus} t={t} placeholder={t("ES_COMMON_STATUS")} />
+              </div>
+            )}
 
-          <div className="finance-mainlayout-col1">
-            <Label>&nbsp;</Label>
-            <span className="generic-button clear-search" onClick={clearSearch} style={{ alignSelf: "center" }}>
-              {t("ES_COMMON_CLEAR_SEARCH")}
-            </span>
+            <div className="finance-mainlayout-col1">
+              <Label>&nbsp;</Label>
+              <span className="generic-button clear-search" onClick={clearSearch} style={{ alignSelf: "center" }}>
+                {t("ES_COMMON_CLEAR_SEARCH")}
+              </span>
+            </div>
+            <div className="finance-mainlayout-col1">
+              <Label>&nbsp;</Label>
+              <SubmitBar label={t("ES_COMMON_SEARCH")} onSubmit={onSearch} />
+            </div>
           </div>
-          <div className="finance-mainlayout-col1">
-            <Label>&nbsp;</Label>
-            <SubmitBar label={t("ES_COMMON_SEARCH")} onSubmit={onSearch} />
-          </div>
-        </div>
+        )}
       </Card>
 
-      {/* 🔹 Table */}
-      <Card>
-        <ApplicationTable
-          key={allFillingPoints?.length > 0 ? "loaded" : "loading"}
-          data={tableData}
-          columns={columns}
-          pageSize={pageSize}
-          getCellProps={() => ({
-            style: {
-              padding: "20px 18px",
-              fontSize: "16px",
-            },
-          })}
-          styles={{ minWidth: "1200px" }}
-          inboxStyles={{ overflowX: "auto" }}
-          t={t}
-          isLoading={isLoading || isAllFillingPointsLoading}
-          onPageSizeChange={handlePageSizeChange}
-          currentPage={Math.floor(pageOffset / pageSize)}
-          onNextPage={fetchNextPage}
-          onPrevPage={fetchPrevPage}
-          pageSizeLimit={pageSize}
-          totalRecords={totalCount}
-          isPaginationRequired={true}
-          showPagination={true}
-          showPageSizeOptions={true}
-          isSearchRequired={false}
-          isDownloadRequired={true}
-          isFilterRequired={true}
-          isSortRequired={true}
-          showCSVExport={true}
-          getCSVExportData={getCSVExportData}
-          csvExportColumns={csvExportColumns}
-          csvExportFileName={`wt-${selectedTab === "FIXED_POINT" ? "fixed-point" : "filling-point"}-search`}
-        />
-      </Card>
+      {/* 🔹 Table or Map */}
+      {selectedTab === "VIEW_ON_MAP" ? (
+        <Card>
+          <PointAddressMap 
+            fillingPoints={allFillingPoints} 
+            fixedPoints={allFixedPoints} 
+            isLoading={isAllFillingPointsLoading || isAllFixedPointsLoading}
+            t={t} 
+          />
+        </Card>
+      ) : (
+        <Card>
+          <ApplicationTable
+            key={allFillingPoints?.length > 0 ? "loaded" : "loading"}
+            data={tableData}
+            columns={columns}
+            pageSize={pageSize}
+            getCellProps={() => ({
+              style: {
+                padding: "20px 18px",
+                fontSize: "16px",
+              },
+            })}
+            styles={{ minWidth: "1200px" }}
+            inboxStyles={{ overflowX: "auto" }}
+            t={t}
+            isLoading={isLoading || isAllFillingPointsLoading}
+            onPageSizeChange={handlePageSizeChange}
+            currentPage={Math.floor(pageOffset / pageSize)}
+            onNextPage={fetchNextPage}
+            onPrevPage={fetchPrevPage}
+            pageSizeLimit={pageSize}
+            totalRecords={totalCount}
+            isPaginationRequired={true}
+            showPagination={true}
+            showPageSizeOptions={true}
+            isSearchRequired={false}
+            isDownloadRequired={true}
+            isFilterRequired={true}
+            isSortRequired={true}
+            showCSVExport={true}
+            getCSVExportData={getCSVExportData}
+            csvExportColumns={csvExportColumns}
+            csvExportFileName={`wt-${selectedTab === "FIXED_POINT" ? "fixed-point" : "filling-point"}-search`}
+          />
+        </Card>
+      )}
       {toast && <Toast error={toast.error} label={toast.label} onClose={closeToast} />}
       {showLocalityModal && (
         <LocalityModal
