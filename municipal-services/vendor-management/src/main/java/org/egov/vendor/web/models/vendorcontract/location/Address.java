@@ -8,7 +8,7 @@ import lombok.*;
 import org.egov.vendor.web.models.AuditDetails;
 import org.egov.vendor.web.models.vendorcontract.vendor.Vendor;
 import org.springframework.validation.annotation.Validated;
-
+import jakarta.annotation.Generated;
 
 /**
  * Representation of a address. Indiavidual APIs may choose to extend from this
@@ -16,7 +16,7 @@ import org.springframework.validation.annotation.Validated;
  */
 //@Schema(description = "Representation of a address. Indiavidual APIs may choose to extend from this using allOf if more details needed to be added in their case. ")
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:34:12.238Z[GMT]")
+@Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:34:12.238Z[GMT]")
 @AllArgsConstructor
 @EqualsAndHashCode
 @Getter

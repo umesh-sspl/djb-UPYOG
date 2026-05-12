@@ -14,7 +14,7 @@ import org.egov.vendor.web.models.vendorcontract.vehicle.Vehicle;
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
 import org.springframework.validation.annotation.Validated;
-
+import jakarta.annotation.Generated;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.List;
  * Capture the vendor information in the system.
  */
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:34:12.238Z[GMT]")
+@Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:34:12.238Z[GMT]")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder

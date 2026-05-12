@@ -5,12 +5,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 import org.springframework.validation.annotation.Validated;
-
+import jakarta.annotation.Generated;
 
 import java.util.Objects;
 
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:34:12.238Z[GMT]")
+@Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:34:12.238Z[GMT]")
 
 @Getter
 @Setter

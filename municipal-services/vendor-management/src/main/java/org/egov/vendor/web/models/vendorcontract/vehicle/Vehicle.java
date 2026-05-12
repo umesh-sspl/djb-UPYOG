@@ -8,6 +8,7 @@ import lombok.*;
 import org.egov.vendor.web.models.AuditDetails;
 import org.egov.vendor.web.models.vendorcontract.user.User;
 import org.springframework.validation.annotation.Validated;
+import jakarta.annotation.Generated;
 
 /**
  * Instance of Service request raised for a particular service. As per extension
@@ -18,7 +19,7 @@ import org.springframework.validation.annotation.Validated;
  */
 //@Schema(description = "Instance of Service request raised for a particular service. As per extension propsed in the Service definition \"attributes\" carry the input values requried by metadata definition in the structure as described by the corresponding schema.  * Any one of 'address' or '(lat and lang)' or 'addressid' is mandatory ")
 @Validated
-@javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:37:21.257Z[GMT]")
+@Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-01-06T05:37:21.257Z[GMT]")
 @AllArgsConstructor
 @EqualsAndHashCode
 @Getter

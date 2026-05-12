@@ -2,6 +2,7 @@ package org.egov.vendor.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.egov.tracer.config.TracerConfiguration;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.annotation.PostConstruct;
 import java.util.TimeZone;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
