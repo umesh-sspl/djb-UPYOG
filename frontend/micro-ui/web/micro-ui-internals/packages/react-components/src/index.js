@@ -527,6 +527,7 @@ export {
   TLIcon,
   Toast,
   ToggleSwitch,
+  CustomTooltip as Tooltip,
   CustomTooltip,
   TopBar,
   TypeSelectCard,
