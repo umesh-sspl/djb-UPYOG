@@ -117,6 +117,11 @@ public class WaterTankerFixedPointQueryBuilder {
             preparedStmtList.add(criteria.getId());
         }
 
+        if (criteria.getFixedPointId() != null && !criteria.getFixedPointId().trim().isEmpty()) {
+            query.append(" AND ad.fixed_point_id = ? ");
+            preparedStmtList.add(criteria.getFixedPointId());
+        }
+
 //        if (criteria.getFromDate() != null) {
 //            query.append(" AND ad.createdtime >= ? ");
 //            preparedStmtList.add(criteria.getFromDate());
