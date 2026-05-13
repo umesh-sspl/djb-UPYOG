@@ -89,12 +89,16 @@ const AddFillingPointAddress = () => {
         queryClient.invalidateQueries("wtFillPointSearchList");
         setTimeout(() => {
           setShowToast(null);
-          history.push(`/digit-ui/employee/wt/search-filling-fix-point`);
+          history.push(`/digit-ui/employee/wt/search-filling-fix-point?tab=FILLING_POINT`);
         }, 3000);
       },
       onError: (error) => {
+        const errorMessage = error?.response?.data?.error?.message || 
+                           error?.response?.data?.Errors?.[0]?.message || 
+                           error?.response?.data?.responseInfo?.resMsgId || 
+                           (editId ? t("WT_FILLING_POINT_UPDATED_ERROR") : t("WT_FILLING_POINT_CREATED_ERROR"));
         setShowToast({
-          label: error?.response?.data?.Errors?.[0]?.message || (editId ? t("WT_FILLING_POINT_UPDATED_ERROR") : t("WT_FILLING_POINT_CREATED_ERROR")),
+          label: errorMessage,
           isError: true,
         });
         setTimeout(() => setShowToast(null), 5000);
@@ -107,15 +111,11 @@ const AddFillingPointAddress = () => {
   const isFormDisabled =
     !formData?.owner?.aeName ||
     !formData?.owner?.aeMobile ||
-    !formData?.owner?.aeEmail ||
     !formData?.owner?.jeName ||
     !formData?.owner?.jeMobile ||
-    !formData?.owner?.jeEmail ||
     !formData?.owner?.eeName ||
     !formData?.owner?.eeMobile ||
-    !formData?.owner?.eeEmail ||
     !formData?.address?.addressLine1 ||
-    !formData?.address?.addressLine2 ||
     !formData?.address?.city ||
     !formData?.address?.locality ||
     !formData?.address?.latitude ||
