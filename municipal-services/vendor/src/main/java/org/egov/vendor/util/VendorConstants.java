@@ -49,6 +49,11 @@ public class VendorConstants {
 
 	public static final String MODULE_VENDOR_ROLE_MAPPING = "ModuleVendorRoleMapping";
 
+	//Ekyc
+	public static final String MODULE_SUPERVISOR_ROLE_MAPPING = "ModuleSupervisorRoleMapping";
+	public static final String MODULE_SURVEYOR_ROLE_MAPPING   = "ModuleSurveyorRoleMapping";
+
+
 	public static final String VENDOR_MODULE = "Vendor";
 
 	public static final String UPDATE_ERROR = "Update Error";

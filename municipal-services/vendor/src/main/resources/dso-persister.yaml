@@ -1,109 +1,227 @@
 serviceMaps:
- serviceName: vendor-registory
- mappings:
- - version: 1.0
-   description: Vendor Registion Application details in eg_vendor  table
-   fromTopic: save-vendor-application
-   isTransaction: true
-   queryMaps:
+  serviceName: vendor-registory
+  mappings:
 
-       - query: INSERT INTO eg_vendor( id, name, agencyType, paymentPreference, tenantid, additionaldetails, owner_id, description, source, status,createdby, lastmodifiedby, createdtime, lastmodifiedtime,vendor_idgen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
-         basePath: vendor
-         jsonMaps:
-          - jsonPath: $.vendor.id
+    # ============================================================
+    # VENDOR — CREATE
+    # ============================================================
+    - version: 1.0
+      description: Vendor Registration Application details in eg_vendor table
+      fromTopic: save-vendor-application
+      isTransaction: true
+      queryMaps:
 
-          - jsonPath: $.vendor.name
+        - query: INSERT INTO eg_vendor(id, name, agencyType, paymentPreference, tenantid, additionaldetails, owner_id, description, source, status, createdby, lastmodifiedby, createdtime, lastmodifiedtime, vendor_idgen, zone_ids, cluster_ids, contract_start_date, contract_end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          basePath: vendor
+          jsonMaps:
+            - jsonPath: $.vendor.id
+            - jsonPath: $.vendor.name
+            - jsonPath: $.vendor.agencyType
+            - jsonPath: $.vendor.paymentPreference
+            - jsonPath: $.vendor.tenantId
+            - jsonPath: $.vendor.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.owner.uuid
+            - jsonPath: $.vendor.description
+            - jsonPath: $.vendor.source
+            - jsonPath: $.vendor.status
+            - jsonPath: $.vendor.auditDetails.createdBy
+            - jsonPath: $.vendor.auditDetails.lastModifiedBy
+            - jsonPath: $.vendor.auditDetails.createdTime
+            - jsonPath: $.vendor.auditDetails.lastModifiedTime
+            - jsonPath: $.vendor.vendor_id
+            - jsonPath: $.vendor.zoneIds
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.clusterIds
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.contractStartDate
+            - jsonPath: $.vendor.contractEndDate
 
-          - jsonPath: $.vendor.agencyType
-                    
-          - jsonPath: $.vendor.paymentPreference
-          
-          - jsonPath: $.vendor.tenantId
+        - query: INSERT INTO eg_vendor_address(id, tenantid, doorno, plotno, landmark, city, district, region, state, country, locality, pincode, additionalDetails, buildingname, street, vendor_id, createdby, lastmodifiedby, createdtime, lastmodifiedtime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          basePath: vendor.address
+          jsonMaps:
+            - jsonPath: $.vendor.address.id
+            - jsonPath: $.vendor.address.tenantId
+            - jsonPath: $.vendor.address.doorNo
+            - jsonPath: $.vendor.address.plotNo
+            - jsonPath: $.vendor.address.landmark
+            - jsonPath: $.vendor.address.city
+            - jsonPath: $.vendor.address.district
+            - jsonPath: $.vendor.address.region
+            - jsonPath: $.vendor.address.state
+            - jsonPath: $.vendor.address.country
+            - jsonPath: $.vendor.address.locality.code
+            - jsonPath: $.vendor.address.pincode
+            - jsonPath: $.vendor.address.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.address.buildingName
+            - jsonPath: $.vendor.address.street
+            - jsonPath: $.vendor.id
+            - jsonPath: $.vendor.address.auditDetails.createdBy
+            - jsonPath: $.vendor.address.auditDetails.lastModifiedBy
+            - jsonPath: $.vendor.address.auditDetails.createdTime
+            - jsonPath: $.vendor.address.auditDetails.lastModifiedTime
 
-          - jsonPath: $.vendor.additionalDetails
-            type: JSON
-            dbType: JSONB
-          
-          - jsonPath: $.vendor.owner.uuid
+        - query: INSERT INTO eg_vendor_driver(vendor_id, driver_id) VALUES (?, ?);
+          basePath: vendor.drivers.*
+          jsonMaps:
+            - jsonPath: $.vendor.id
+            - jsonPath: $.vendor.drivers.*.uuid
 
-          - jsonPath: $.vendor.description
-          
-          - jsonPath: $.vendor.source
-          
-          - jsonPath: $.vendor.status
+        - query: INSERT INTO eg_vendor_vehicle(vendor_id, vechile_id) VALUES (?, ?);
+          basePath: vendor.vehicles.*
+          jsonMaps:
+            - jsonPath: $.vendor.id
+            - jsonPath: $.vendor.vehicles.*.id
 
-          - jsonPath: $.vendor.auditDetails.createdBy
+    # ============================================================
+    # VENDOR — UPDATE
+    # ============================================================
+    - version: 1.0
+      description: Update Vendor details in eg_vendor table
+      fromTopic: update-vendor-application
+      isTransaction: true
+      queryMaps:
 
-          - jsonPath: $.vendor.auditDetails.lastModifiedBy
+        - query: UPDATE eg_vendor SET name=?, agencyType=?, paymentPreference=?, tenantid=?, additionaldetails=?, owner_id=?, description=?, source=?, status=?, zone_ids=?, cluster_ids=?, contract_start_date=?, contract_end_date=?, lastmodifiedby=?, lastmodifiedtime=? WHERE id=? AND tenantid=?;
+          basePath: vendor
+          jsonMaps:
+            - jsonPath: $.vendor.name
+            - jsonPath: $.vendor.agencyType
+            - jsonPath: $.vendor.paymentPreference
+            - jsonPath: $.vendor.tenantId
+            - jsonPath: $.vendor.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.owner.uuid
+            - jsonPath: $.vendor.description
+            - jsonPath: $.vendor.source
+            - jsonPath: $.vendor.status
+            - jsonPath: $.vendor.zoneIds
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.clusterIds
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.vendor.contractStartDate
+            - jsonPath: $.vendor.contractEndDate
+            - jsonPath: $.vendor.auditDetails.lastModifiedBy
+            - jsonPath: $.vendor.auditDetails.lastModifiedTime
+            - jsonPath: $.vendor.id
+            - jsonPath: $.vendor.tenantId
 
-          - jsonPath: $.vendor.auditDetails.createdTime
+    # ============================================================
+    # SUPERVISOR — CREATE
+    # ============================================================
+    - version: 1.0
+      description: Save Supervisor in eg_supervisor table
+      fromTopic: save-supervisor-application
+      isTransaction: true
+      queryMaps:
 
-          - jsonPath: $.vendor.auditDetails.lastModifiedTime
+        - query: INSERT INTO eg_supervisor(id, name, tenantid, vendor_id, mobile_no, assigned_zone_id, additionaldetails, owner_id, description, status, createdby, lastmodifiedby, createdtime, lastmodifiedtime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          basePath: supervisor
+          jsonMaps:
+            - jsonPath: $.supervisor.id
+            - jsonPath: $.supervisor.name
+            - jsonPath: $.supervisor.tenantId
+            - jsonPath: $.supervisor.vendorId
+            - jsonPath: $.supervisor.mobileNo
+            - jsonPath: $.supervisor.assignedZoneId
+            - jsonPath: $.supervisor.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.supervisor.ownerId
+            - jsonPath: $.supervisor.description
+            - jsonPath: $.supervisor.status
+            - jsonPath: $.supervisor.auditDetails.createdBy
+            - jsonPath: $.supervisor.auditDetails.lastModifiedBy
+            - jsonPath: $.supervisor.auditDetails.createdTime
+            - jsonPath: $.supervisor.auditDetails.lastModifiedTime
 
-          - jsonPath: $.vendor.vendor_id
-          
-          
-       - query: INSERT INTO eg_vendor_address(id, tenantid, doorno, plotno, landmark, city, district, region, state, country, locality, pincode, additionalDetails, buildingname, street, vendor_id, createdby, lastmodifiedby, createdtime, lastmodifiedtime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-         basePath: vendor.address
-         jsonMaps:
-          - jsonPath: $.vendor.address.id
+    # ============================================================
+    # SUPERVISOR — UPDATE
+    # ============================================================
+    - version: 1.0
+      description: Update Supervisor in eg_supervisor table
+      fromTopic: update-supervisor-application
+      isTransaction: true
+      queryMaps:
 
-          - jsonPath: $.vendor.address.tenantId
+        - query: UPDATE eg_supervisor SET name=?, vendor_id=?, mobile_no=?, assigned_zone_id=?, additionaldetails=?, owner_id=?, description=?, status=?, lastmodifiedby=?, lastmodifiedtime=? WHERE id=? AND tenantid=?;
+          basePath: supervisor
+          jsonMaps:
+            - jsonPath: $.supervisor.name
+            - jsonPath: $.supervisor.vendorId
+            - jsonPath: $.supervisor.mobileNo
+            - jsonPath: $.supervisor.assignedZoneId
+            - jsonPath: $.supervisor.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.supervisor.ownerId
+            - jsonPath: $.supervisor.description
+            - jsonPath: $.supervisor.status
+            - jsonPath: $.supervisor.auditDetails.lastModifiedBy
+            - jsonPath: $.supervisor.auditDetails.lastModifiedTime
+            - jsonPath: $.supervisor.id
+            - jsonPath: $.supervisor.tenantId
 
-          - jsonPath: $.vendor.address.doorNo
+    # ============================================================
+    # SURVEYOR — CREATE
+    # ============================================================
+    - version: 1.0
+      description: Save Surveyor in eg_surveyor table
+      fromTopic: save-surveyor-application
+      isTransaction: true
+      queryMaps:
 
-          - jsonPath: $.vendor.address.plotNo
+        - query: INSERT INTO eg_surveyor(id, name, tenantid, vendor_id, mobile_no, supervisor_id, additionaldetails, owner_id, description, status, createdby, lastmodifiedby, createdtime, lastmodifiedtime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          basePath: surveyor
+          jsonMaps:
+            - jsonPath: $.surveyor.id
+            - jsonPath: $.surveyor.name
+            - jsonPath: $.surveyor.tenantId
+            - jsonPath: $.surveyor.vendorId
+            - jsonPath: $.surveyor.mobileNo
+            - jsonPath: $.surveyor.supervisorId
+            - jsonPath: $.surveyor.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.surveyor.ownerId
+            - jsonPath: $.surveyor.description
+            - jsonPath: $.surveyor.status
+            - jsonPath: $.surveyor.auditDetails.createdBy
+            - jsonPath: $.surveyor.auditDetails.lastModifiedBy
+            - jsonPath: $.surveyor.auditDetails.createdTime
+            - jsonPath: $.surveyor.auditDetails.lastModifiedTime
 
-          - jsonPath: $.vendor.address.landmark
+    # ============================================================
+    # SURVEYOR — UPDATE
+    # ============================================================
+    - version: 1.0
+      description: Update Surveyor in eg_surveyor table
+      fromTopic: update-surveyor-application
+      isTransaction: true
+      queryMaps:
 
-          - jsonPath: $.vendor.address.city
-
-          - jsonPath: $.vendor.address.district
-
-          - jsonPath: $.vendor.address.region
-
-          - jsonPath: $.vendor.address.state
-
-          - jsonPath: $.vendor.address.country
-
-          - jsonPath: $.vendor.address.locality.code
-
-          - jsonPath: $.vendor.address.pincode
-
-          - jsonPath: $.vendor.address.additionalDetails
-            type: JSON
-            dbType: JSONB
-
-          - jsonPath: $.vendor.address.buildingName
-
-          - jsonPath: $.vendor.address.street
-
-          - jsonPath: $.vendor.id
-
-          - jsonPath: $.vendor.address.auditDetails.createdBy
-
-          - jsonPath: $.vendor.address.auditDetails.lastModifiedBy
-
-          - jsonPath: $.vendor.address.auditDetails.createdTime
-
-          - jsonPath: $.vendor.address.auditDetails.lastModifiedTime
-          
-          
-          
-       - query: INSERT INTO eg_vendor_driver(  vendor_id, driver_id) VALUES ( ?, ?);
-         basePath: vendor.drivers.*
-         jsonMaps:
-
-
-          - jsonPath: $.vendor.id
-
-          - jsonPath: $.vendor.drivers.*.uuid
-          
-       - query: INSERT INTO eg_vendor_vehicle(  vendor_id,vechile_id) VALUES ( ?, ?); 
-         basePath: vendor.vehicles.*
-         jsonMaps:
-          
-          - jsonPath: $.vendor.id
-
-          - jsonPath: $.vendor.vehicles.*.id
-          
+        - query: UPDATE eg_surveyor SET name=?, vendor_id=?, mobile_no=?, supervisor_id=?, additionaldetails=?, owner_id=?, description=?, status=?, lastmodifiedby=?, lastmodifiedtime=? WHERE id=? AND tenantid=?;
+          basePath: surveyor
+          jsonMaps:
+            - jsonPath: $.surveyor.name
+            - jsonPath: $.surveyor.vendorId
+            - jsonPath: $.surveyor.mobileNo
+            - jsonPath: $.surveyor.supervisorId
+            - jsonPath: $.surveyor.additionalDetails
+              type: JSON
+              dbType: JSONB
+            - jsonPath: $.surveyor.ownerId
+            - jsonPath: $.surveyor.description
+            - jsonPath: $.surveyor.status
+            - jsonPath: $.surveyor.auditDetails.lastModifiedBy
+            - jsonPath: $.surveyor.auditDetails.lastModifiedTime
+            - jsonPath: $.surveyor.id
+            - jsonPath: $.surveyor.tenantId

@@ -78,7 +78,28 @@ public class EnrichmentService {
 			auditDetails = vendorUtil.getAuditDetails(requestInfo.getUserInfo().getUuid(), true);
 			vendorRequest.getVendor().setAuditDetails(auditDetails);
 		}
+
+		//  Chunk 2: Normalize zoneIds / clusterIds
+
+		if (CollectionUtils.isEmpty(vendor.getZoneIds()))
+			vendor.setZoneIds(null);
+
+		if (CollectionUtils.isEmpty(vendor.getClusterIds()))
+			vendor.setClusterIds(null);
+
+		//  Validate contract dates (only if both present)
+
+		if (vendor.getContractStartDate() != null && vendor.getContractEndDate() != null) {
+			if (vendor.getContractStartDate() > vendor.getContractEndDate()) {
+				throw new CustomException(
+						"INVALID_CONTRACT_DATES",
+						"contractStartDate cannot be after contractEndDate"
+				);
+			}
+		}
+
 		vendor.setId(UUID.randomUUID().toString());
+
 		vendor.setVendorIdGen(referenceList.get(0));
 		if (vendorRequest.getVendor().getAddress() != null) {
 			if (StringUtils.isEmpty(vendorRequest.getVendor().getAddress().getId()))
@@ -132,6 +153,25 @@ public class EnrichmentService {
 			auditDetails.setCreatedBy(vendorRequest.getVendor().getAuditDetails().getCreatedBy());
 			auditDetails.setCreatedTime(vendorRequest.getVendor().getAuditDetails().getCreatedTime());
 			vendorRequest.getVendor().setAuditDetails(auditDetails);
+		}
+
+		Vendor vendor = vendorRequest.getVendor();
+
+		//  ALWAYS RUN (outside userInfo block)
+
+		if (CollectionUtils.isEmpty(vendor.getZoneIds()))
+			vendor.setZoneIds(null);
+
+		if (CollectionUtils.isEmpty(vendor.getClusterIds()))
+			vendor.setClusterIds(null);
+
+		if (vendor.getContractStartDate() != null && vendor.getContractEndDate() != null) {
+			if (vendor.getContractStartDate() > vendor.getContractEndDate()) {
+				throw new CustomException(
+						"INVALID_CONTRACT_DATES",
+						"contractStartDate cannot be after contractEndDate"
+				);
+			}
 		}
 
 		if (vendorRequest.getVendor().getAddress() != null) {

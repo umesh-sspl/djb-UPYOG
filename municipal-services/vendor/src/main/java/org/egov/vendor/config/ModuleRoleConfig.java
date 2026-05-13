@@ -37,6 +37,12 @@ public class ModuleRoleConfig {
     /**
      * Retrieves the role mapping for a specified module.
      *
+     * * Fallback behaviour per type:
+     *    VENDOR     → falls back to VENDOR+COMMON (silent, existing behaviour)
+     *    DRIVER     → falls back to DRIVER+COMMON (silent, existing behaviour)
+     *    SUPERVISOR → throws explicit error (no sensible default for eKYC supervisor)
+     *    SURVEYOR   → throws explicit error (no sensible default for eKYC surveyor)
+     *
      * @param requestInfo        request info object
      * @param moduleRoleMappingKey Module name and type
      * @return Corresponding role mapping
@@ -50,7 +56,28 @@ public class ModuleRoleConfig {
 
         ModuleRoleMapping roleMapping = moduleRoleMap.get(moduleRoleMappingKey);
         if (roleMapping == null) {
-        	roleMapping = moduleRoleMap.get(ModuleRoleMapping.builder().type(MappingType.VENDOR).moduleName("COMMON").build());
+            MappingType type = moduleRoleMappingKey.getType();
+
+            // Supervisor and Surveyor have no COMMON fallback — throw clearly
+            if (type == MappingType.SUPERVISOR) {
+                throw new CustomException("SUPERVISOR_ROLE_MAPPING_NOT_FOUND",
+                        "No MDMS role mapping found for Supervisor with moduleName: "
+                                + moduleRoleMappingKey.getModuleName()
+                                + ". Add an entry in ModuleSupervisorRoleMapping.json.");
+            }
+            if (type == MappingType.SURVEYOR) {
+                throw new CustomException("SURVEYOR_ROLE_MAPPING_NOT_FOUND",
+                        "No MDMS role mapping found for Surveyor with moduleName: "
+                                + moduleRoleMappingKey.getModuleName()
+                                + ". Add an entry in ModuleSurveyorRoleMapping.json.");
+            }
+
+            // Vendor / Driver fall back to COMMON (existing behaviour preserved)
+            roleMapping = moduleRoleMap.get(
+                    ModuleRoleMapping.builder()
+                            .type(MappingType.VENDOR)
+                            .moduleName("COMMON")
+                            .build());
         }
         return roleMapping;
     }
@@ -75,10 +102,20 @@ public class ModuleRoleConfig {
         List<ModuleRoleMapping> moduleRoleMappings = new ArrayList<>();
 
         // Load Vendor Role Mappings
-        loadRoleMappings(mdmsResponse, VendorConstants.MODULE_VENDOR_ROLE_MAPPING, moduleRoleMappings,  "MODULE_VENDOR_ROLE_MAPPING", ModuleRoleMapping.MappingType.VENDOR);
+        loadRoleMappings(mdmsResponse, VendorConstants.MODULE_VENDOR_ROLE_MAPPING,
+                moduleRoleMappings,  "MODULE_VENDOR_ROLE_MAPPING", ModuleRoleMapping.MappingType.VENDOR);
 
         // Load Driver Role Mappings
-        loadRoleMappings(mdmsResponse, VendorConstants.MODULE_DRIVER_ROLE_MAPPING, moduleRoleMappings, "MODULE_DRIVER_ROLE_MAPPING", ModuleRoleMapping.MappingType.DRIVER);
+        loadRoleMappings(mdmsResponse, VendorConstants.MODULE_DRIVER_ROLE_MAPPING,
+                moduleRoleMappings, "MODULE_DRIVER_ROLE_MAPPING", ModuleRoleMapping.MappingType.DRIVER);
+
+        //Load Supervisor Role Mappings
+        loadRoleMappings(mdmsResponse, VendorConstants.MODULE_SUPERVISOR_ROLE_MAPPING,
+                moduleRoleMappings, "MODULE_SUPERVISOR_ROLE_MAPPING", ModuleRoleMapping.MappingType.SUPERVISOR);
+
+        //Load Surveyor Role Mappings
+        loadRoleMappings(mdmsResponse, VendorConstants.MODULE_SURVEYOR_ROLE_MAPPING,
+                moduleRoleMappings, "MODULE_SURVEYOR_ROLE_MAPPING", ModuleRoleMapping.MappingType.SURVEYOR);
 
         // Handle potential duplicate keys using a merge function
         moduleRoleMap = moduleRoleMappings.stream()
