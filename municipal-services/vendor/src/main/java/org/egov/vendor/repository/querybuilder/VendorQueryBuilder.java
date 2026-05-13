@@ -92,6 +92,9 @@ public class VendorQueryBuilder {
 			" LEFT JOIN " + VENDOR_ADDITIONAL_DETAILS_TABLE + " " + VENDOR_ADDITIONAL_DETAILS_ALIAS
 					+ " ON " + VENDOR_ADDITIONAL_DETAILS_ALIAS + ".vendor_id = vendor.id ";
 
+	// ─── vendor.* includes zone_ids, cluster_ids, contract_start_date,
+	//     contract_end_date automatically after the Chunk 1 ALTER TABLE.
+	//     No explicit column additions needed here.
 	private static final String QUERY = "SELECT count(*) OVER() AS full_count, vendor.*, vendor_address.*, vendor_driver.*, vendor_vehicle.*, "
 			+ " vwo.id as vwo_id, vwo.name as vwo_name, vwo.vendor_id as vwo_vendor_id, vwo.tenant_id as vwo_tenantid, "
 			+ " vwo.valid_from as vwo_valid_from, vwo.valid_to as vwo_valid_to, vwo.mobileNumber as vwo_mobileNumber, vwo.filling_station_id, vwo.wt_file_store_id, "
@@ -102,10 +105,10 @@ public class VendorQueryBuilder {
 			+ " fp.id as fp_id, fp.filling_point_id as fp_filling_point_id, "
 			+ " fp.tenant_id as fp_tenant_id, fp.filling_point_name,  fp.emergency_name,  fp.ee_name, fp.ee_email, fp.ee_mobile, "
 			+ " fp.ae_name, fp.ae_email, fp.ae_mobile,  fp.je_name, fp.je_email, fp.je_mobile,  fp.createdby as fp_createdby, fp.lastmodifiedby as fp_lastmodifiedby, "
-	        + " fp.createdtime as fp_createdtime, fp.lastmodifiedtime as fp_lastmodifiedtime,"
+			+ " fp.createdtime as fp_createdtime, fp.lastmodifiedtime as fp_lastmodifiedtime,"
 			+ " vendor.id as vendor_pk_id, "
 			+  VAD_SELECT_COLUMNS
-		    + " FROM eg_vendor vendor "
+			+ " FROM eg_vendor vendor "
 			+ " INNER JOIN eg_vendor_address vendor_address on  vendor_address.vendor_id=vendor.id "
 			+ " LEFT OUTER JOIN eg_vendor_driver vendor_driver on  vendor_driver.vendor_id=vendor_address.id "
 			+ " LEFT OUTER JOIN eg_vendor_vehicle vendor_vehicle on vendor_vehicle.vendor_id=vendor_driver.vendor_id "
@@ -232,6 +235,10 @@ public class VendorQueryBuilder {
 				builder.append(" vendor.status IN (").append(createQuery(criteria.getStatus())).append(")");
 				addToPreparedStatement(preparedStmtList, criteria.getStatus());
 			}
+
+			// ── Chunk 2: zone filter ─────────────────────────────────────────
+			addZoneFilter(criteria, preparedStmtList, builder);
+			// ─────────────────────────────────────────────────────────────────
 		}
 
 		return builder.toString();
@@ -305,6 +312,10 @@ public class VendorQueryBuilder {
 				addToPreparedStatement(preparedStmtList, status);
 			}
 
+			// ── Chunk 2: zone filter ─────────────────────────────────────────
+			addZoneFilter(criteria, preparedStmtList, builder);
+			// ─────────────────────────────────────────────────────────────────
+
 		}
 		return addPaginationWrapper(builder.toString(), preparedStmtList, criteria);
 	}
@@ -346,6 +357,40 @@ public class VendorQueryBuilder {
 //
 //		return finalQuery;
 //	}
+
+	/**
+	 * Chunk 2 — Zone filter using PostgreSQL JSONB ?| (any-of) operator.
+	 *
+	 * IMPORTANT: written as ??| in the Java string because JdbcTemplate treats a
+	 * single ? as a prepared-statement placeholder and would consume it.
+	 * JdbcTemplate sends ?? to the driver as a literal ?, so PostgreSQL sees ?|.
+	 *
+	 * Values are inlined (not bound as params) because JDBC cannot bind a Java
+	 * List directly to the array[] argument of the ?| operator.
+	 * Input is validated to contain only alphanumeric / underscore / hyphen chars
+	 * to prevent SQL injection.
+	 */
+	private void addZoneFilter(VendorSearchCriteria criteria,
+	                           List<Object> preparedStmtList, StringBuilder builder) {
+
+		List<String> zoneIds = criteria.getZoneIds();
+		if (CollectionUtils.isEmpty(zoneIds)) return;
+
+		// Sanitise each zone ID — only allow word chars and hyphens
+		for (String z : zoneIds) {
+			if (!z.matches("[\\w\\-]+")) {
+				throw new org.egov.tracer.model.CustomException(
+						"INVALID_ZONE_ID", "Zone ID contains illegal characters: " + z);
+			}
+		}
+
+		String inlineArray = zoneIds.stream()
+				.map(z -> "'" + z + "'")
+				.collect(Collectors.joining(", "));
+
+		addClauseIfRequired(preparedStmtList, builder);
+		builder.append(" vendor.zone_ids ??| array[").append(inlineArray).append("]");
+	}
 
 	private String addPaginationWrapper(String query, List<Object> preparedStmtList, VendorSearchCriteria criteria) {
 		int limit = config.getDefaultLimit();
@@ -414,7 +459,7 @@ public class VendorQueryBuilder {
 	}
 
 	private String addPaginationClause(StringBuilder builder, List<Object> preparedStmtList,
-			VendorSearchCriteria criteria) {
+	                                   VendorSearchCriteria criteria) {
 
 		if (criteria.getLimit() != null && criteria.getLimit() != 0) {
 			builder.append(

@@ -137,7 +137,7 @@ const ApplicationDetails = () => {
       )}
 
          {/* Left Column: Workflow Timeline */}
-        <div className={`workflow-timeline-wrapper ${hideTimeline ? "hide-workflow" : ""}`} style={{ flex: "1 1 300px", maxWidth: hideTimeline ? "0px" : "400px", transition: "max-width 0.3s" }}>
+        <div className={`workflow-timeline-wrapper no-scrollbar ${hideTimeline ? "hide-workflow" : ""}`} style={{ flex: "1 1 300px", maxWidth: hideTimeline ? "fit-content" : "400px", transition: "max-width 0.3s" }}>
           <WorkflowTimeline hideTimeline={hideTimeline} setHideTimeline={setHideTimeline} workflowDetails={workflowDetails} />
         </div>
 

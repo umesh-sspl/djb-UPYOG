@@ -653,9 +653,9 @@ const VendorInbox = (props) => {
       case "VENDOR":
         return history.push(`/digit-ui/${userType}/vendor/registry/new-vendor`);
       case "VEHICLE":
-        return history.push(`/digit-ui/${userType}/fsm/registry/new-vehicle`);
+        return history.push(`/digit-ui/${userType}/vendor/registry/new-vehicle`);
       case "DRIVER":
-        return history.push(`/digit-ui/${userType}/fsm/registry/new-driver`);
+        return history.push(`/digit-ui/${userType}/vendor/registry/new-driver`);
       case "SUPERVISOR":
         return history.push(`/digit-ui/${userType}/vendor/registry/new-supervisor`);
       case "SURVEYOR":

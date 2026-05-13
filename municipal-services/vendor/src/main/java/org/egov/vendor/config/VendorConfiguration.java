@@ -17,13 +17,14 @@ import lombok.Setter;
 @Component
 public class VendorConfiguration {
 
-	// Persister Config
+	// ── Persister topics — Vendor ─────────────────────────────────────────────
 	@Value("${persister.save.vendor.topic}")
 	private String saveTopic;
 
 	@Value("${persister.update.vendor.topic}")
 	private String updateTopic;
 
+	// ── Persister topics — Driver ─────────────────────────────────────────────
 	@Value("${persister.save.driver.topic}")
 	private String saveDriverTopic;
 
@@ -33,17 +34,28 @@ public class VendorConfiguration {
 	@Value("${persister.save.vendordrivervehicle.topic}")
 	private String saveVendorVehicleDriverTopic;
 
-	@Value("${persister.save.vendordrivermapping.topic}")
-	private String saveVendorDriverMappingTopic;
+	// ── Persister topics — Supervisor ─────────────────────────────────────────
+	@Value("${persister.save.supervisor.topic}")
+	private String saveSupervisorTopic;
 
-	// MDMS
+	@Value("${persister.update.supervisor.topic}")
+	private String updateSupervisorTopic;
+
+	// ── Persister topics — Surveyor ───────────────────────────────────────────
+	@Value("${persister.save.surveyor.topic}")
+	private String saveSurveyorTopic;
+
+	@Value("${persister.update.surveyor.topic}")
+	private String updateSurveyorTopic;
+
+	// ── MDMS ──────────────────────────────────────────────────────────────────
 	@Value("${egov.mdms.host}")
 	private String mdmsHost;
 
 	@Value("${egov.mdms.search.endpoint}")
 	private String mdmsEndPoint;
 
-	// User Configuration
+	// ── User service ──────────────────────────────────────────────────────────
 	@Value("${egov.user.host}")
 	private String userHost;
 
@@ -62,7 +74,7 @@ public class VendorConfiguration {
 	@Value("${egov.user.username.prefix}")
 	private String usernamePrefix;
 
-	// Vehicle Configuration
+	// ── Vehicle service ───────────────────────────────────────────────────────
 	@Value("${egov.vehicle.host}")
 	private String vehicleHost;
 
@@ -78,11 +90,13 @@ public class VendorConfiguration {
 	@Value("${egov.vehicle.update.endpoint}")
 	private String vehicleUpdateEndpoint;
 
+	// ── HRMS ──────────────────────────────────────────────────────────────────
 	@Value("${egov.hrms.host}")
 	private String employeeHost;
 
 	@Value("${egov.hrms.context.path}")
 	private String employeeContextPath;
+
 	@Value("${egov.hrms.create.path}")
 	private String employeeCreateEndpoint;
 
@@ -92,9 +106,10 @@ public class VendorConfiguration {
 	@Value("${egov.hrms.update.path}")
 	private String employeeUpdateEndpoint;
 
-	// @Value("${egov.owner.ownername.prefix}")
+	// NOTE: ownernamePrefix is intentionally not @Value — was commented out
 	private String ownernamePrefix;
 
+	// ── Location ──────────────────────────────────────────────────────────────
 	@Value("${egov.location.host}")
 	private String locationHost;
 
@@ -107,6 +122,7 @@ public class VendorConfiguration {
 	@Value("${egov.location.hierarchyTypeCode}")
 	private String hierarchyTypeCode;
 
+	// ── Search config ─────────────────────────────────────────────────────────
 	@Value("${employee.allowed.search.params}")
 	private String allowedEmployeeSearchParameters;
 

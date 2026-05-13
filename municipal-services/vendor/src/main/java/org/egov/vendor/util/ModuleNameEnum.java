@@ -9,7 +9,8 @@ public enum ModuleNameEnum {
 
 
     FSM("FSM"),
-    WATER_TANKER("WT");
+    WATER_TANKER("WT"),
+    EKYC("ekyc");
 
     private final String moduleName;
 
