@@ -40,7 +40,6 @@ const AddFillingPointMetaData = ({
     {
       label: "WT_AE_EMAIL_ID",
       name: "aeEmail",
-      isMandatory: true,
       validation: {
         pattern: "^[a-zA-Z0-9._%+-]+@[a-z.-]+\\.(com|org|in)$",
       },
@@ -69,7 +68,6 @@ const AddFillingPointMetaData = ({
     {
       label: "WT_JE_EMAIL_ID",
       name: "jeEmail",
-      isMandatory: true,
       validation: {
         pattern: "^[a-zA-Z0-9._%+-]+@[a-z.-]+\\.(com|org|in)$",
       },
@@ -98,7 +96,6 @@ const AddFillingPointMetaData = ({
     {
       label: "WT_EE_EMAIL_ID",
       name: "eeEmail",
-      isMandatory: true,
       validation: {
         pattern: "^[a-zA-Z0-9._%+-]+@[a-z.-]+\\.(com|org|in)$",
       },
