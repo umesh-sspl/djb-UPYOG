@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -63,15 +64,39 @@ public class VendorRowMapper implements ResultSetExtractor<List<Vendor>> {
 			String paymentpreference = rs.getString("paymentpreference");
 			this.setFullCount(rs.getInt("full_count"));
 
+			// ── Chunk 2: parse zone_ids, cluster_ids, contract dates ─────────
+			List<String> zoneIds    = parseJsonbAsList("zone_ids", rs);
+			List<String> clusterIds = parseJsonbAsList("cluster_ids", rs);
+
+			Long contractStartDate = rs.getLong("contract_start_date");
+			if (rs.wasNull()) contractStartDate = null;
+
+			Long contractEndDate = rs.getLong("contract_end_date");
+			if (rs.wasNull()) contractEndDate = null;
+			// ─────────────────────────────────────────────────────────────────
 
 			if (currentvendor == null) {
 				if (status == null) {
 					status = "ACTIVE";
 				}
-				currentvendor = Vendor.builder().id(id).vendorIdGen(vendorId).name(name).tenantId(tenantId).agencyType(agencytype)
-						.paymentPreference(paymentpreference).additionalDetails(additionalDetail)
-						.description(description).source(source).status(StatusEnum.valueOf(status)).ownerId(ownerId)
+				currentvendor = Vendor.builder()
+						.id(id)
+						.vendorIdGen(vendorId)
+						.name(name)
+						.tenantId(tenantId)
+						.agencyType(agencytype)
+						.paymentPreference(paymentpreference)
+						.additionalDetails(additionalDetail)
+						.description(description)
+						.source(source)
+						.status(StatusEnum.valueOf(status))
+						.ownerId(ownerId)
 						.vendorWorkOrder(new ArrayList<>())
+						// ── Chunk 2 fields ──
+						.zoneIds(zoneIds)
+						.clusterIds(clusterIds)
+						.contractStartDate(contractStartDate)
+						.contractEndDate(contractEndDate)
 						.build();
 
 				vendorMap.put(id, currentvendor);
@@ -119,6 +144,22 @@ public class VendorRowMapper implements ResultSetExtractor<List<Vendor>> {
 		return additionalDetail;
 	}
 
+	/**
+	 * Chunk 2 helper — safely parses a JSONB array column into List<String>.
+	 * Returns null if the column is NULL in the DB (backward compat for existing
+	 * vendor rows created before the ALTER TABLE migration).
+	 */
+	private List<String> parseJsonbAsList(String columnName, ResultSet rs) {
+		try {
+			PGobject pgObj = (PGobject) rs.getObject(columnName);
+			if (pgObj != null) {
+				return mapper.readValue(pgObj.getValue(), new TypeReference<List<String>>() {});
+			}
+		} catch (IOException | SQLException e) {
+			throw new CustomException("PARSING_ERROR", "Failed to parse JSONB column: " + columnName);
+		}
+		return null;
+	}
 
 	private void addWorkOrderToVendor(ResultSet rs, Vendor vendor) throws SQLException {
 		String vwoId = rs.getString("vwo_id");
@@ -183,6 +224,7 @@ public class VendorRowMapper implements ResultSetExtractor<List<Vendor>> {
 			vendor.getFillingPoint().add(fillingPoint);
 		}
 	}
+
 	private void addVendorAdditionalDetailsToVendor(ResultSet rs, Vendor vendor) throws SQLException {
 
 		if (vendor.getVendorAdditionalDetails() != null) return;
@@ -226,4 +268,4 @@ public class VendorRowMapper implements ResultSetExtractor<List<Vendor>> {
 
 		vendor.setVendorAdditionalDetails(details);
 	}
-	}
+}

@@ -14,6 +14,8 @@ import org.egov.vendor.config.VendorConfiguration;
 import org.egov.vendor.driver.web.model.DriverRequest;
 import org.egov.vendor.repository.ServiceRequestRepository;
 import org.egov.vendor.service.ModuleRoleService;
+import org.egov.vendor.supervisor.web.model.SupervisorRequest;
+import org.egov.vendor.surveyor.web.model.SurveyorRequest;
 import org.egov.vendor.web.model.AuditDetails;
 import org.egov.vendor.web.model.VendorRequest;
 import org.egov.vendor.web.model.user.ModuleRoleMapping;
@@ -101,15 +103,25 @@ public class VendorUtil {
 
 	}
 
+	/**
+	 * Builds the MDMS request to load all role mapping master data.
+	 * Updated to include Supervisor and Surveyor role mappings.
+	 */
+
 	public List<ModuleDetail> getModuleRoleMappingRequest() {
 
 		final String activeFilter = "$.[?(@.active==true)]";
 		List<ModuleDetail> moduleDtls = new ArrayList<>();
 
 		List<MasterDetail> masterDtls = new ArrayList<>();
-		masterDtls.add(MasterDetail.builder().name(VendorConstants.MODULE_VENDOR_ROLE_MAPPING).filter(activeFilter).build());
+		masterDtls.add(
+				MasterDetail.builder().name(VendorConstants.MODULE_VENDOR_ROLE_MAPPING).filter(activeFilter).build());
 		masterDtls.add(
 				MasterDetail.builder().name(VendorConstants.MODULE_DRIVER_ROLE_MAPPING).filter(activeFilter).build());
+		masterDtls.add(
+				MasterDetail.builder().name(VendorConstants.MODULE_SUPERVISOR_ROLE_MAPPING).filter(activeFilter).build());
+		masterDtls.add(
+				MasterDetail.builder().name(VendorConstants.MODULE_SURVEYOR_ROLE_MAPPING).filter(activeFilter).build());
 		moduleDtls.add(
 				ModuleDetail.builder().masterDetails(masterDtls).moduleName(VendorConstants.VENDOR_MODULE).build());
 
@@ -152,6 +164,32 @@ public class VendorUtil {
 		validateDriverRequest(driverRequest);
 		Object additionalDetailsObj = driverRequest.getDriver().getAdditionalDetails();
 		return extractModuleNameFromAdditionalDetails(additionalDetailsObj, ModuleNameEnum.FSM.getModuleName());
+	}
+
+	// ── Supervisor — always ekyc ──────────────────────────────────────────────
+
+	/**
+	 * Supervisors are exclusively eKYC entities.
+	 * Module name is fixed — no additionalDetails lookup needed.
+	 */
+	public String getModuleNameOrDefault(SupervisorRequest supervisorRequest) {
+		if (supervisorRequest == null || supervisorRequest.getSupervisor() == null) {
+			throw new CustomException("INVALID_SUPERVISOR_REQUEST", "Supervisor request or supervisor details are missing.");
+		}
+		return ModuleNameEnum.EKYC.getModuleName(); // always "ekyc"
+	}
+
+	// ── Surveyor — always ekyc ────────────────────────────────────────────────
+
+	/**
+	 * Surveyors are exclusively eKYC entities.
+	 * Module name is fixed — no additionalDetails lookup needed.
+	 */
+	public String getModuleNameOrDefault(SurveyorRequest surveyorRequest) {
+		if (surveyorRequest == null || surveyorRequest.getSurveyor() == null) {
+			throw new CustomException("INVALID_SURVEYOR_REQUEST", "Surveyor request or surveyor details are missing.");
+		}
+		return ModuleNameEnum.EKYC.getModuleName(); // always "ekyc"
 	}
 
 	/**
@@ -206,6 +244,30 @@ public class VendorUtil {
 	public static String extractTenantId(DriverRequest driverRequest) {
 		validateDriverRequest(driverRequest);
 		return extractTenantId(driverRequest.getDriver().getTenantId());
+	}
+
+	/**
+	 * Extracts the primary tenant ID from the supervisor request.
+	 * Required by SupervisorRequest.getTenantId() → VendorUtil.extractTenantId(this).
+	 */
+	public static String extractTenantId(SupervisorRequest supervisorRequest) {
+		if (supervisorRequest == null || supervisorRequest.getSupervisor() == null) {
+			throw new CustomException("INVALID_SUPERVISOR_REQUEST",
+					"Supervisor request or supervisor details are missing.");
+		}
+		return extractTenantId(supervisorRequest.getSupervisor().getTenantId());
+	}
+
+	/**
+	 * Extracts the primary tenant ID from the surveyor request.
+	 * Required by SurveyorRequest.getTenantId() → VendorUtil.extractTenantId(this).
+	 */
+	public static String extractTenantId(SurveyorRequest surveyorRequest) {
+		if (surveyorRequest == null || surveyorRequest.getSurveyor() == null) {
+			throw new CustomException("INVALID_SURVEYOR_REQUEST",
+					"Surveyor request or surveyor details are missing.");
+		}
+		return extractTenantId(surveyorRequest.getSurveyor().getTenantId());
 	}
 
 	/**

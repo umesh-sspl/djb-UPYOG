@@ -47,7 +47,7 @@ public class UserService {
 	private ObjectMapper mapper;
 
 	/**
-	 * 
+	 *
 	 * @param vendorRequest
 	 */
 	@SuppressWarnings("null")
@@ -91,7 +91,7 @@ public class UserService {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param vendorRequest
 	 * @param requestInfo
 	 */
@@ -117,9 +117,9 @@ public class UserService {
 				for (int i = 0; i < userDetailResponse.getUser().size(); i++) {
 					if (count > 0
 							&& vendorRequest.getVendor().getOwner().getMobileNumber()
-									.equals(userDetailResponse.getUser().get(i).getMobileNumber())
+							.equals(userDetailResponse.getUser().get(i).getMobileNumber())
 							&& !userDetailResponse.getUser().get(i).getUuid()
-									.equals(vendorRequest.getVendor().getOwner().getUuid())) {
+							.equals(vendorRequest.getVendor().getOwner().getUuid())) {
 						List<String> roleCodes = userDetailResponse.getUser().get(i).getRoles().stream()
 								.map(Role::getCode).collect(Collectors.toList());
 						if (roleCodes.contains(roleMapping.getRoleCode())) {
@@ -166,7 +166,7 @@ public class UserService {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param vendorRequest
 	 */
 	@SuppressWarnings("null")
@@ -222,7 +222,7 @@ public class UserService {
 	}
 
 	private User getUserDetailResponse(UserDetailResponse userDetailResponse, User foundDriver,
-									   HashMap<String, String> errorMap, RequestInfo requestInfo, ModuleRoleMapping roleMapping) {
+	                                   HashMap<String, String> errorMap, RequestInfo requestInfo, ModuleRoleMapping roleMapping) {
 		if (foundDriver == null) {
 			foundDriver = userDetailResponse.getUser().get(0);
 			foundDriver.getRoles().add(getRolObj(roleMapping.getRoleCode(), roleMapping.getRoleName()));
@@ -243,7 +243,7 @@ public class UserService {
 
 	/**
 	 * create Employee in HRMS for Vendor owner
-	 * 
+	 *
 	 * @param owner
 	 * @param vendorRequest
 	 * @return
@@ -290,7 +290,7 @@ public class UserService {
 
 	/**
 	 * Sets the role,type,active and tenantId for a Citizen
-	 * 
+	 *
 	 * @param tenantId  TenantId of the property
 	 * @param role
 	 * @param role      The role of the user set in this case to CITIZEN
@@ -308,7 +308,7 @@ public class UserService {
 
 	/**
 	 * Sets the username as uuid
-	 * 
+	 *
 	 * @param owner The owner to whom the username is to assigned
 	 */
 	private void setUserName(User owner) {
@@ -320,7 +320,7 @@ public class UserService {
 
 	/**
 	 * Returns UserDetailResponse by calling user service with given uri and object
-	 * 
+	 *
 	 * @param userRequest Request object for user service
 	 * @param uri         The address of the end point
 	 * @return Response from user service as parsed as userDetailResponse
@@ -374,7 +374,7 @@ public class UserService {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	private Role getRolObj(String roleCode, String roleName) {
@@ -429,7 +429,7 @@ public class UserService {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param ownerRequest
 	 * @param uri
 	 * @return
@@ -514,7 +514,7 @@ public class UserService {
 
 	/**
 	 * Validates the mandatory fields for the user
-	 * 
+	 *
 	 * @param user
 	 * @return
 	 */

@@ -66,6 +66,13 @@ public class VendorSearchCriteria {
 	@JsonProperty("fillingPointId")
 	private List<String> fillingPointId;
 
+	// ── : Zone filter for ZRO role-based search ────────────────────────
+
+	@JsonProperty("zoneIds")
+	private List<String> zoneIds;
+
+	// ─────────────────────────────────────────────────────────────────────────
+
 	public enum SortOrder {
 		ASC, DESC
 	}
@@ -81,6 +88,7 @@ public class VendorSearchCriteria {
 				&& CollectionUtils.isEmpty(this.name) && CollectionUtils.isEmpty(this.vehicleIds)
 				&& CollectionUtils.isEmpty(this.ids) && this.vehicleType == null && this.vehicleCapacity == null
 				&& CollectionUtils.isEmpty(this.status) && CollectionUtils.isEmpty(this.fillingPointId)
+				&& CollectionUtils.isEmpty(this.zoneIds)
 		);
 	}
 
@@ -88,7 +96,8 @@ public class VendorSearchCriteria {
 		return (this.tenantId != null && this.mobileNumber == null && this.ownerIds == null
 				&& CollectionUtils.isEmpty(this.vehicleRegistrationNumber) && CollectionUtils.isEmpty(this.vehicleIds)
 				&& CollectionUtils.isEmpty(this.name) && CollectionUtils.isEmpty(this.ids) && this.vehicleType == null
-				&& this.vehicleCapacity == null && CollectionUtils.isEmpty(this.status) && CollectionUtils.isEmpty(this.fillingPointId)
+				&& this.vehicleCapacity == null && CollectionUtils.isEmpty(this.status)
+				&& CollectionUtils.isEmpty(this.fillingPointId) && CollectionUtils.isEmpty(this.zoneIds)
 		);
 	}
 
