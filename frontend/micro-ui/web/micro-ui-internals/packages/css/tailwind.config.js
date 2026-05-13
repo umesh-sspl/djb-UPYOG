@@ -107,7 +107,8 @@ module.exports = {
     },
     extend: {
       backgroundImage: {
-        "success-gradient": "linear-gradient(135deg, #1f5fa8, #0b2e5b)",
+        "success-gradient": "linear-gradient(135deg, #22c55e, #15803d)",
+        "error-gradient": "linear-gradient(135deg, #ef4444, #b91c1c)",
       },
     },
     digitv2: {
