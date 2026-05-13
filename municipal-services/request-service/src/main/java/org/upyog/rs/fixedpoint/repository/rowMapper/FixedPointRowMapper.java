@@ -47,6 +47,7 @@ public class FixedPointRowMapper implements ResultSetExtractor<List<FixedPointTi
                     .vehicleId(rs.getString("vehicle_id"))
                     .fixedPointName(rs.getString("fixed_point_name"))
                     .fixedPointId(rs.getString("fixed_point_id"))
+                    .fillingPointId(rs.getString("filling_point_id"))
                     .auditDetails(auditDetails)
                     .build();
 

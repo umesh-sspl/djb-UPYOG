@@ -19,6 +19,9 @@ public class FixedPointDetails {
     @JsonProperty("fixed_point_code")
     private String fixedPointCode;
 
+    @JsonProperty("fillingPointId")
+    private String fillingPointId;
+
     @JsonProperty("day")
     private List<String> day;
     @JsonProperty("day_value")

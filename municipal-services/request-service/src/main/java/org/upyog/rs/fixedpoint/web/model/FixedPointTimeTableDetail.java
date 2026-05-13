@@ -67,6 +67,9 @@ public class FixedPointTimeTableDetail {
     @JsonProperty("fixedPointId")
     private String fixedPointId;
 
+    @JsonProperty("fillingPointId")
+    private String fillingPointId;
+
     @JsonProperty("auditDetails")
     private AuditDetails auditDetails;
 }
