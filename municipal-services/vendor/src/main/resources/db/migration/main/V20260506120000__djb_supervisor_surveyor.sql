@@ -1,7 +1,7 @@
 -- =========================================
 -- SUPERVISOR TABLE
 -- =========================================
-CREATE TABLE eg_supervisor (
+CREATE TABLE IF NOT EXISTS eg_supervisor (
                                id                  CHARACTER VARYING(256) PRIMARY KEY,
                                name                CHARACTER VARYING(128),
                                tenantid            CHARACTER VARYING(64)  NOT NULL,
@@ -31,7 +31,7 @@ CREATE INDEX idx_supervisor_owner  ON eg_supervisor(owner_id);
 -- =========================================
 -- SURVEYOR TABLE
 -- =========================================
-CREATE TABLE eg_surveyor (
+CREATE TABLE IF NOT EXISTS eg_surveyor (
                              id                  CHARACTER VARYING(256) PRIMARY KEY,
                              name                CHARACTER VARYING(128),
                              tenantid            CHARACTER VARYING(64)  NOT NULL,
@@ -59,7 +59,7 @@ CREATE INDEX idx_surveyor_owner  ON eg_surveyor(owner_id);
 -- =========================================
 -- TEAM MAPPING
 -- =========================================
-CREATE TABLE eg_vendor_team_mapping (
+CREATE TABLE IF NOT EXISTS eg_vendor_team_mapping (
                                         id               CHARACTER VARYING(256) PRIMARY KEY,
                                         tenantid         CHARACTER VARYING(64)  NOT NULL,
                                         vendor_id        CHARACTER VARYING(256) NOT NULL,
