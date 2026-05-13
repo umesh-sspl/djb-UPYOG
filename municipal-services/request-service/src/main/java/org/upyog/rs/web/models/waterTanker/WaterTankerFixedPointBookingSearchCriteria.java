@@ -36,4 +36,7 @@ public class WaterTankerFixedPointBookingSearchCriteria {
     @JsonProperty("id")
     private String id;
 
+    @JsonProperty("fixedPointId")
+    private String fixedPointId;
+
 }
