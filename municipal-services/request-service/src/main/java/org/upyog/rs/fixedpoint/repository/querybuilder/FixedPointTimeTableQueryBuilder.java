@@ -65,6 +65,12 @@ public class FixedPointTimeTableQueryBuilder {
             preparedStmtList.add(criteria.getFillingPointId());
         }
 
+        if (criteria.getIsEnable() != null) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" fpt.is_enable = ? ");
+            preparedStmtList.add(criteria.getIsEnable());
+        }
+
         if (!ObjectUtils.isEmpty(criteria.getDay())) {
             addClauseIfRequired(query, preparedStmtList);
             query.append(" fpt.day = ? ");

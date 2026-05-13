@@ -16,6 +16,9 @@ public class FixedPointSearchCriteria {
     private String day;
     private String vehicleId;
 
+
+    @JsonProperty("isEnable")
+    private Boolean isEnable;
     private Integer offset;
     private Integer limit;
     private boolean isCountCall;
