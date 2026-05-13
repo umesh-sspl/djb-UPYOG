@@ -136,6 +136,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
         scheduleId: item.systemAssignedScheduleId,
         fixedPointName: item.fixedPointName,
         fixedPoint: item.fixedPointCode || item.fixedPointId,
+        fixedPointId: item.fixedPointId || item.id || null,
         day: item.day,
         freq: item.tripNo,
         arrToFpl: item.arrivalTimeToFpl,
@@ -415,6 +416,28 @@ const FixedPointScheduleManagement = ({ ...props }) => {
             </button>
           ))}
         </div>
+         <span>
+          <button
+            onClick={() => {
+              setEditingRowIndex(null);
+              setShowModal(true);
+            }}
+            style={{
+              background: "#1E8E3E",
+              color: "#fff",
+              border: "none",
+              padding: "10px 20px",
+              borderRadius: "4px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              marginBottom: "10px",
+            }}
+          >
+            <span>+</span> {t("WT_ADD_TRIP")}
+          </button>
+        </span>
         <div style={{ width: "100%", overflowX: "auto" }}>
           <ApplicationTable
             t={t}
@@ -439,28 +462,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
             csvExportFileName="wt-fixed-point-schedule"
           />
         </div>
-        <span>
-          <button
-            onClick={() => {
-              setEditingRowIndex(null);
-              setShowModal(true);
-            }}
-            style={{
-              background: "#1E8E3E",
-              color: "#fff",
-              border: "none",
-              padding: "10px 20px",
-              borderRadius: "4px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              marginBottom: "10px",
-            }}
-          >
-            <span>+</span> {t("WT_ADD_TRIP")}
-          </button>
-        </span>
+       
       </Card>
       {showModal && (
         <AddTripModal
@@ -474,6 +476,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
               ? {
                   scheduleId: data[editingRowIndex].scheduleId,
                   fixedPointCode: data[editingRowIndex].fixedPoint,
+                  fixedPointId: data[editingRowIndex].fixedPointId,
                   day: [{ label: t(data[editingRowIndex].day), value: data[editingRowIndex].day }],
 
                   frequencyNo: data[editingRowIndex].freq,
@@ -491,87 +494,78 @@ const FixedPointScheduleManagement = ({ ...props }) => {
                 }
               : null
           }
-          onSubmit={(formData) => {
-            const formDataDay = formData?.day;
-            let daysArr = [];
-            if (Array.isArray(formDataDay)) {
-              daysArr = formDataDay
-                .map((d) => (typeof d === "string" ? d : d?.value || (Array.isArray(d) ? d[1] : d)))
-                .filter((d) => typeof d === "string" && d !== "WT_SELECT_ALL");
+         onSubmit={(formData) => {
+          console.log(formData,'dsdsdsdsdsdsds')
+  // 1. Process Days Array
+  const formDataDay = formData?.day;
+  let daysArr = [];
+  if (Array.isArray(formDataDay)) {
+    daysArr = formDataDay
+      .map((d) => (typeof d === "string" ? d : d?.value || d))
+      .filter((d) => d && d !== "WT_SELECT_ALL");
+  } else if (formDataDay) {
+    const val = formDataDay?.value || formDataDay;
+    if (val && val !== "WT_SELECT_ALL") daysArr = [val];
+  }
 
-              // Handle "Select All" case specifically if nothing remains after filter but it was present
-              if (
-                daysArr.length === 0 &&
-                formDataDay.some((d) => {
-                  const val = typeof d === "string" ? d : d?.value || (Array.isArray(d) ? d[1] : d);
-                  return val === "WT_SELECT_ALL";
-                })
-              ) {
-                daysArr = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
-              }
-            } else if (formDataDay) {
-              const dayVal =
-                typeof formDataDay === "string" ? formDataDay : formDataDay?.value || (Array.isArray(formDataDay) ? formDataDay[1] : formDataDay);
-              if (dayVal && dayVal !== "WT_SELECT_ALL") daysArr = [dayVal];
-            }
+  // 2. Get reference to existing data if editing
+  const existingData = editingRowIndex !== null ? data[editingRowIndex] : {};
 
-            const fixedPointDetails = {
-              tenantId,
-              system_assigned_schedule_id: formData.scheduleId,
-              fixed_point_code: formData.fixedPointCode,
-              day: daysArr.map((d) => d?.toUpperCase?.() || d),
-              trip_no: Number(formData.frequencyNo) || Number(formData.tripNo) || 1,
-              arrival_time_to_fpl: formData.arrivalTimeFpl,
-              departure_time_from_fpl: formData.departureTimeFpl,
-              arrival_time_delivery_point: formData.arrivalFixedPoint,
-              departure_time_delivery_point: formData.departureFixedPoint,
-              time_of_arriving_back_fpl_after_delivery: formData.returnFpl,
-              volume_water_tobe_delivery: formData.volume || "0",
-              active: formData.active?.value === "Yes" || formData.active === "Yes",
-              is_enable: formData.active?.value === "Yes" || formData.active === "Yes",
-              remarks: formData.remarks,
-              vehicle_id: formData.vehicleId,
-            };
+  const isFormActive = formData.active?.value === "Yes" || formData.active === "Yes" || formData.active === true;
+  const isExistingActive = existingData?.active === "Y";
+  const finalActiveStatus = formData.active !== undefined ? isFormActive : (editingRowIndex !== null ? isExistingActive : true);
 
-            const payload =
-              editingRowIndex !== null
-                ? {
-                    fixedPointDetailsList: [fixedPointDetails],
-                  }
-                : {
-                    fixedPointDetails,
-                  };
+  // 3. Construct the exact fixedPointDetails object structure
+  const fixedPointDetails = {
+    // Use formData (from modal) OR fallback to existing row data
+    system_assigned_schedule_id: formData.scheduleId || existingData.scheduleId || null,
+    fixed_point_code: formData.fixedPointId || formData.fixedPointCode || "",
+    fillingPointId: formData.fillingPointCode || null, 
+    day: daysArr.map((d) => d.toUpperCase()),
+    trip_no: Number(formData.frequencyNo) || 1,
+    arrival_time_to_fpl: formData.arrivalTimeFpl,
+    departure_time_from_fpl: formData.departureTimeFpl,
+    arrival_time_delivery_point: formData.arrivalFixedPoint,
+    departure_time_delivery_point: formData.departureFixedPoint,
+    time_of_arriving_back_fpl_after_delivery: formData.returnFpl,
+    volume_water_tobe_delivery: formData.volume,
+    active: finalActiveStatus,
+    is_enable: finalActiveStatus,
+    remarks: formData.remarks || "",
+    vehicle_id: formData.vehicleId || existingData.vehicle || null,
+    // Safely include audit_details if they exist in the original raw data
+    audit_details: scheduleData?.fixedPointTimeTableDetails?.[editingRowIndex]?.auditDetails || null
+  };
 
-            if (editingRowIndex !== null) {
-              updateSchedule(payload, {
-                onError: (error, variables) => {
-                  setToast({ key: "error", label: error?.response?.data?.Errors?.[0]?.message || "ERROR_WHILE_UPDATING_SCHEDULE" });
-                  setTimeout(closeToast, 5000);
-                },
-                onSuccess: (data, variables) => {
-                  setToast({ label: t("WT_SCHEDULE_UPDATE_SUCCESS") });
-                  setTimeout(closeToast, 5000);
-                  setShowModal(false);
-                  setEditingRowIndex(null);
-                  queryClient.invalidateQueries(["FIXED_POINT_SCHEDULE_SEARCH", tenantId]);
-                },
-              });
-            } else {
-              createSchedule(payload, {
-                onError: (error, variables) => {
-                  setToast({ key: "error", label: error?.response?.data?.Errors?.[0]?.message || "ERROR_WHILE_CREATING_SCHEDULE" });
-                  setTimeout(closeToast, 5000);
-                },
-                onSuccess: (data, variables) => {
-                  setToast({ label: t("WT_SCHEDULE_CREATE_SUCCESS") });
-                  setTimeout(closeToast, 5000);
-                  setShowModal(false);
-                  setEditingRowIndex(null);
-                  queryClient.invalidateQueries(["FIXED_POINT_SCHEDULE_SEARCH", tenantId]);
-                },
-              });
-            }
-          }}
+  if (!fixedPointDetails.system_assigned_schedule_id) delete fixedPointDetails.system_assigned_schedule_id;
+  if (!fixedPointDetails.vehicle_id) delete fixedPointDetails.vehicle_id;
+  if (!fixedPointDetails.audit_details) delete fixedPointDetails.audit_details;
+
+  // 4. Prepare Payload Wrapper
+  const payload = editingRowIndex !== null 
+    ? { fixedPointDetailsList: [fixedPointDetails] } 
+    : { fixedPointDetails };
+
+  // 5. API Call logic
+  const mutationOptions = {
+    onError: (error) => {
+      setToast({ key: "error", label: error?.response?.data?.Errors?.[0]?.message || "Operation Failed" });
+      setTimeout(closeToast, 5000);
+    },
+    onSuccess: () => {
+      setToast({ label: editingRowIndex !== null ? t("WT_SCHEDULE_UPDATE_SUCCESS") : t("WT_SCHEDULE_CREATE_SUCCESS") });
+      setShowModal(false);
+      setEditingRowIndex(null);
+      queryClient.invalidateQueries(["FIXED_POINT_SCHEDULE_SEARCH", tenantId]);
+    },
+  };
+
+  if (editingRowIndex !== null) {
+    updateSchedule(payload, mutationOptions);
+  } else {
+    createSchedule(payload, mutationOptions);
+  }
+}}
         />
       )}
       {toast && <Toast error={toast.key === "error"} label={toast.label} onClose={closeToast} />}
