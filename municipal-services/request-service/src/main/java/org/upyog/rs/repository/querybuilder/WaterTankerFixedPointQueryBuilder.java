@@ -155,7 +155,7 @@ public class WaterTankerFixedPointQueryBuilder {
             List<Object> preparedStmtList) {
 
         StringBuilder query = new StringBuilder(
-                "SELECT COUNT(DISTINCT ad.fixed_point_id) + " +
+                "SELECT COUNT(DISTINCT ad.fixed_point_id) " +
                         "FROM upyog_rs_water_tanker_applicant_details ad " +
                         "WHERE ad.type = ? "
         );
