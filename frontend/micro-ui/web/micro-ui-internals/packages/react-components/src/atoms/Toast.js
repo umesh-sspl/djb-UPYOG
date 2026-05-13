@@ -25,7 +25,7 @@ const Toast = (props) => {
   // ❌ ERROR TOAST
   if (error) {
     return (
-      <div className="toast-success" style={{ backgroundColor: "red", ...props.style }}>
+      <div className="toast-error" style={{ ...props.style }}>
         <ErrorIcon />
         <h2 style={{ ...props.labelstyle }}>{props.label}</h2>
         {props.isDleteBtn && <DeleteBtn fill="none" className="toast-close-btn" onClick={onClose} />}
