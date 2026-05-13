@@ -81,8 +81,9 @@ public class FixedPointDetailsServiceImpl implements FixedPointDetailsService {
                     .volumeWaterTobeDelivery(inputDetail.getVolumeWaterTobeDelivery())
                     .vehicleId(inputDetail.getVehicleId())
                     .remarks(inputDetail.getRemarks())
+                    .fillingPointId(inputDetail.getFillingPointId())
                     .active(true)
-                    .isEnable(requestedDays.contains(day))  // true if in requested list ✅
+                    .isEnable(requestedDays.contains(day))
                     .tenantId("dl.djb")
                     .auditDetails(auditDetails)
                     .build();

@@ -33,10 +33,10 @@ public class FixedPointTimeTableQueryBuilder {
                     "fpt.time_of_arriving_back_fpl_after_delivery, fpt.volume_water_tobe_delivery, " +
                     "fpt.active, fpt.is_enable, fpt.remarks, fpt.vehicle_id, fpt.tenant_id, " +
                     "fpt.createdby, fpt.lastmodifiedby, fpt.createdtime, fpt.lastmodifiedtime, " +
-                    "apd.name AS fixed_point_name, apd.fixed_point_id " +
-                    "FROM public.eg_fixed_point_time_table fpt " +
-                    "LEFT JOIN public.upyog_rs_water_tanker_applicant_details apd " +
-                    "ON apd.booking_id = fpt.fixed_point_code";
+                    "apd.name AS fixed_point_name, apd.fixed_point_id, fpt.filling_point_id " +
+                    "FROM eg_fixed_point_time_table fpt " +
+                    "LEFT JOIN upyog_rs_water_tanker_applicant_details apd " +
+                    "ON apd.fixed_point_id = fpt.fixed_point_code";
 
     private static final String COUNT_QUERY = "SELECT count(*) FROM eg_fixed_point_time_table fpt";
 
@@ -57,6 +57,12 @@ public class FixedPointTimeTableQueryBuilder {
             addClauseIfRequired(query, preparedStmtList);
             query.append(" fpt.fixed_point_code = ? ");
             preparedStmtList.add(criteria.getFixedPointCode());
+        }
+
+        if (!ObjectUtils.isEmpty(criteria.getFillingPointId())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" fpt.filling_point_id = ? ");
+            preparedStmtList.add(criteria.getFillingPointId());
         }
 
         if (!ObjectUtils.isEmpty(criteria.getDay())) {
