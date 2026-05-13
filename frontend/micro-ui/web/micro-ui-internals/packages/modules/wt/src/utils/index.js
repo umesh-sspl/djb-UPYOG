@@ -263,6 +263,8 @@ export const emergencyWaterTankerPayload = (data) => {
 
   const formdata = {
     waterTankerBookingDetail: {
+      id: data?.id || data?.waterTankerBookingDetail?.id || "",
+      bookingNo: data?.bookingNo || data?.waterTankerBookingDetail?.bookingNo || null,
       applicantId: applicantDetailFromFP?.applicantId || data?.owner?.applicantId || "",
       tenantId: data?.tenantId,
       tankerType: (data?.requestDetails?.tankerType?.code || data?.requestDetails?.tankerType || "")?.toUpperCase(),

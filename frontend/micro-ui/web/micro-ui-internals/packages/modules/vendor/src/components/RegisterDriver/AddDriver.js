@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 //import DriverConfig from "../../configs/DriverConfig";
 import { useQueryClient } from "react-query";
@@ -13,12 +14,23 @@ const AddDriver = () => {
   const stateId = Digit.ULBService.getStateId();
   const [showToast, setShowToast] = useState(null);
   const queryClient = useQueryClient();
+  const history = useHistory();
 
   const [, setMutationHappened] = Digit.Hooks.useSessionStorage("FSM_MUTATION_HAPPENED", false);
   const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
   const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { mutate } = Digit.Hooks.fsm.useDriverCreate(tenantId);
+  const isCitizen = Digit.UserService.getType() === "WT_VENDOR" || Digit.UserService.hasAccess(["WT_VENDOR"]);
+  const { mutate } = Digit.Hooks.fsm.useDriverCreate(stateId);
+  const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate("dl.djb");
+
+  const mobileNumber = Digit.UserService.getUser()?.info?.mobileNumber;
+
+  const { data: vendorData, isLoading: isVendorLoading } = Digit.Hooks.fsm.useDsoSearch(
+    tenantId,
+    { mobileNumber: mobileNumber },
+    { enabled: !!(isCitizen && mobileNumber) }
+  );
 
   useEffect(() => {
     setMutationHappened(false);
@@ -75,7 +87,6 @@ const AddDriver = () => {
   const closeToast = () => {
     setShowToast(null);
   };
-  const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
   console.log(isCitizen, "iscitizen");
 
   const onSubmit = (data) => {
@@ -88,7 +99,7 @@ const AddDriver = () => {
     const additionalDetails = data?.serviceType?.code;
     const formData = {
       driver: {
-        tenantId: !isCitizen ? "dl.djb" : tenantId,
+        tenantId: "dl.djb",
         name: name,
         licenseNumber: license,
         status: "ACTIVE",
@@ -119,6 +130,39 @@ const AddDriver = () => {
         setShowToast({ key: "success", action: "ADD_DRIVER" });
         setTimeout(closeToast, 5000);
         queryClient.invalidateQueries("FSM_DRIVER_SEARCH");
+
+        if (isCitizen && vendorData?.[0]?.dsoDetails) {
+          const newDriver = data.driver.map((v) => ({ ...v, vendorDriverStatus: "ACTIVE", status: "ACTIVE" }));
+          const vendor = vendorData[0].dsoDetails;
+          const updatedVendor = {
+            vendor: {
+              ...vendor,
+              drivers: vendor.drivers ? [...vendor.drivers, ...newDriver] : [...newDriver],
+            },
+          };
+
+          mutateVendor(updatedVendor, {
+            onError: (error) => {
+              setShowToast({ key: "error", action: error });
+            },
+            onSuccess: () => {
+              setShowToast({ key: "success", action: "ADD_DRIVER" });
+              queryClient.invalidateQueries("DSO_SEARCH");
+              const userType = Digit.UserService.getUser()?.info?.type?.toLowerCase() || "citizen";
+              setTimeout(() => {
+                closeToast();
+                history.push(`/digit-ui/${userType}/vendor/search-vendor?selectedTabs=DRIVER`);
+              }, 3000);
+            },
+          });
+        } else {
+          const userType = Digit.UserService.getUser()?.info?.type?.toLowerCase() || "citizen";
+          queryClient.invalidateQueries("FSM_DRIVER_SEARCH");
+          setTimeout(() => {
+            closeToast();
+            history.push(`/digit-ui/${userType}/vendor/search-vendor?selectedTabs=DRIVER`);
+          }, 3000);
+        }
         // setTimeout(() => {
         //   closeToast();
         //   history.push(`/digit-ui/employee/vendor/search-vendor`);

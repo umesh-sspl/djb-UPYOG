@@ -108,9 +108,25 @@ public class Vendor {
 	private String paymentPreference = null;
 	
 	// @JsonProperty("bankDetails")
-    // @Valid
-    // private List<BankDetail> bankDetails = null;
-		
+	// @Valid
+	// private List<BankDetail> bankDetails = null;
+
+	// ── Chunk 2: Zone / Cluster / Contract additions ──────────────────────────
+
+	@JsonProperty("zoneIds")
+	private List<String> zoneIds = null;
+
+	@JsonProperty("clusterIds")
+	private List<String> clusterIds = null;
+
+	@JsonProperty("contractStartDate")
+	private Long contractStartDate = null;
+
+	@JsonProperty("contractEndDate")
+	private Long contractEndDate = null;
+
+	// ─────────────────────────────────────────────────────────────────────────
+
 	/**
 	 * Inactive records will be consider as soft deleted
 	 */

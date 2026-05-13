@@ -17,7 +17,17 @@ const AddVehicle = ({ parentUrl, heading }) => {
   const [, , clearError] = Digit.Hooks.useSessionStorage("FSM_ERROR_DATA", false);
   const [, , clearSuccessData] = Digit.Hooks.useSessionStorage("FSM_MUTATION_SUCCESS_DATA", false);
 
-  const { mutate } = Digit.Hooks.fsm.useVehicleCreate(tenantId);
+  const isCitizen = Digit.UserService.getType() === "WT_VENDOR" || Digit.UserService.hasAccess(["WT_VENDOR"]);
+  const { mutate } = Digit.Hooks.fsm.useVehicleCreate(stateId);
+  const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate("dl.djb");
+
+  const mobileNumber = Digit.UserService.getUser()?.info?.mobileNumber;
+
+  const { data: vendorData, isLoading: isVendorLoading } = Digit.Hooks.fsm.useDsoSearch(
+    tenantId,
+    { mobileNumber: mobileNumber },
+    { enabled: !!(isCitizen && mobileNumber) }
+  );
 
   useEffect(() => {
     setMutationHappened(false);
@@ -135,10 +145,9 @@ const AddVehicle = ({ parentUrl, heading }) => {
     const gender = data?.selectGender?.code;
     const emailId = data?.emailId;
     const dob = new Date(`${data.dob}`).getTime() || new Date(`1/1/1970`).getTime();
-    const isCitizen = Digit.UserService.getType() === "WT_VENDOR";
     const formData = {
       vehicle: {
-        tenantId: !isCitizen ? "dl.djb" : tenantId,
+        tenantId: "dl.djb",
         registrationNumber: registrationNumber,
         model: vehicleModal,
         type: vehicleType,
@@ -165,6 +174,7 @@ const AddVehicle = ({ parentUrl, heading }) => {
         additionalDetails: {
           serviceType: additionalDetails,
         },
+        vehicleOwner: "ULB",
       },
     };
 
@@ -176,10 +186,39 @@ const AddVehicle = ({ parentUrl, heading }) => {
       onSuccess: (data, variables) => {
         setShowToast({ key: "success", action: "ADD_VEHICLE" });
         queryClient.invalidateQueries("FSM_VEICLES_SEARCH");
-        setTimeout(() => {
-          closeToast();
-          history.push(`/digit-ui/employee/vendor/search-vendor?selectedTabs=VEHICLE`);
-        }, 3000);
+
+        if (isCitizen && vendorData?.[0]?.dsoDetails) {
+          const newVehicle = data.vehicle.map((v) => ({ ...v, vendorVehicleStatus: "ACTIVE", status: "ACTIVE" }));
+          const vendor = vendorData[0].dsoDetails;
+          const updatedVendor = {
+            vendor: {
+              ...vendor,
+              vehicles: vendor.vehicles ? [...vendor.vehicles, ...newVehicle] : [...newVehicle],
+            },
+          };
+
+          mutateVendor(updatedVendor, {
+            onError: (error) => {
+              setShowToast({ key: "error", action: error });
+            },
+            onSuccess: () => {
+              setShowToast({ key: "success", action: "ADD_VEHICLE" });
+              queryClient.invalidateQueries("DSO_SEARCH");
+              const userType = Digit.UserService.getUser()?.info?.type?.toLowerCase() || "citizen";
+              setTimeout(() => {
+                closeToast();
+                history.push(`/digit-ui/${userType}/vendor/search-vendor?selectedTabs=VEHICLE`);
+              }, 3000);
+            },
+          });
+        } else {
+          const userType = Digit.UserService.getUser()?.info?.type?.toLowerCase() || "citizen";
+          queryClient.invalidateQueries("FSM_VEICLES_SEARCH");
+          setTimeout(() => {
+            closeToast();
+            history.push(`/digit-ui/${userType}/vendor/search-vendor?selectedTabs=VEHICLE`);
+          }, 3000);
+        }
       },
     });
   };

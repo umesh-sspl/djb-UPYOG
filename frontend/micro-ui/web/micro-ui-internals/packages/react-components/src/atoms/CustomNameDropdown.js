@@ -140,6 +140,9 @@ const CustomNameDropdown = (props) => {
 
   function setFilter(val) {
     setFilterVal(val);
+    if (props.onSearch) {
+      props.onSearch(val);
+    }
   }
 
   let filteredOption =

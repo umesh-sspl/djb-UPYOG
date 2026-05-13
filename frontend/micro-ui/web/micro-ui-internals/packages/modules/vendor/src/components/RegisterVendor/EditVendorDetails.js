@@ -104,7 +104,7 @@ const EditVendorDetails = (props) => {
       case "ADD_DRIVER":
         return setShowModal(true);
       case "EDIT":
-        return history.push(`/digit-ui/${userType}/fsm/registry/modify-vendor/dsoId`);
+        return history.push(`/digit-ui/${userType}/fsm/registry/modify-vendor/${dsoId}`);
       case "HOME":
         return history.push(`/digit-ui/${userType}/fsm/registry?selectedTabs=VENDOR`);
       default:
