@@ -85,10 +85,16 @@ const FSMLinks = ({ matchPath, userType }) => {
   const { t } = useTranslation();
   const [clearParams] = Digit.Hooks.useSessionStorage("FSM_CITIZEN_FILE_PROPERTY", {});
 
-  useEffect(() => {
-    clearParams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+useEffect(
+    () =>
+      userType === "employee" &&
+      Digit.LocalizationService.getLocale({
+        modules: [`rainmaker-${Digit.ULBService.getCurrentTenantId()}`],
+        locale: Digit.StoreData.getCurrentLanguage(),
+        tenantId: Digit.ULBService.getCurrentTenantId(),
+      }),
+    []
+  );
 
   const roleBasedLoginRoutes = [
     {

@@ -69,17 +69,18 @@ const RegisteredVendorSearch = ({
   };
 
   function onActionSelect(action) {
+    const userPath = userType?.toLowerCase();
     switch (action) {
       case "VENDOR":
-        return history.push("/digit-ui/employee/vendor/registry/new-vendor");
+        return history.push(`/digit-ui/${userPath}/vendor/registry/new-vendor`);
       case "VEHICLE":
-        return history.push("/digit-ui/employee/vendor/registry/new-vehicle");
+        return history.push(`/digit-ui/${userPath}/vendor/registry/new-vehicle`);
       case "DRIVER":
-        return history.push("/digit-ui/employee/vendor/registry/new-driver");
+        return history.push(`/digit-ui/${userPath}/vendor/registry/new-driver`);
       case "SUPERVISOR":
-        return history.push("/digit-ui/employee/vendor/registry/new-supervisor");
+        return history.push(`/digit-ui/${userPath}/vendor/registry/new-supervisor`);
       case "SURVEYOR":
-        return history.push("/digit-ui/employee/vendor/registry/new-surveyor");
+        return history.push(`/digit-ui/${userPath}/vendor/registry/new-surveyor`);
       default:
         break;
     }
@@ -149,7 +150,7 @@ const RegisteredVendorSearch = ({
   const userInfo = Digit.SessionStorage.get("User");
   const userType = userInfo.info.type;
   const vendorItems = [
-    ...(userType === "EMPLOYEE" && matchedRoles?.wt?.includes("WT_VENDOR") ? ["VENDOR"] : []),
+    ...(matchedRoles?.wt?.includes("WT_VENDOR") ? ["VENDOR"] : []),
 
     ...(matchedRoles?.wt?.includes("WT_VENDOR") ? ["DRIVER", "VEHICLE"] : []),
 
