@@ -53,6 +53,8 @@ const EmployeeApp = ({ path, url, userType }) => {
   const SupervisorDetails = Digit.ComponentRegistryService.getComponent("SupervisorDetails");
   const AddSurveyor = Digit.ComponentRegistryService.getComponent("AddSurveyor");
   const SurveyorDetails = Digit.ComponentRegistryService.getComponent("SurveyorDetails");
+  const EditDriver = Digit.ComponentRegistryService.getComponent("EditDriver");
+  const EditVehicle = Digit.ComponentRegistryService.getComponent("EditVehicle");
 
   const getDynamicBreadcrumbs = () => {
     const pathname = location.pathname;
@@ -166,6 +168,14 @@ const EmployeeApp = ({ path, url, userType }) => {
                 </LayoutWrapper>
               )}
             />
+            <PrivateRoute
+              path={`${path}/registry/modify-driver/:id`}
+              component={(props) => (
+                <LayoutWrapper layoutClass="action">
+                  <EditDriver {...props} parentRoute={path} />
+                </LayoutWrapper>
+              )}
+            />
 
             <PrivateRoute
               path={`${path}/common-search/:id`}
@@ -199,6 +209,14 @@ const EmployeeApp = ({ path, url, userType }) => {
               component={(props) => (
                 <LayoutWrapper layoutClass="action">
                   <VehicleDetails {...props} parentRoute={path} />
+                </LayoutWrapper>
+              )}
+            />
+            <PrivateRoute
+              path={`${path}/registry/modify-vehicle/:id`}
+              component={(props) => (
+                <LayoutWrapper layoutClass="action">
+                  <EditVehicle {...props} parentRoute={path} />
                 </LayoutWrapper>
               )}
             />

@@ -153,6 +153,12 @@ const CitizenVendorApp = () => {
   const AddSurveyor = Digit.ComponentRegistryService.getComponent("AddSurveyor");
   const SurveyorDetails = Digit.ComponentRegistryService.getComponent("SurveyorDetails");
   const VendorCreate = Digit.ComponentRegistryService.getComponent("VENDORCreate");
+  const AddDriver = Digit.ComponentRegistryService.getComponent("AddDriver");
+  const DriverDetails = Digit.ComponentRegistryService.getComponent("DriverDetails");
+  const AddVehicle = Digit.ComponentRegistryService.getComponent("AddVehicle");
+  const VehicleDetails = Digit.ComponentRegistryService.getComponent("VehicleDetails");
+  const EditDriver = Digit.ComponentRegistryService.getComponent("EditDriver");
+  const EditVehicle = Digit.ComponentRegistryService.getComponent("EditVehicle");
 
   return (
     <Switch>
@@ -182,6 +188,54 @@ const CitizenVendorApp = () => {
             component={(props) => (
               <LayoutWrapper layoutClass="action">
                 <EditVendorDetails {...props} parentRoute={path} />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/registry/driver-details/:id`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <DriverDetails {...props} parentRoute={path} />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/registry/modify-driver/:id`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <EditDriver {...props} parentRoute={path} />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/registry/vehicle-details/:id`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <VehicleDetails {...props} parentRoute={path} />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/registry/modify-vehicle/:id`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <EditVehicle {...props} parentRoute={path} />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/registry/new-driver`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <AddDriver {...props} parentRoute={path} />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/registry/new-vehicle`}
+            component={(props) => (
+              <LayoutWrapper layoutClass="action">
+                <AddVehicle {...props} parentRoute={path} />
               </LayoutWrapper>
             )}
           />
