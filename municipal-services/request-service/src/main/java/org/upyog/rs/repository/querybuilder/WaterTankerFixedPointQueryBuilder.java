@@ -10,7 +10,7 @@ public class WaterTankerFixedPointQueryBuilder {
 
 
     private static final String BASE_QUERY =
-            "SELECT " +
+            " SELECT DISTINCT ON (ad.fixed_point_id)  " +
                     "ad.applicant_id, " +
                     "ad.name, " +
                     "ad.mobile_number AS applicant_mobile_number, " +
@@ -132,7 +132,7 @@ public class WaterTankerFixedPointQueryBuilder {
 //            preparedStmtList.add(criteria.getToDate());
 //        }
 
-        query.append(" ORDER BY ad.fixed_point_id ASC ");
+        query.append(" ORDER BY ad.fixed_point_id, ad.createdtime DESC ");
 
         int limit = (criteria.getLimit() != null && criteria.getLimit() > 0)
                 ? Math.min(criteria.getLimit(), 100)
@@ -155,8 +155,8 @@ public class WaterTankerFixedPointQueryBuilder {
             List<Object> preparedStmtList) {
 
         StringBuilder query = new StringBuilder(
-                "SELECT COUNT(*) " +
-                        "FROM public.upyog_rs_water_tanker_applicant_details ad " +
+                "SELECT COUNT(DISTINCT ad.fixed_point_id) + " +
+                        "FROM upyog_rs_water_tanker_applicant_details ad " +
                         "WHERE ad.type = ? "
         );
         preparedStmtList.add("FIXED-POINT");
@@ -164,6 +164,11 @@ public class WaterTankerFixedPointQueryBuilder {
         if (criteria.getMobileNumber() != null && !criteria.getMobileNumber().trim().isEmpty()) {
             query.append(" AND ad.mobile_number = ? ");
             preparedStmtList.add(criteria.getMobileNumber());
+        }
+
+        if (criteria.getFixedPointId() != null && !criteria.getFixedPointId().trim().isEmpty()) {
+            query.append(" AND ad.fixed_point_id = ? ");
+            preparedStmtList.add(criteria.getFixedPointId());
         }
 
         if (criteria.getName() != null && !criteria.getName().trim().isEmpty()) {
