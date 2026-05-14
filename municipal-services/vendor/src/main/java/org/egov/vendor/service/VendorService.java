@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.Role;
 import org.egov.tracer.model.CustomException;
@@ -106,7 +107,15 @@ public class VendorService {
 		criteria.setTenantId(vendorRequest.getVendor().getTenantId());
 		criteria.setIds(Arrays.asList(vendorRequest.getVendor().getId()));
 
+
 		VendorResponse existingVendorResult = vendorsearch(criteria, requestInfo);
+
+
+
+		if (existingVendorResult != null) {
+//			System.out.println("Vendor size = "
+//					+ existingVendorResult.getVendor().size());
+		}
 
 		if (existingVendorResult != null && existingVendorResult.getVendor().isEmpty()) {
 			throw new CustomException(VendorConstants.UPDATE_ERROR,
@@ -157,11 +166,28 @@ public class VendorService {
 			vendorRequest.getVendor().setVehicles(vendorVehicleToBeUpdated);
 
 		}
-		if (!CollectionUtils.isEmpty(vendorDriverToBeUpdated)) {
-			vendorRequest.getVendor().getDrivers().clear();
-			vendorRequest.getVendor().setDrivers(vendorDriverToBeUpdated);
 
+		boolean mappingDeleted = false;
+
+		if (!CollectionUtils.isEmpty(vendorDriverToBeUpdated)) {
+
+			vendorRequest.getVendor().setDrivers(new ArrayList<>(vendorDriverToBeUpdated));
+
+			mappingDeleted = vendorRepository.updateVendorDriverHistory(vendorRequest);
 		}
+
+		if (mappingDeleted) {
+
+			vendorRequest.getVendor().setDrivers(new ArrayList<>(vendorDriverToBeUpdated));
+
+			vendorRepository.updateVendorDriver(vendorRequest);
+		}
+
+        // clear drivers before normal vendor update
+		if (vendorRequest.getVendor().getDrivers() != null) {
+			vendorRequest.getVendor().getDrivers().clear();
+		}
+
 		vendorRepository.update(vendorRequest);
 
 		boolean callInsert = false;
@@ -236,6 +262,8 @@ public class VendorService {
 
 		UserDetailResponse userDetailResponse;
 
+
+
 		vendorValidator.validateSearch(requestInfo, criteria);
 		applyRoleBasedSearchRestrictions(criteria, requestInfo);
 
@@ -252,6 +280,7 @@ public class VendorService {
 				}
 			}
 		}
+
 
 		if (criteria.getLimit() == null) {
 			criteria.setLimit(config.getMaxSearchLimit());
