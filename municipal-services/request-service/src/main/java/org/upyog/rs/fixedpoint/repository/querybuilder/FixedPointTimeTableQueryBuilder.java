@@ -47,8 +47,22 @@ public class FixedPointTimeTableQueryBuilder {
             "ON apd.fixed_point_id = fpt.fixed_point_code";
 
     private final String paginationWrapper =
-            "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY createdtime DESC) AS offset_ FROM ({}) result) result_offset " +
+            "SELECT * FROM (" +
+                    "SELECT *, ROW_NUMBER() OVER (" +
+                    "ORDER BY createdtime DESC, " +
+                    "CASE day " +
+                    "WHEN 'MONDAY'    THEN 1 " +
+                    "WHEN 'TUESDAY'   THEN 2 " +
+                    "WHEN 'WEDNESDAY' THEN 3 " +
+                    "WHEN 'THURSDAY'  THEN 4 " +
+                    "WHEN 'FRIDAY'    THEN 5 " +
+                    "WHEN 'SATURDAY'  THEN 6 " +
+                    "WHEN 'SUNDAY'    THEN 7 " +
+                    "ELSE 8 END ASC" +
+                    ") AS offset_ FROM ({}) result" +
+                    ") result_offset " +
                     "WHERE offset_ > ? AND offset_ <= ?";
+
     public String getSearchQuery(FixedPointSearchCriteria criteria, List<Object> preparedStmtList) {
         StringBuilder query = new StringBuilder(criteria.isCountCall() ? COUNT_QUERY : SEARCH_QUERY);
 
@@ -97,6 +111,17 @@ public class FixedPointTimeTableQueryBuilder {
         if (criteria.isCountCall()) {
             return query.toString();
         }
+
+        query.append(" ORDER BY fpt.createdtime DESC, " +
+                "CASE fpt.day " +
+                "WHEN 'MONDAY'    THEN 1 " +
+                "WHEN 'TUESDAY'   THEN 2 " +
+                "WHEN 'WEDNESDAY' THEN 3 " +
+                "WHEN 'THURSDAY'  THEN 4 " +
+                "WHEN 'FRIDAY'    THEN 5 " +
+                "WHEN 'SATURDAY'  THEN 6 " +
+                "WHEN 'SUNDAY'    THEN 7 " +
+                "ELSE 8 END ASC");
 
         return addPaginationWrapper(query.toString(), preparedStmtList, criteria);
     }
