@@ -85,12 +85,16 @@ const AddFixPointAddress = () => {
         queryClient.invalidateQueries("wtFixedPointSearchList");
         setTimeout(() => {
           setShowToast(null);
-          history.push("/digit-ui/employee/wt/search-filling-fix-point");
+          history.push("/digit-ui/employee/wt/search-filling-fix-point?tab=FIXED_POINT");
         }, 3000);
       },
       onError: (error) => {
+        const errorMessage = error?.response?.data?.error?.message || 
+                           error?.response?.data?.Errors?.[0]?.message || 
+                           error?.response?.data?.responseInfo?.resMsgId || 
+                           (editId ? t("WT_FILLING_POINT_UPDATED_ERROR") : t("WT_FILLING_POINT_CREATED_ERROR"));
         setShowToast({
-          label: error?.response?.data?.Errors?.[0]?.message || (editId ? t("WT_FILLING_POINT_UPDATED_ERROR") : t("WT_FILLING_POINT_CREATED_ERROR")),
+          label: errorMessage,
           isError: true,
         });
         setTimeout(() => setShowToast(null), 5000);
@@ -103,11 +107,7 @@ const AddFixPointAddress = () => {
   const isFormDisabled =
     !formData?.owner?.name ||
     !formData?.owner?.mobileNumber ||
-    !formData?.owner?.emailId ||
-    !formData?.address?.houseNo ||
-    !formData?.address?.streetName ||
     !formData?.address?.addressLine1 ||
-    !formData?.address?.addressLine2 ||
     !formData?.address?.city ||
     !formData?.address?.locality ||
     !formData?.address?.latitude ||
@@ -150,7 +150,7 @@ const AddFixPointAddress = () => {
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <CardLabel>
-                {`${t("COMMON_EMAIL_ID")}`} <span className="astericColor">*</span>
+                {`${t("COMMON_EMAIL_ID")}`}
               </CardLabel>
               <TextInput
                 t={t}

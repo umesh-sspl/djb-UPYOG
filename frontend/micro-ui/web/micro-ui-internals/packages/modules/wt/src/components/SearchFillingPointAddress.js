@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, Menu, AddIcon, TextInput, Dropdown, Label, SubmitBar, Toast } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
-import { useHistory, Link } from "react-router-dom";
+import { useHistory, Link, useLocation } from "react-router-dom";
 import LocalityModal from "./LocalityModal";
 import ApplicationTable from "./inbox/ApplicationTable";
 import PointAddressMap from "./PointAddressMap";
@@ -9,7 +9,10 @@ import PointAddressMap from "./PointAddressMap";
 const SearchFillingPointAddress = () => {
   const { t } = useTranslation();
   const history = useHistory();
-  const [selectedTab, setSelectedTab] = useState("FIXED_POINT");
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialTab = queryParams.get("tab") || "FIXED_POINT";
+  const [selectedTab, setSelectedTab] = useState(initialTab);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
