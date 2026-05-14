@@ -35,15 +35,20 @@ public class FixedPointTimeTableQueryBuilder {
                     "fpt.createdby, fpt.lastmodifiedby, fpt.createdtime, fpt.lastmodifiedtime, " +
                     "apd.name AS fixed_point_name, apd.fixed_point_id, fpt.filling_point_id " +
                     "FROM eg_fixed_point_time_table fpt " +
-                    "LEFT JOIN upyog_rs_water_tanker_applicant_details apd " +
-                    "ON apd.fixed_point_id = fpt.fixed_point_code";
+                    "LEFT JOIN ( " +
+                    "SELECT DISTINCT ON (fixed_point_id) fixed_point_id, name " +
+                    "FROM upyog_rs_water_tanker_applicant_details " +
+                    "ORDER BY fixed_point_id, createdtime DESC " +
+                    ") apd ON apd.fixed_point_id = fpt.fixed_point_code";
 
-    private static final String COUNT_QUERY = "SELECT count(*) FROM eg_fixed_point_time_table fpt";
+    private static final String COUNT_QUERY = "SELECT COUNT(DISTINCT fpt.system_assigned_schedule_id) " +
+            "FROM eg_fixed_point_time_table fpt " +
+            "LEFT JOIN upyog_rs_water_tanker_applicant_details apd " +
+            "ON apd.fixed_point_id = fpt.fixed_point_code";
 
     private final String paginationWrapper =
             "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY createdtime DESC) AS offset_ FROM ({}) result) result_offset " +
                     "WHERE offset_ > ? AND offset_ <= ?";
-
     public String getSearchQuery(FixedPointSearchCriteria criteria, List<Object> preparedStmtList) {
         StringBuilder query = new StringBuilder(criteria.isCountCall() ? COUNT_QUERY : SEARCH_QUERY);
 
@@ -97,10 +102,10 @@ public class FixedPointTimeTableQueryBuilder {
     }
 
     private void addClauseIfRequired(StringBuilder query, List<Object> preparedStmtList) {
-        if (preparedStmtList.isEmpty()) {
-            query.append(" WHERE ");
-        } else {
+        if (query.toString().toUpperCase().contains("WHERE")) {
             query.append(" AND ");
+        } else {
+            query.append(" WHERE ");
         }
     }
 
