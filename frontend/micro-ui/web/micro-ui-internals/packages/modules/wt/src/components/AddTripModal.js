@@ -166,7 +166,7 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
     displayLabel: fp?.fillingPointName || "NA",
 
-    value: fp?.id,
+    value: fp?.fillingPointId || fp?.id,
 
     eeName: fp?.eeName || "NA",
 
@@ -256,7 +256,7 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
         position: "fixed",
 
-        top: 0,
+        top: 30,
 
         left: 0,
 
