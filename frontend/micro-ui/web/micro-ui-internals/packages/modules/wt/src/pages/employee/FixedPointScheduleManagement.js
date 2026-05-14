@@ -178,9 +178,22 @@ const FixedPointScheduleManagement = ({ ...props }) => {
     []
   );
 
+  const dayOrder = React.useMemo(() => ({
+    MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6, SUNDAY: 7
+  }), []);
+
   const data = React.useMemo(() => {
-    return mapScheduleRows(scheduleData?.fixedPointTimeTableDetails || []);
-  }, [scheduleData, mapScheduleRows]);
+    const rows = mapScheduleRows(scheduleData?.fixedPointTimeTableDetails || []);
+    return rows.sort((a, b) => {
+      // Sort by fixedPointCode first
+      const fixedPointCompare = (a.fixedPoint || "").localeCompare(b.fixedPoint || "");
+      if (fixedPointCompare !== 0) return fixedPointCompare;
+      // Then sort by chronological day of week
+      const dayA = dayOrder[a.day?.toUpperCase()] || 8;
+      const dayB = dayOrder[b.day?.toUpperCase()] || 8;
+      return dayA - dayB;
+    });
+  }, [scheduleData, mapScheduleRows, dayOrder]);
 
   const fetchNextPage = () => {
     const newOffset = pageOffset + pageSize;
@@ -480,7 +493,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
             onPrevPage={fetchPrevPage}
             pageSizeLimit={pageSize}
             onSort={props.onSort}
-            disableSort={props.disableSort}
+            disableSort={true}
             sortParams={props.sortParams}
             totalRecords={scheduleData?.count || scheduleData?.totalCount || data?.[0]?.totalCount}
             showCSVExport={true}
