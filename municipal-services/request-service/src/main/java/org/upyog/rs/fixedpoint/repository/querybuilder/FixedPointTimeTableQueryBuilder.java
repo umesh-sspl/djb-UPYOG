@@ -144,4 +144,27 @@ public class FixedPointTimeTableQueryBuilder {
 
         return finalQuery;
     }
+
+    public boolean existsByFixedPointCodeAndDayAndArrivalTime(String fixedPointCode,
+                                                              String day,
+                                                              String arrivalTimeToFpl) {
+        String query = "SELECT COUNT(1) FROM eg_fixed_point_time_table " +
+                "WHERE fixed_point_code = ? AND day = ? AND arrival_time_to_fpl = ?";
+        log.info("FixedPointTimeTable :: existsByFixedPointCodeAndDayAndArrivalTime :: " +
+                        "Checking fixedPointCode: {}, day: {}, arrivalTime: {}",
+                fixedPointCode, day, arrivalTimeToFpl);
+        Integer count = jdbcTemplate.queryForObject(query, Integer.class,
+                fixedPointCode, day, arrivalTimeToFpl);
+        return count != null && count > 0;
+    }
+
+    public boolean existsByFixedPointCodeAndDay(String fixedPointCode, String day) {
+        String query = "SELECT COUNT(1) FROM eg_fixed_point_time_table " +
+                "WHERE fixed_point_code = ? AND day = ?";
+        log.info("FixedPointTimeTable :: existsByFixedPointCodeAndDay :: " +
+                "Checking fixedPointCode: {}, day: {}", fixedPointCode, day);
+        Integer count = jdbcTemplate.queryForObject(query, Integer.class, fixedPointCode, day);
+        return count != null && count > 0;
+    }
+
 }
