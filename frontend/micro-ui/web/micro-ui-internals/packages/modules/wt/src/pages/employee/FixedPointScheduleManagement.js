@@ -5,6 +5,31 @@ import { Card, Dropdown, SubmitBar, Toast, CardLabel, Label } from "@djb25/digit
 import AddTripModal from "../../components/AddTripModal";
 import ApplicationTable from "../../components/inbox/ApplicationTable";
 
+const convertTo12Hour = (time24) => {
+  if (!time24) return time24;
+  if (time24.includes("AM") || time24.includes("PM")) return time24;
+  const parts = time24.split(":");
+  if (parts.length < 2) return time24;
+  let h = parseInt(parts[0], 10);
+  const m = parts[1];
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  const strHours = h < 10 ? `0${h}` : h;
+  return `${strHours}:${m} ${ampm}`;
+};
+
+const convertTo24Hour = (time12) => {
+  if (!time12) return time12;
+  const match = time12.match(/^(\d{2}):(\d{2})\s?(AM|PM)$/i);
+  if (!match) return time12;
+  let [_, hours, minutes, ampm] = match;
+  hours = parseInt(hours, 10);
+  if (ampm.toUpperCase() === "PM" && hours < 12) hours += 12;
+  if (ampm.toUpperCase() === "AM" && hours === 12) hours = 0;
+  const strHours = hours < 10 ? `0${hours}` : hours;
+  return `${strHours}:${minutes}`;
+};
+
 const FixedPointScheduleManagement = ({ ...props }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -148,6 +173,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
         vehicle: item.vehicleId,
         active: item.isEnable ? "Y" : "N",
         totalCount: item.totalCount,
+        fillingPointId: item.fillingPointId,
       })),
     []
   );
@@ -157,15 +183,22 @@ const FixedPointScheduleManagement = ({ ...props }) => {
   }, [scheduleData, mapScheduleRows]);
 
   const fetchNextPage = () => {
-    setPageOffset((prevState) => prevState + pageSize);
+    const newOffset = pageOffset + pageSize;
+    setPageOffset(newOffset);
+    setFilters((prev) => ({ ...prev, offset: newOffset }));
   };
 
   const fetchPrevPage = () => {
-    setPageOffset((prevState) => prevState - pageSize);
+    const newOffset = Math.max(0, pageOffset - pageSize);
+    setPageOffset(newOffset);
+    setFilters((prev) => ({ ...prev, offset: newOffset }));
   };
 
   const handlePageSizeChange = (e) => {
-    setPageSize(Number(e.target.value));
+    const newPageSize = Number(e.target.value);
+    setPageSize(newPageSize);
+    setPageOffset(0);
+    setFilters((prev) => ({ ...prev, limit: newPageSize, offset: 0 }));
   };
 
   const handleSearch = (customFilters = null, offset = null) => {
@@ -176,14 +209,8 @@ const FixedPointScheduleManagement = ({ ...props }) => {
     };
     const newOffset = offset !== null ? offset : 0;
     if (offset === null) setPageOffset(0);
-    setFilters({ ...searchFilters, limit: pageSize, offset: newOffset });
+    setFilters((prev) => ({ ...searchFilters, limit: prev.limit, offset: newOffset }));
   };
-
-  React.useEffect(() => {
-    if (pageOffset !== 0) {
-      handleSearch(null, pageOffset);
-    }
-  }, [pageOffset, pageSize]);
 
   const columns = React.useMemo(
     () => [
@@ -416,7 +443,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
             </button>
           ))}
         </div>
-         <span>
+        <span>
           <button
             onClick={() => {
               setEditingRowIndex(null);
@@ -462,7 +489,7 @@ const FixedPointScheduleManagement = ({ ...props }) => {
             csvExportFileName="wt-fixed-point-schedule"
           />
         </div>
-       
+
       </Card>
       {showModal && (
         <AddTripModal
@@ -474,101 +501,113 @@ const FixedPointScheduleManagement = ({ ...props }) => {
           initialValues={
             editingRowIndex !== null
               ? {
-                  scheduleId: data[editingRowIndex].scheduleId,
-                  fixedPointCode: data[editingRowIndex].fixedPoint,
-                  fixedPointId: data[editingRowIndex].fixedPointId,
-                  day: [{ label: t(data[editingRowIndex].day), value: data[editingRowIndex].day }],
+                scheduleId: data[editingRowIndex].scheduleId,
+                fixedPointCode: data[editingRowIndex].fixedPoint,
+                fixedPointId: data[editingRowIndex].fixedPointId,
+                fillingPointCode: data[editingRowIndex].fillingPointId,
+                day: [{ label: t(data[editingRowIndex].day), value: data[editingRowIndex].day }],
 
-                  frequencyNo: data[editingRowIndex].freq,
-                  arrivalTimeFpl: data[editingRowIndex].arrToFpl,
-                  departureTimeFpl: data[editingRowIndex].depFromFpl,
-                  arrivalFixedPoint: data[editingRowIndex].arrAtFixedPoint,
-                  departureFixedPoint: data[editingRowIndex].depAtFixedPoint,
-                  returnFpl: data[editingRowIndex].returnToFpl,
-                  volume: data[editingRowIndex].volume,
-                  vehicleId: data[editingRowIndex].vehicle,
-                  active: {
-                    label: data[editingRowIndex].active === "Y" ? t("YES") : t("NO"),
-                    value: data[editingRowIndex].active === "Y" ? "Yes" : "No",
-                  },
-                }
+                frequencyNo: data[editingRowIndex].freq,
+                arrivalTimeFpl: convertTo24Hour(data[editingRowIndex].arrToFpl),
+                departureTimeFpl: convertTo24Hour(data[editingRowIndex].depFromFpl),
+                arrivalFixedPoint: convertTo24Hour(data[editingRowIndex].arrAtFixedPoint),
+                departureFixedPoint: convertTo24Hour(data[editingRowIndex].depAtFixedPoint),
+                returnFpl: convertTo24Hour(data[editingRowIndex].returnToFpl),
+                volume: data[editingRowIndex].volume,
+                vehicleId: data[editingRowIndex].vehicle,
+                active: {
+                  label: data[editingRowIndex].active === "Y" ? t("YES") : t("NO"),
+                  value: data[editingRowIndex].active === "Y" ? "Yes" : "No",
+                },
+              }
               : null
           }
-         onSubmit={(formData) => {
-          console.log(formData,'dsdsdsdsdsdsds')
-  // 1. Process Days Array
-  const formDataDay = formData?.day;
-  let daysArr = [];
-  if (Array.isArray(formDataDay)) {
-    daysArr = formDataDay
-      .map((d) => (typeof d === "string" ? d : d?.value || d))
-      .filter((d) => d && d !== "WT_SELECT_ALL");
-  } else if (formDataDay) {
-    const val = formDataDay?.value || formDataDay;
-    if (val && val !== "WT_SELECT_ALL") daysArr = [val];
-  }
+          onSubmit={(formData) => {
+            console.log(formData, 'dsdsdsdsdsdsds')
+            // 1. Process Days Array
+            const formDataDay = formData?.day;
+            let daysArr = [];
+            if (Array.isArray(formDataDay)) {
+              daysArr = formDataDay
+                .map((d) => (typeof d === "string" ? d : d?.value || d))
+                .filter((d) => d && d !== "WT_SELECT_ALL");
+            } else if (formDataDay) {
+              const val = formDataDay?.value || formDataDay;
+              if (val && val !== "WT_SELECT_ALL") daysArr = [val];
+            }
 
-  // 2. Get reference to existing data if editing
-  const existingData = editingRowIndex !== null ? data[editingRowIndex] : {};
+            // 2. Get reference to existing data if editing
+            const existingData = editingRowIndex !== null ? data[editingRowIndex] : {};
 
-  const isFormActive = formData.active?.value === "Yes" || formData.active === "Yes" || formData.active === true;
-  const isExistingActive = existingData?.active === "Y";
-  const finalActiveStatus = formData.active !== undefined ? isFormActive : (editingRowIndex !== null ? isExistingActive : true);
+            const isFormActive = formData.active?.value === "Yes" || formData.active === "Yes" || formData.active === true;
+            const isExistingActive = existingData?.active === "Y";
+            const finalActiveStatus = formData.active !== undefined ? isFormActive : (editingRowIndex !== null ? isExistingActive : true);
 
-  // 3. Construct the exact fixedPointDetails object structure
-  const fixedPointDetails = {
-    // Use formData (from modal) OR fallback to existing row data
-    system_assigned_schedule_id: formData.scheduleId || existingData.scheduleId || null,
-    fixed_point_code: formData.fixedPointId || formData.fixedPointCode || "",
-    fillingPointId: formData.fillingPointCode || null, 
-    day: daysArr.map((d) => d.toUpperCase()),
-    trip_no: Number(formData.frequencyNo) || 1,
-    arrival_time_to_fpl: formData.arrivalTimeFpl,
-    departure_time_from_fpl: formData.departureTimeFpl,
-    arrival_time_delivery_point: formData.arrivalFixedPoint,
-    departure_time_delivery_point: formData.departureFixedPoint,
-    time_of_arriving_back_fpl_after_delivery: formData.returnFpl,
-    volume_water_tobe_delivery: formData.volume,
-    active: finalActiveStatus,
-    is_enable: finalActiveStatus,
-    remarks: formData.remarks || "",
-    vehicle_id: formData.vehicleId || existingData.vehicle || null,
-    // Safely include audit_details if they exist in the original raw data
-    audit_details: scheduleData?.fixedPointTimeTableDetails?.[editingRowIndex]?.auditDetails || null
-  };
+            // 3. Construct the exact fixedPointDetails object structure
+            const fixedPointDetails = {
+              // Use formData (from modal) OR fallback to existing row data
+              system_assigned_schedule_id: formData.scheduleId || existingData.scheduleId || null,
+              fixed_point_code: formData.fixedPointId || formData.fixedPointCode || "",
+              fillingPointId: formData.fillingPointCode || formData.fillingPointId || null,
+              day: daysArr.map((d) => d.toUpperCase()),
+              trip_no: Number(formData.frequencyNo) || 1,
+              arrival_time_to_fpl: convertTo12Hour(formData.arrivalTimeFpl),
+              departure_time_from_fpl: convertTo12Hour(formData.departureTimeFpl),
+              arrival_time_delivery_point: convertTo12Hour(formData.arrivalFixedPoint),
+              departure_time_delivery_point: convertTo12Hour(formData.departureFixedPoint),
+              time_of_arriving_back_fpl_after_delivery: convertTo12Hour(formData.returnFpl),
+              volume_water_tobe_delivery: formData.volume,
+              active: finalActiveStatus,
+              is_enable: finalActiveStatus,
+              remarks: formData.remarks || "",
+              vehicle_id: formData.vehicleId || existingData.vehicle || null,
+              // Safely include audit_details if they exist in the original raw data
+              audit_details: scheduleData?.fixedPointTimeTableDetails?.[editingRowIndex]?.auditDetails || null
+            };
 
-  if (!fixedPointDetails.system_assigned_schedule_id) delete fixedPointDetails.system_assigned_schedule_id;
-  if (!fixedPointDetails.vehicle_id) delete fixedPointDetails.vehicle_id;
-  if (!fixedPointDetails.audit_details) delete fixedPointDetails.audit_details;
+            if (!fixedPointDetails.system_assigned_schedule_id) delete fixedPointDetails.system_assigned_schedule_id;
+            if (!fixedPointDetails.vehicle_id) delete fixedPointDetails.vehicle_id;
+            if (!fixedPointDetails.audit_details) delete fixedPointDetails.audit_details;
 
-  // 4. Prepare Payload Wrapper
-  const payload = editingRowIndex !== null 
-    ? { fixedPointDetailsList: [fixedPointDetails] } 
-    : { fixedPointDetails };
+            // 4. Prepare Payload Wrapper
+            const payload = editingRowIndex !== null
+              ? { fixedPointDetailsList: [fixedPointDetails] }
+              : { fixedPointDetails };
 
-  // 5. API Call logic
-  const mutationOptions = {
-    onError: (error) => {
-      setToast({ key: "error", label: error?.response?.data?.Errors?.[0]?.message || "Operation Failed" });
-      setTimeout(closeToast, 5000);
-    },
-    onSuccess: () => {
-      setToast({ label: editingRowIndex !== null ? t("WT_SCHEDULE_UPDATE_SUCCESS") : t("WT_SCHEDULE_CREATE_SUCCESS") });
-      setShowModal(false);
-      setEditingRowIndex(null);
-      queryClient.invalidateQueries(["FIXED_POINT_SCHEDULE_SEARCH", tenantId]);
-    },
-  };
+            // 5. API Call logic
+            const mutationOptions = {
+              onError: (error) => {
+                const errMsg = error?.response?.data?.error?.message || error?.response?.data?.Errors?.[0]?.message || error?.message || "Operation Failed";
+                setToast({ key: "error", label: errMsg });
+                setTimeout(closeToast, 5000);
+              },
+              onSuccess: (response) => {
+                if (response?.error || response?.data?.error) {
+                  const errMsg = response?.error?.message || response?.data?.error?.message || "Operation Failed";
+                  setToast({ key: "error", label: errMsg });
+                  setTimeout(closeToast, 5000);
+                } else {
+                  setToast({ label: editingRowIndex !== null ? t("WT_SCHEDULE_UPDATE_SUCCESS") : t("WT_SCHEDULE_CREATE_SUCCESS") });
+                  setShowModal(false);
+                  setEditingRowIndex(null);
+                  queryClient.invalidateQueries(["FIXED_POINT_SCHEDULE_SEARCH", tenantId]);
+                }
+              },
+            };
 
-  if (editingRowIndex !== null) {
-    updateSchedule(payload, mutationOptions);
-  } else {
-    createSchedule(payload, mutationOptions);
-  }
-}}
+            if (editingRowIndex !== null) {
+              updateSchedule(payload, mutationOptions);
+            } else {
+              createSchedule(payload, mutationOptions);
+            }
+          }}
         />
       )}
-      {toast && <Toast error={toast.key === "error"} label={toast.label} onClose={closeToast} />}
+      {toast && (
+        <div style={{ position: "fixed", zIndex: 300000 }}>
+          <Toast error={toast.key === "error"} label={toast.label} onClose={closeToast} />
+        </div>
+      )}
     </div>
   );
 };
