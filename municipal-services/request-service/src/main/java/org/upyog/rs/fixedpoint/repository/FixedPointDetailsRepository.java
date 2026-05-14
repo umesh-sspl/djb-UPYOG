@@ -16,7 +16,23 @@ public interface FixedPointDetailsRepository  {
     void updateFixedPointDetails(FixedPointDetails fixedPointDetailsList, RequestInfo requestInfo);
 
     Integer getCount(FixedPointSearchCriteria criteria);
-     List<FixedPointTimeTableDetail> getDetails(FixedPointSearchCriteria criteria);
+
+    List<FixedPointTimeTableDetail> getDetails(FixedPointSearchCriteria criteria);
 
 
+    /**
+     * Scheduler-specific method.
+     *
+     * Fetches active timetable rows for:
+     * - tenant
+     * - day of week
+     * - optional filling point
+     *
+     * One timetable row = one booking.
+     */
+    List<FixedPointTimeTableDetail> getScheduledFixedPointsForScheduler(
+            String tenantId,
+            String dayOfWeek,
+            String fillingPointId
+    );
 }
