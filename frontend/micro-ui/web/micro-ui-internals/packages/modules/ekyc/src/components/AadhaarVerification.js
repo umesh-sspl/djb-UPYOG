@@ -1,19 +1,16 @@
 import React, { useState, Fragment } from "react";
-import { CardLabel, TextInput, Dropdown, UploadFile, Toast, FormStep } from "@djb25/digit-ui-react-components";
+import { CardLabel, TextInput, Dropdown, UploadFile, FormStep } from "@djb25/digit-ui-react-components";
 
-const ConsumerDetails = ({ config, onSelect }) => {
+const AadhaarVerification = ({ config, onSelect }) => {
   // 🔹 STATES
   const [kno, setKno] = useState("");
   const [consumerType, setConsumerType] = useState(null);
   const [occupantType, setOccupantType] = useState(null);
   const [categoryType, setCategoryType] = useState(null);
-
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
-
   const [gender, setGender] = useState(null);
-
   const [mobile, setMobile] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
@@ -34,9 +31,7 @@ const ConsumerDetails = ({ config, onSelect }) => {
   const [contactPerson, setContactPerson] = useState("");
   const [entityName, setEntityName] = useState("");
 
-  // Identity
-
-  const [toast, setToast] = useState(null);
+  const [, setToast] = useState(null);
 
   // 🔹 OPTIONS
   const consumerTypeOptions = [{ name: "Individual" }, { name: "Govt" }, { name: "Company_Society_Org" }];
@@ -75,6 +70,7 @@ const ConsumerDetails = ({ config, onSelect }) => {
     if (occupantType?.name === "Tenanted" && !documentId && !ownerMobile) return false;
 
     return false;
+    // return consent;
   };
 
   // 🔹 SUBMIT
@@ -89,6 +85,7 @@ const ConsumerDetails = ({ config, onSelect }) => {
       consumerType: consumerType?.name,
       occupantType: occupantType?.name,
       categoryType: categoryType?.name,
+
       firstName,
       middleName,
       lastName,
@@ -231,11 +228,9 @@ const ConsumerDetails = ({ config, onSelect }) => {
             </div>
           </Fragment>
         )}
-
-        {toast && <Toast label={toast.message} error={toast.type === "error"} onClose={() => setToast(null)} />}
       </FormStep>
     </Fragment>
   );
 };
 
-export default ConsumerDetails;
+export default AadhaarVerification;
