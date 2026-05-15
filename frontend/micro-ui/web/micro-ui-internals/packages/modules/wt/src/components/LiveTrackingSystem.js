@@ -17,13 +17,46 @@ L.Icon.Default.mergeOptions({
 });
 
 // Create custom icons
-const onlineIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
+const onlineIcon = L.divIcon({
+  className: "blinking-green-dot",
+  html: `
+    <div style="position: relative;">
+      <div style="
+        width: 14px;
+        height: 14px;
+        background: #4caf50;
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+        z-index: 2;
+        position: relative;
+        animation: blink 1s infinite ease-in-out;
+      "></div>
+      <div style="
+        position: absolute;
+        top: -6px;
+        left: -6px;
+        width: 26px;
+        height: 26px;
+        background: rgba(76, 175, 80, 0.3);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+        z-index: 1;
+      "></div>
+      <style>
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        @keyframes pulse {
+          0% { transform: scale(0.6); opacity: 1; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+      </style>
+    </div>
+  `,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 });
 
 const offlineIcon = new L.Icon({
@@ -142,6 +175,7 @@ const useRoute = (start, end) => {
   return { routeData, loading, error };
 };
 
+
 // Component to display route on map
 const RouteLayer = ({ start, end, color = "#2196f3", weight = 6 }) => {
   const { t } = useTranslation();
@@ -151,6 +185,7 @@ const RouteLayer = ({ start, end, color = "#2196f3", weight = 6 }) => {
 
   if (loading) {
     return (
+
       <div
         style={{
           position: "absolute",
@@ -190,84 +225,17 @@ const RouteLayer = ({ start, end, color = "#2196f3", weight = 6 }) => {
 
   if (!routeData) return null;
 
-  // Pipeline visualization with segments
-  const renderRouteSegments = () => {
-    if (!routeData.legs) return null;
-
-    const segments = [];
-    routeData.legs.forEach((leg, legIndex) => {
-      leg.steps.forEach((step, stepIndex) => {
-        const stepCoordinates = step.geometry.coordinates.map((coord) => [coord[1], coord[0]]);
-
-        // Different colors for different maneuver types
-        let segmentColor = color;
-
-        if (step.maneuver.type === "turn") {
-          segmentColor = "#ff9800"; // Orange for turns
-        } else if (step.maneuver.type === "straight") {
-          segmentColor = "#4caf50"; // Green for straight
-        } else if (step.maneuver.type === "arrive") {
-          segmentColor = "#f44336"; // Red for arrival
-        }
-
-        // Add pipeline effect with multiple lines
-        segments.push(
-          <React.Fragment key={`${legIndex}-${stepIndex}`}>
-            {/* Outer glow effect */}
-            <Polyline positions={stepCoordinates} color={segmentColor} weight={weight + 2} opacity={0.3} lineCap="round" />
-            {/* Main route line */}
-            <Polyline
-              positions={stepCoordinates}
-              color={segmentColor}
-              weight={weight}
-              opacity={0.9}
-              lineCap="round"
-              eventHandlers={{
-                mouseover: () => setSelectedStep(step),
-                mouseout: () => setSelectedStep(null),
-                click: () => setShowSteps(!showSteps),
-              }}
-            />
-            {/* Direction indicators (dots) */}
-            {stepCoordinates.map((coord, idx) => {
-              if (idx % 5 === 0 && idx < stepCoordinates.length - 1) {
-                const nextCoord = stepCoordinates[idx + 1];
-                const angle = (Math.atan2(nextCoord[0] - coord[0], nextCoord[1] - coord[1]) * 180) / Math.PI;
-
-                return (
-                  <Marker
-                    key={`dot-${legIndex}-${stepIndex}-${idx}`}
-                    position={coord}
-                    icon={L.divIcon({
-                      className: "direction-dot",
-                      html: `<div style="
-                        width: 6px;
-                        height: 6px;
-                        background: white;
-                        border: 2px solid ${segmentColor};
-                        border-radius: 50%;
-                        transform: rotate(${angle}deg);
-                      "></div>`,
-                      iconSize: [10, 10],
-                      iconAnchor: [5, 5],
-                    })}
-                  />
-                );
-              }
-              return null;
-            })}
-          </React.Fragment>
-        );
-      });
-    });
-
-    return segments;
-  };
 
   return (
     <React.Fragment>
-      {/* Pipeline route with segments */}
-      {renderRouteSegments()}
+      {/* Clean solid blue route line */}
+      <Polyline
+        positions={routeData.coordinates}
+        color="#1F5FA8"
+        weight={5}
+        opacity={0.8}
+        lineJoin="round"
+      />
 
       {/* Route information panel */}
       {(selectedStep || showSteps) && (
@@ -384,48 +352,10 @@ const RouteLayer = ({ start, end, color = "#2196f3", weight = 6 }) => {
           )}
         </div>
       )}
-
-      {/* Distance markers along route */}
-      {routeData.distance > 1000 && routeData.coordinates && <RouteMarkers coordinates={routeData.coordinates} totalDistance={routeData.distance} />}
     </React.Fragment>
   );
 };
 
-// Component to show distance markers along the route
-const RouteMarkers = ({ coordinates, totalDistance }) => {
-  const markers = [];
-  const interval = 1000; // Show marker every 1km
-
-  for (let i = interval; i < totalDistance; i += interval) {
-    const fraction = i / totalDistance;
-    const index = Math.floor(coordinates.length * fraction);
-    if (index < coordinates.length) {
-      markers.push(
-        <Marker
-          key={`dist-${i}`}
-          position={coordinates[index]}
-          icon={L.divIcon({
-            className: "distance-marker",
-            html: `<div style="
-              background: white;
-              border: 2px solid #1F5FA8;
-              border-radius: 12px;
-              padding: 2px 6px;
-              font-size: 10px;
-              font-weight: bold;
-              color: #1F5FA8;
-              white-space: nowrap;
-            ">${(i / 1000).toFixed(0)} km</div>`,
-            iconSize: [40, 20],
-            iconAnchor: [20, 10],
-          })}
-        />
-      );
-    }
-  }
-
-  return <React.Fragment>{markers}</React.Fragment>;
-};
 
 const StatusBadge = ({ isOnline }) => (
   <span
@@ -514,8 +444,8 @@ const DriverCard = ({ driver, isSelected, onClick, vendorList }) => {
     <div
       onClick={onClick}
       style={{
-        padding: "16px",
-        borderRadius: "12px",
+        padding: "10px",
+        borderRadius: "8px",
         background: isSelected ? "#f0f4ff" : "white",
         border: `2px solid ${isSelected ? "#1F5FA8" : "#f0f0f0"}`,
         cursor: "pointer",
@@ -523,7 +453,7 @@ const DriverCard = ({ driver, isSelected, onClick, vendorList }) => {
         transition: "all 0.2s ease",
       }}
     >
-      <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+      <div style={{ display: "flex", gap: "12px", marginBottom: "8px" }}>
         <div
           style={{
             width: "40px",
@@ -564,7 +494,7 @@ const DriverCard = ({ driver, isSelected, onClick, vendorList }) => {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: "600", color: "#aaa", marginBottom: "2px" }}>{t("CURRENT_LOCATION")}</div>
           <div style={{ fontSize: "11px", fontWeight: "700", color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -614,7 +544,7 @@ export default function LiveTrackingSystem() {
 
   const { data: vendorOptions } = Digit.Hooks.fsm.useVendorSearch({
     tenantId,
-    filters: { 
+    filters: {
       status: "ACTIVE",
       ...(selectedFillingPoint?.id ? { fillingPointId: selectedFillingPoint?.id } : {}),
     },
@@ -815,9 +745,9 @@ export default function LiveTrackingSystem() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "16px",
+          marginBottom: "12px",
           background: "white",
-          padding: "16px 24px",
+          padding: "12px 24px",
           borderRadius: "12px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
           border: "2px solid #1F5FA844",
@@ -835,7 +765,7 @@ export default function LiveTrackingSystem() {
                 gap: "6px",
                 background: "#e8f5e9",
                 color: "#2e7d32",
-                padding: "4px 12px",
+
                 borderRadius: "20px",
                 fontSize: "12px",
                 fontWeight: "700",
@@ -940,7 +870,7 @@ export default function LiveTrackingSystem() {
             <React.Fragment>
               <div
                 style={{
-                  padding: "20px",
+                  padding: "12px",
                   background: "white",
                   borderRadius: "12px",
                   display: "flex",
@@ -950,7 +880,7 @@ export default function LiveTrackingSystem() {
                   border: "1px solid #e0e0e0",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <h3 style={{ margin: 0, fontSize: "14px", fontWeight: "700", color: "#888", letterSpacing: "1px" }}>
                     {t("WT_FILTER_FLEET")}
                   </h3>
@@ -974,7 +904,7 @@ export default function LiveTrackingSystem() {
                   </button>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "20px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <label style={{ fontSize: "12px", fontWeight: "700", color: "#888" }}>{t("WT_SELECT_FILLING_POINT")}</label>
                     <Dropdown
@@ -1025,7 +955,7 @@ export default function LiveTrackingSystem() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                   <div style={{ display: "flex", gap: "8px" }}>
                     {["all", "online", "offline"].map((filter) => (
                       <button
@@ -1113,8 +1043,12 @@ export default function LiveTrackingSystem() {
             style={{ height: "100%", width: "100%" }}
             zoomControl={false}
           >
-            <TileLayer
+            {/* <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            /> */}
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
 

@@ -29,7 +29,7 @@
     "@djb25/digit-ui-react-components": "1.0.0",
     "@djb25/digit-ui-module-pgr": "1.0.2",
     "@djb25/digit-ui-module-vendor": "1.0.33",
-    "@djb25/digit-ui-module-wt": "1.0.50",
+    "@djb25/digit-ui-module-wt": "1.0.52",
     "@djb25/digit-ui-module-asset": "1.0.6",
     "@djb25/digit-ui-module-ws": "1.0.24",
     "babel-loader": "9.1.2",

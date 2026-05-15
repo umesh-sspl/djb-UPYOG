@@ -2,11 +2,14 @@ package org.egov.vendor.repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.validation.Valid;
 
 import org.egov.tracer.model.CustomException;
 import org.egov.vendor.config.VendorConfiguration;
+import org.egov.vendor.driver.web.model.Driver;
+import org.egov.vendor.driver.web.model.DriverRequest;
 import org.egov.vendor.producer.Producer;
 import org.egov.vendor.repository.querybuilder.VendorQueryBuilder;
 import org.egov.vendor.repository.rowmapper.VendorRowMapper;
@@ -15,11 +18,13 @@ import org.egov.vendor.web.model.VendorRequest;
 import org.egov.vendor.web.model.VendorResponse;
 import org.egov.vendor.web.model.VendorSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.stereotype.Repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 @Repository
 @Slf4j
@@ -48,9 +53,94 @@ public class VendorRepository {
 		producer.push(configuration.getUpdateTopic(), vendorRequest);
 	}
 
+
+	public void updateVendorDriver(VendorRequest vendorRequest) {
+		producer.push(configuration.getSaveVendorDriverMappingTopic(), vendorRequest);
+	}
+
+
 	public void updateVendorVehicleDriver(VendorRequest vendorRequest) {
 		producer.push(configuration.getSaveVendorVehicleDriverTopic(), vendorRequest);
 	}
+	private static final String INSERT_VENDOR_DRIVER_HISTORY =
+			"INSERT INTO eg_vendor_driver_history " +
+					"(id, vendor_id, driver_id, vendordriverstatus, createdby, createdtime, lastmodifiedby, lastmodifiedtime) " +
+					"SELECT ?, vendor_id, driver_id, vendordriverstatus, ?, ?, ?, ? " +
+					"FROM eg_vendor_driver " +
+					"WHERE driver_id = ?";
+
+
+	private static final String CHECK_VENDOR_DRIVER_MAPPING =
+			"SELECT COUNT(*) FROM eg_vendor_driver WHERE driver_id = ?";
+
+
+	private static final String DELETE_VENDOR_DRIVER_MAPPING =
+			"DELETE FROM eg_vendor_driver WHERE driver_id = ?";
+
+
+	private static final String INSERT_VENDOR_DRIVER_MAPPING =
+			"INSERT INTO eg_vendor_driver(vendor_id, driver_id, vendordriverstatus) " +
+					"VALUES (?, ?, ?)";
+
+	private static final String GET_VENDOR_BY_DRIVER =
+			"SELECT vendor_id FROM eg_vendor_driver WHERE driver_id = ?";
+
+	public boolean  updateVendorDriverHistory(VendorRequest vendorRequest) {
+
+		boolean mappingDeleted = false;
+		Vendor vendor = vendorRequest.getVendor();
+		if (vendor == null || CollectionUtils.isEmpty(vendor.getDrivers())) {
+			return false;
+		}
+
+		for (Driver driver : vendor.getDrivers()) {
+			if (driver == null || driver.getId() == null) {
+				continue;
+			}
+
+			String existingVendorId = null;
+
+			try {
+				existingVendorId = jdbcTemplate.queryForObject(
+						GET_VENDOR_BY_DRIVER,
+						String.class,
+						driver.getId()
+				);
+			} catch (EmptyResultDataAccessException e) {
+				existingVendorId = null;
+			}
+
+			// No existing mapping, no history/delete needed
+			if (existingVendorId == null) {
+				continue;
+			}
+
+			// Same vendor already mapped, no history/delete/insert needed
+			if (existingVendorId.equals(vendor.getId())) {
+				continue;
+			}
+
+			// Different vendor mapped, save old mapping in history
+			jdbcTemplate.update(
+					INSERT_VENDOR_DRIVER_HISTORY,
+					UUID.randomUUID().toString(),
+					vendor.getAuditDetails().getCreatedBy(),
+					vendor.getAuditDetails().getCreatedTime(),
+					vendor.getAuditDetails().getLastModifiedBy(),
+					vendor.getAuditDetails().getLastModifiedTime(),
+					driver.getId()
+			);
+
+			// Delete old mapping
+			jdbcTemplate.update(
+					DELETE_VENDOR_DRIVER_MAPPING,
+					driver.getId()
+			);
+
+			mappingDeleted = true;
+		}
+		return mappingDeleted;
+}
 
 	public VendorResponse getVendorData(VendorSearchCriteria criteria) {
 		List<Object> preparedStmtList = new ArrayList<>();
@@ -96,6 +186,8 @@ public class VendorRepository {
 				preparedStmtList.toArray(), String.class);
 		return vendorIds;
 	}
+
+
 
 	public List<String> getVendorWithDrivers(VendorSearchCriteria vendorSearchCriteria) {
 		List<String> vendorIds = null;

@@ -335,38 +335,9 @@ const AddFixFillAddress = ({ t, config, formData, onSelect, isEdit, userDetails 
   return (
     <CollapsibleCardPage title={t("WT_ADDRESS_DETAILS")} defaultOpen={true}>
       <div className="formcomposer-section-grid">
-        {/* Existing Address */}
-        {userDetails?.addresses?.length > 0 && (
-          <div>
-            <CardLabel>{t("COMMON_ADDRESS_TYPE")}</CardLabel>
-            <Dropdown
-              selected={selectedAddress}
-              select={setSelectedAddress}
-              option={userDetails.addresses || []}
-              optionKey="address"
-              t={t}
-              style={{ width: "100%" }}
-            />
-          </div>
-        )}
+       
 
-        {/* Address Type */}
-        <div>
-          <CardLabel>{t("COMMON_ADDRESS_TYPE")}</CardLabel>
-          <Dropdown
-            selected={addressType}
-            select={setAddressType}
-            option={availableAddressTypeOptions || []}
-            optionKey="i18nKey"
-            t={t}
-            style={{ width: "100%" }}
-          />
-        </div>
 
-        <div>
-          <CardLabel>{t("CITY")}</CardLabel>
-          <Dropdown selected={city} select={setCity} option={allCities || []} optionKey="i18nKey" t={t} disable={true} />
-        </div>
 
         <div style={{ position: "relative" }}>
           <CardLabel>{t("PINCODE")}</CardLabel>
