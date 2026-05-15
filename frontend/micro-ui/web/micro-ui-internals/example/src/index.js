@@ -36,7 +36,7 @@ import { EkycModule } from "@djb25/digit-ui-module-ekyc";
 // import {initCustomisationComponents} from "./customisations";
 
 import { PGRModule, PGRLinks } from "@djb25/digit-ui-module-pgr";
-import {RWHModule, RWHLinks, initRwhComponents} from "@djb25/digit-ui-module-rwh";
+import { RWHModule, RWHLinks, initRwhComponents, RwhComponents } from "@djb25/digit-ui-module-rwh";
 // import { Body, TopBar } from "@djb25/digit-ui-react-components";
 import "@djb25/digit-ui-css/dist/index.css";
 
@@ -181,6 +181,7 @@ const initDigitUI = () => {
     ...VENDORComponents,
     RWHModule,
     RWHLinks,
+    ...RwhComponents,
   });
 
   initFSMComponents();

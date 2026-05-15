@@ -75,7 +75,7 @@ import {
   VENDORModule,
 } from "@djb25/digit-ui-module-vendor";
 
-import { RWHModule, RWHLinks, initRwhComponents } from "@djb25/digit-ui-module-rwh";
+import { RWHModule, RWHLinks, initRwhComponents ,RwhComponents} from "@djb25/digit-ui-module-rwh";
 // import { initReportsComponents } from "@djb25/digit-ui-module-reports";
 
 initLibraries();
@@ -161,6 +161,7 @@ window.Digit.ComponentRegistryService.setupRegistry({
   ...VENDORComponents,
   RWHModule,
   RWHLinks,
+  ...RwhComponents,
 });
 
 initPGRComponents();
