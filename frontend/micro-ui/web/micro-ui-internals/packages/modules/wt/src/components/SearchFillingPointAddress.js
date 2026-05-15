@@ -267,6 +267,16 @@ const SearchFillingPointAddress = () => {
           accessor: (row) => row?.address?.locality || "NA",
           id: "locality",
         },
+        {
+          Header: t("WT_LATITUDE"),
+          accessor: (row) => row?.address?.latitude || "NA",
+          id: "latitude",
+        },
+        {
+          Header: t("WT_LONGITUDE"),
+          accessor: (row) => row?.address?.longitude || "NA",
+          id: "longitude",
+        },
 
         {
           Header: t("WT_FILLING_POINT"),
@@ -488,7 +498,7 @@ const SearchFillingPointAddress = () => {
       const resolvedTotal = Number(response?.Count ?? response?.count ?? response?.totalCount);
       totalCount = Number.isFinite(resolvedTotal) && resolvedTotal >= 0 ? resolvedTotal : rows.length;
 
-      if (!pageRows.length || pageRows.length < batchSize) {
+      if (!pageRows.length) {
         break;
       }
       offset += pageRows.length;
@@ -501,6 +511,10 @@ const SearchFillingPointAddress = () => {
     if (selectedTab === "FIXED_POINT") {
       return [
         {
+          Header: t("WT_FIXED_POINT_CODE"),
+          exportAccessor: (row) => row?.applicantDetail?.fixedPointId || "NA",
+        },
+        {
           Header: t("WT_APPLICANT_NAME"),
           exportAccessor: (row) => row?.applicantDetail?.name || "NA",
         },
@@ -511,6 +525,14 @@ const SearchFillingPointAddress = () => {
         {
           Header: t("WT_LOCALITY"),
           exportAccessor: (row) => row?.address?.locality || "NA",
+        },
+        {
+          Header: t("WT_LATITUDE"),
+          exportAccessor: (row) => row?.address?.latitude || "NA",
+        },
+        {
+          Header: t("WT_LONGITUDE"),
+          exportAccessor: (row) => row?.address?.longitude || "NA",
         },
         {
           Header: t("WT_FILLING_POINT"),
@@ -547,6 +569,10 @@ const SearchFillingPointAddress = () => {
 
     return [
       {
+        Header: t("WT_FILLING_POINT_CODE"),
+        exportAccessor: (row) => row?.fillingPointId || "NA",
+      },
+      {
         Header: t("WT_FILLING_POINT_NAME"),
         exportAccessor: (row) => row?.fillingPointName || "NA",
       },
@@ -555,12 +581,36 @@ const SearchFillingPointAddress = () => {
         exportAccessor: (row) => row?.aeName || "NA",
       },
       {
+        Header: t("WT_AE_MOBILE"),
+        exportAccessor: (row) => row?.aeMobile || "NA",
+      },
+      {
+        Header: t("WT_AE_EMAIL"),
+        exportAccessor: (row) => row?.aeEmail || "NA",
+      },
+      {
         Header: t("WT_JE_NAME"),
         exportAccessor: (row) => row?.jeName || "NA",
       },
       {
+        Header: t("WT_JE_MOBILE"),
+        exportAccessor: (row) => row?.jeMobile || "NA",
+      },
+      {
+        Header: t("WT_JE_EMAIL"),
+        exportAccessor: (row) => row?.jeEmail || "NA",
+      },
+      {
         Header: t("WT_EE_NAME"),
         exportAccessor: (row) => row?.eeName || "NA",
+      },
+      {
+        Header: t("WT_EE_MOBILE"),
+        exportAccessor: (row) => row?.eeMobile || "NA",
+      },
+      {
+        Header: t("WT_EE_EMAIL"),
+        exportAccessor: (row) => row?.eeEmail || "NA",
       },
       {
         Header: t("WT_LOCALITY"),
@@ -623,17 +673,17 @@ const SearchFillingPointAddress = () => {
               <TextInput value={searchValue} onChange={(e) => setSearchValue(e.target.value)} placeholder={t(placeholder)} />
             </div>
 
-          <div className="finance-mainlayout-col1">
-            <Label>{t("WT_MOBILE_NUMBER")}</Label>
-            <TextInput
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-              placeholder={t("WT_ENTER_MOBILE_NUMBER")}
-              validation={{
-                pattern: /^[6-9]\d{9}$/,
-              }}
-            />
-          </div>
+            <div className="finance-mainlayout-col1">
+              <Label>{t("WT_MOBILE_NUMBER")}</Label>
+              <TextInput
+                value={mobileNumber}
+                onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                placeholder={t("WT_ENTER_MOBILE_NUMBER")}
+                validation={{
+                  pattern: /^[6-9]\d{9}$/,
+                }}
+              />
+            </div>
 
             {selectedTab === "FIXED_POINT" && (
               <div className="finance-mainlayout-col1">
@@ -680,11 +730,11 @@ const SearchFillingPointAddress = () => {
       {/* 🔹 Table or Map */}
       {selectedTab === "VIEW_ON_MAP" ? (
         <Card>
-          <PointAddressMap 
-            fillingPoints={allFillingPoints} 
-            fixedPoints={allFixedPoints} 
+          <PointAddressMap
+            fillingPoints={allFillingPoints}
+            fixedPoints={allFixedPoints}
             isLoading={isAllFillingPointsLoading || isAllFixedPointsLoading}
-            t={t} 
+            t={t}
           />
         </Card>
       ) : (

@@ -60,7 +60,7 @@ const WorkflowTimeline = ({ workflowDetails, hideTimeline, setHideTimeline }) =>
         >
           {t("WORKFLOW_TIMELINE")}
         </CardSubHeader>
-        <button onClick={() => setHideTimeline(!hideTimeline)}>
+        {/* <button onClick={() => setHideTimeline(!hideTimeline)}>
           <svg
             className={`timeline-arrow ${hideTimeline ? "collapsed" : ""}`}
             width="20"
@@ -74,7 +74,7 @@ const WorkflowTimeline = ({ workflowDetails, hideTimeline, setHideTimeline }) =>
           >
             <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
           </svg>
-        </button>
+        </button> */}
       </div>
 
       <div className={hideTimeline ? "hidden-content" : "timeline-container2"}>

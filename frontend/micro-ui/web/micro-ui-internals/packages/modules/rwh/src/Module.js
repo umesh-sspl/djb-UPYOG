@@ -45,6 +45,12 @@ export const RWHLinks = ({ matchPath, userType }) => {
   return <CitizenHomeCard header={t("RWH_MODULE_NAME")} links={links} Icon={() => <DocumentIcon className="fill-path-primary-main" />} />;
 };
 
+export const RwhComponents = {
+  RWHCard,
+  RWHModule,
+  RWHLinks,
+};
+
 const componentsToRegister = {
   RWHModule,
   RWHCard,
@@ -56,5 +62,3 @@ export const initRwhComponents = () => {
     Digit.ComponentRegistryService.setComponent(key, value);
   });
 };
-
-export default RWHModule;
