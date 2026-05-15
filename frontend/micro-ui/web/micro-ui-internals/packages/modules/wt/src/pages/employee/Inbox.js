@@ -81,6 +81,11 @@ const Inbox = ({
       });
 
   useEffect(() => {
+    if (rest?.revalidate) rest?.revalidate();
+    if (rest?.refetch) rest?.refetch();
+  }, []);
+
+  useEffect(() => {
     setPageOffset(0);
   }, [searchParams]);
 
