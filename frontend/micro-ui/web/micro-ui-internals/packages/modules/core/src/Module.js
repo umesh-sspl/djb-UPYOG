@@ -2,7 +2,6 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Provider } from "react-redux";
 import { BrowserRouter as Router } from "react-router-dom";
-import { getI18n } from "react-i18next";
 import { Body, Loader } from "@djb25/digit-ui-react-components";
 import { DigitApp } from "./App";
 import SelectOtp from "./pages/citizen/Login/SelectOtp";
@@ -24,7 +23,6 @@ const DigitUIWrapper = ({ stateCode, enabledModules, moduleReducers }) => {
     return <Loader page={true} />;
   }
 
-  const i18n = getI18n();
   return (
     <Provider store={getStore(initData, moduleReducers(initData))}>
       <Router>
@@ -43,7 +41,6 @@ const DigitUIWrapper = ({ stateCode, enabledModules, moduleReducers }) => {
 };
 
 export const DigitUI = ({ stateCode, registry, enabledModules, moduleReducers }) => {
-  const userType = Digit.UserService.getType();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -62,8 +59,6 @@ export const DigitUI = ({ stateCode, registry, enabledModules, moduleReducers })
 
   const ComponentProvider = Digit.Contexts.ComponentProvider;
   const PrivacyProvider = Digit.Contexts.PrivacyProvider;
-
-  const DSO = Digit.UserService.hasAccess(["FSM_DSO"]);
 
   return (
     <div>
