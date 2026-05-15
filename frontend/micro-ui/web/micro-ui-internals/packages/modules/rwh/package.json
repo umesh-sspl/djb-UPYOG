@@ -1,13 +1,13 @@
 {
     "name": "@djb25/digit-ui-module-rwh",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Digit UI Module for RWH",
     "main": "dist/index.js",
     "module": "dist/index.modern.js",
     "source": "src/Module.js",
     "scripts": {
         "start": "microbundle-crl watch --no-compress --format modern,cjs",
-        "build": "microbundle-crl --compress --no-sourcemap --format cjs",
+        "build": "microbundle-crl --compress --no-sourcemap --format modern,cjs",
         "prepublish": "yarn build"
     },
     "keywords": [
