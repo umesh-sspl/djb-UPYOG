@@ -16,7 +16,7 @@ const allOptions = [
   { name: "Other", code: "OTHER", i18nKey: "COMMON_ADDRESS_TYPE_OTHER" },
 ];
 
-const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ...props }) => {
+const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, disable, ...props }) => {
   const { showZRO: configShowZRO, mappedZROLocation: configMappedZROLocation, hideNextButton: configHideNextButton } = config || {};
   const showZRO = props.showZRO !== undefined ? props.showZRO : configShowZRO;
   const mappedZROLocation = props.mappedZROLocation !== undefined ? props.mappedZROLocation : configMappedZROLocation;
@@ -101,6 +101,13 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
     control,
     formState: { errors },
   } = useForm();
+
+  useEffect(() => {
+    if (allCities?.length > 0 && !city) {
+      const delhi = allCities.find((c) => c.name?.toLowerCase() === "delhi" || c.code?.toLowerCase().includes("delhi") || c.i18nKey?.toLowerCase().includes("delhi"));
+      if (delhi) setCity(delhi);
+    }
+  }, [allCities, city]);
 
   const resolveNestedValue = (value, path) =>
     path.split(".").reduce((accumulator, currentKey) => {
@@ -321,15 +328,16 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
       zro,
       ...(config?.doorImage ? { doorImage, doorImageId } : {}),
     };
-    onSelect(config.key, { ...formData[config.key], ...addressStep }, false);
-    if (config === undefined) {
+    if (config?.key) {
+      onSelect(config.key, { ...formData[config.key], ...addressStep }, false);
+    } else {
       onSelect(addressStep);
     }
   };
   /* If `config` is undefined and all required address fields are filled, it creates an `addressStep` object
     containing the address details and calls the `onSelect` function with it.
    **/
-  const lastBroadcastRef = React.useRef(null);
+  const lastSentValue = React.useRef(null);
   useEffect(() => {
     const isEkyc = config?.doorImage;
     const addressStep = {
@@ -351,7 +359,12 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
       ...(isEkyc ? { doorImage, doorImageId } : {}),
     };
 
-    if (config === undefined) {
+    if (config?.key) {
+      if (JSON.stringify(lastSentValue.current) !== JSON.stringify(addressStep)) {
+        lastSentValue.current = addressStep;
+        onSelect(config.key, { ...addressStep, silent: true }, false);
+      }
+    } else if (config === undefined) {
       const mandatoryFields = isEkyc
         ? houseNo && locality && pincode && addressLine1 && streetName && latitude && longitude && doorImageId
         : houseNo && city && locality && pincode && addressLine1 && streetName && addressLine2 && latitude && longitude;
@@ -377,6 +390,8 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
     assembly,
     zro,
     doorImageId,
+    config?.key,
+    onSelect
   ]);
 
   useEffect(() => {
@@ -408,13 +423,13 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
     const hasErrors = Object.keys(errors).length > 0;
     if (lastErrorState.current !== hasErrors) {
       lastErrorState.current = hasErrors;
-      if (hasErrors && props.setError) {
+      if (hasErrors && props.setError && config?.key) {
         props.setError(config.key, { type: "custom", message: "Validation failed" });
-      } else if (props.clearErrors) {
+      } else if (props.clearErrors && config?.key) {
         props.clearErrors(config.key);
       }
     }
-  }, [errors, config.key, props.setError, props.clearErrors]);
+  }, [errors, config?.key, props.setError, props.clearErrors]);
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -470,8 +485,8 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         )}
 
         {showZRO && (
-          <LabelFieldPair>
-            <CardLabel className="card-label-smaller">
+          <div>
+            <CardLabel>
               {t("WS_ZRO_LOCATION")} <span className="check-page-link-button">*</span>
             </CardLabel>
             <div className="field">
@@ -484,7 +499,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
                   <Dropdown
                     className="form-field"
                     selected={zro}
-                    disable={false}
+                    disable={disable}
                     option={_mappedZROLocation}
                     errorStyle={!!getFieldError("zro")}
                     select={setZro}
@@ -496,7 +511,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
               />
               {getFieldError("zro") && <CardLabelError>{getFieldError("zro")?.message}</CardLabelError>}
             </div>
-          </LabelFieldPair>
+          </div>
         )}
         <div>
           <CardLabel>
@@ -506,7 +521,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             className="form-field"
             selected={addressType}
             select={setAddressType}
-            disable={isEdit}
+            disable={disable || isEdit}
             option={availableAddressTypeOptions}
             optionCardStyles={{ overflowY: "auto", maxHeight: "300px" }}
             optionKey="i18nKey"
@@ -531,6 +546,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
                   selected={city}
                   select={setCity}
                   option={allCities}
+                  disable={true}
                   optionCardStyles={{ overflowY: "auto", maxHeight: "300px" }}
                   optionKey="i18nKey"
                   t={t}
@@ -557,7 +573,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
                 setLatitude("");
                 setLongitude("");
                 setAddressLine1("");
-                setAddressLine2("");
+                // setAddressLine2("");
               }
               setPincode(newPin);
               setShowPincodeSuggestions(true);
@@ -569,6 +585,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             }}
             style={{ width: "100%" }}
             maxlength={6}
+            disabled={disable}
           />
           {showPincodeSuggestions && fetchedPincodes?.length > 0 && (
             <div
@@ -614,12 +631,12 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
               <Dropdown
                 className="form-field"
                 selected={locality}
+                disable={disable}
                 select={(val) => {
                   setLocality(val);
                   if (val?.latitude) setLatitude(val.latitude);
                   if (val?.longitude) setLongitude(val.longitude);
                   if (val?.localname) setAddressLine1(val.localname);
-                  if (val?.name) setAddressLine2(val.name);
                   if (val?.assembly) setAssembly(val.assembly);
                   if (val?.zone) setZone(val.zone);
                   if (val?.ward) {
@@ -638,7 +655,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         </div>
         <div>
           <CardLabel>
-            {`${t("HOUSE_NO")}`} <span className="check-page-link-button">*</span>
+            {`${t("HOUSE_NO")}`}
           </CardLabel>
           <TextInput
             t={t}
@@ -652,6 +669,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             onChange={(e) => {
               setHouseNo(e.target.value);
             }}
+            disabled={disable}
             ValidationRequired={true}
             validation={{
               isRequired: true,
@@ -663,7 +681,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         </div>
         <div>
           <CardLabel>
-            {`${t("STREET_NAME")}`} <span className="check-page-link-button">*</span>
+            {`${t("STREET_NAME")}`}
           </CardLabel>
           <TextInput
             t={t}
@@ -677,6 +695,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             onChange={(e) => {
               setstreetName(e.target.value);
             }}
+            disabled={disable}
             ValidationRequired={true}
             validation={{
               pattern: "^[a-zA-Z0-9 ,\\-]+$",
@@ -701,6 +720,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             onChange={(e) => {
               setAddressLine1(e.target.value);
             }}
+            disabled={disable}
             ValidationRequired={false}
             {...(validation = {
               isRequired: false,
@@ -713,7 +733,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         {!config?.doorImage && (
           <div>
             <CardLabel>
-              {`${t("ADDRESS_LINE2")}`} <span className="check-page-link-button">*</span>
+              {`${t("ADDRESS_LINE2")}`}
             </CardLabel>
             <TextInput
               t={t}
@@ -727,6 +747,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
               onChange={(e) => {
                 setAddressLine2(e.target.value);
               }}
+              disabled={disable}
               ValidationRequired={false}
               {...(validation = {
                 isRequired: false,
@@ -758,7 +779,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
 
         <div>
           <CardLabel>
-            {`${t("LATITUDE")}`} <span className="check-page-link-button">*</span>
+            {`${t("LATITUDE")}`}
           </CardLabel>
 
           <TextInput
@@ -770,12 +791,13 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             onChange={(e) => {
               setLatitude(e.target.value);
             }}
+            disabled={disable}
             style={{ width: "100%" }}
             placeholder="Enter latitude (e.g. 28.6139)"
             ValidationRequired={true}
             validation={{
-              required: true,
-              pattern: "^[0-9]{6}$",
+              required: false,
+              pattern: "^-?[0-9]+(?:\\.[0-9]+)?$",
               type: "number",
               title: t("SV_ADDRESS_PINCODE_INVALID"),
             }}
@@ -786,7 +808,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
 
         <div>
           <CardLabel>
-            {`${t("LONGITUDE")}`} <span className="check-page-link-button">*</span>
+            {`${t("LONGITUDE")}`}
           </CardLabel>
 
           <TextInput
@@ -798,12 +820,13 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             onChange={(e) => {
               setLongitude(e.target.value);
             }}
+            disabled={disable}
             style={{ width: "100%" }}
             placeholder="Enter longitude (e.g. 28.6139)"
             ValidationRequired={true}
             validation={{
-              required: true,
-              pattern: "^[0-9]{6}$",
+              required: false,
+              pattern: "^-?[0-9]+(?:\\.[0-9]+)?$",
               type: "number",
               title: t("SV_ADDRESS_PINCODE_INVALID"),
             }}
@@ -813,7 +836,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         </div>
         <div>
           <CardLabel>
-            {`${t("ASSEMBLY")}`} <span className="check-page-link-button">*</span>
+            {`${t("ASSEMBLY")}`}
           </CardLabel>
           <TextInput
             t={t}
@@ -824,6 +847,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             style={{ width: "100%" }}
             placeholder={"Enter Assembly"}
             onChange={(e) => setAssembly(e.target.value)}
+            disabled={disable}
           />
         </div>
         {/* <div>
@@ -843,7 +867,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
         </div> */}
         <div>
           <CardLabel>
-            {`${t("BLOCK")}`} <span className="check-page-link-button">*</span>
+            {`${t("BLOCK")}`}
           </CardLabel>
           <TextInput
             t={t}
@@ -854,11 +878,12 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             style={{ width: "100%" }}
             placeholder={"Enter Block"}
             onChange={(e) => setBlock(e.target.value)}
+            disabled={disable}
           />
         </div>
         <div>
           <CardLabel>
-            {`${t("ZONE")}`} <span className="check-page-link-button">*</span>
+            {`${t("ZONE")}`}
           </CardLabel>
           <TextInput
             t={t}
@@ -869,6 +894,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             style={{ width: "100%" }}
             placeholder={"Enter Zone"}
             onChange={(e) => setZone(e.target.value)}
+            disabled={disable}
           />
         </div>
         <div>
@@ -885,6 +911,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, ..
             onChange={(e) => {
               setLandmark(e.target.value);
             }}
+            disabled={disable}
             ValidationRequired={true}
             validation={{
               isRequired: false,
