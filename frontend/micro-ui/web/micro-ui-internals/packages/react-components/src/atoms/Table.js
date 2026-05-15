@@ -436,7 +436,7 @@ const Table = ({
           justifyContent: "space-between",
           padding: "12px 16px",
           borderBottom: `1px solid ${T.border}`,
-          background: T.surfaceAlt,
+          background: "#fff",
           gap: 12,
           flexWrap: "wrap",
           borderRadius: "12px 12px 0 0",
@@ -770,104 +770,104 @@ const Table = ({
 
       {/* ── Pagination — original logic, modernised UI ───────────────────── */}
       {isPaginationRequired && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 12,
-            padding: "12px 16px",
-            borderTop: `1px solid ${T.border}`,
-            background: T.surfaceAlt,
-            flexWrap: "wrap",
-            fontFamily: T.fontBody,
-            color: T.textSecondary,
-            borderRadius: "0 0 12px 12px",
-          }}
-        >
-          {/* Rows per page */}
-          <span style={{ fontSize: 12, color: T.textMuted, whiteSpace: "nowrap" }}>{t ? t("CS_COMMON_ROWS_PER_PAGE") : "Rows per page"} :</span>
-          <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-            <select
-              value={pageSize}
-              onChange={manualPagination ? onPageSizeChange : (e) => setPageSize(Number(e.target.value))}
-              style={{
-                appearance: "none",
-                WebkitAppearance: "none",
-                background: T.surface,
-                border: `1.5px solid ${T.borderStrong}`,
-                borderRadius: 5,
-                padding: "5px 26px 5px 9px",
-                fontSize: 12.5,
-                fontFamily: T.fontBody,
-                fontWeight: 600,
-                color: T.textPrimary,
-                cursor: "pointer",
-                outline: "none",
-                marginRight: 8,
-              }}
-            >
-              {[10, 20, 30, 40, 50].map((ps) => (
-                <option key={ps} value={ps}>
-                  {ps}
-                </option>
-              ))}
-            </select>
-            <span style={{ position: "absolute", right: 15, pointerEvents: "none", lineHeight: 0, color: T.textMuted }}>
-              <ChevronDown />
+        <div style={{ borderTop: `1px solid ${T.border}`, borderRadius: "0 0 12px 12px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 12,
+              padding: "12px 16px",
+              background: T.surfaceAlt,
+              flexWrap: "wrap",
+              fontFamily: T.fontBody,
+              color: T.textSecondary,
+            }}
+          >
+            {/* Rows per page */}
+            <span style={{ fontSize: 12, color: T.textMuted, whiteSpace: "nowrap" }}>{t ? t("CS_COMMON_ROWS_PER_PAGE") : "Rows per page"} :</span>
+            <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+              <select
+                value={pageSize}
+                onChange={manualPagination ? onPageSizeChange : (e) => setPageSize(Number(e.target.value))}
+                style={{
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                  background: T.surface,
+                  border: `1.5px solid ${T.borderStrong}`,
+                  borderRadius: 5,
+                  padding: "5px 26px 5px 9px",
+                  fontSize: 12.5,
+                  fontFamily: T.fontBody,
+                  fontWeight: 600,
+                  color: T.textPrimary,
+                  cursor: "pointer",
+                  outline: "none",
+                  marginRight: 8,
+                }}
+              >
+                {[10, 20, 30, 40, 50].map((ps) => (
+                  <option key={ps} value={ps}>
+                    {ps}
+                  </option>
+                ))}
+              </select>
+              <span style={{ position: "absolute", right: 15, pointerEvents: "none", lineHeight: 0, color: T.textMuted }}>
+                <ChevronDown />
+              </span>
+            </div>
+
+            {/* Record range — original display logic */}
+            <span style={{ fontSize: 12.5 }}>
+              <strong style={{ fontFamily: T.fontMono, fontWeight: 700, color: T.textPrimary, fontSize: 12 }}>
+                {Number.isNaN(pageIndex * pageSize + 1) ? 0 : pageIndex * pageSize + 1}
+              </strong>
+              {"–"}
+              <strong style={{ fontFamily: T.fontMono, fontWeight: 700, color: T.textPrimary, fontSize: 12 }}>
+                {Number.isNaN(rangeEnd) ? 0 : rangeEnd}
+              </strong>{" "}
+              {totalLabel}
             </span>
+
+            {/* ── Navigation — original conditions, modernised buttons ─────── */}
+            {/* First page */}
+            {!manualPagination && pageIndex !== 0 && (
+              <PagBtn title="First page" onClick={() => gotoPage(0)}>
+                <ArrowToFirst />
+              </PagBtn>
+            )}
+            {canPreviousPage && manualPagination && onFirstPage && (
+              <PagBtn title="First page" onClick={() => onFirstPage()}>
+                <ArrowToFirst />
+              </PagBtn>
+            )}
+
+            {/* Previous */}
+            {canPreviousPage && (
+              <PagBtn title="Previous page" onClick={() => (manualPagination ? onPrevPage() : previousPage())}>
+                <ArrowBack />
+              </PagBtn>
+            )}
+
+            {/* Next */}
+            {canNextPage && (
+              <PagBtn title="Next page" onClick={() => (manualPagination ? onNextPage() : nextPage())}>
+                <ArrowForward />
+              </PagBtn>
+            )}
+
+            {/* Last page */}
+            {!manualPagination && pageIndex !== pageCount - 1 && (
+              <PagBtn title="Last page" onClick={() => gotoPage(pageCount - 1)}>
+                <ArrowToLast />
+              </PagBtn>
+            )}
+            {rows.length === pageSizeLimit && canNextPage && manualPagination && onLastPage && (
+              <PagBtn title="Last page" onClick={() => onLastPage()}>
+                <ArrowToLast />
+              </PagBtn>
+            )}
           </div>
-
-          {/* Record range — original display logic */}
-          <span style={{ fontSize: 12.5 }}>
-            <strong style={{ fontFamily: T.fontMono, fontWeight: 700, color: T.textPrimary, fontSize: 12 }}>
-              {Number.isNaN(pageIndex * pageSize + 1) ? 0 : pageIndex * pageSize + 1}
-            </strong>
-            {"–"}
-            <strong style={{ fontFamily: T.fontMono, fontWeight: 700, color: T.textPrimary, fontSize: 12 }}>
-              {Number.isNaN(rangeEnd) ? 0 : rangeEnd}
-            </strong>{" "}
-            {totalLabel}
-          </span>
-
-          {/* ── Navigation — original conditions, modernised buttons ─────── */}
-          {/* First page */}
-          {!manualPagination && pageIndex !== 0 && (
-            <PagBtn title="First page" onClick={() => gotoPage(0)}>
-              <ArrowToFirst />
-            </PagBtn>
-          )}
-          {canPreviousPage && manualPagination && onFirstPage && (
-            <PagBtn title="First page" onClick={() => onFirstPage()}>
-              <ArrowToFirst />
-            </PagBtn>
-          )}
-
-          {/* Previous */}
-          {canPreviousPage && (
-            <PagBtn title="Previous page" onClick={() => (manualPagination ? onPrevPage() : previousPage())}>
-              <ArrowBack />
-            </PagBtn>
-          )}
-
-          {/* Next */}
-          {canNextPage && (
-            <PagBtn title="Next page" onClick={() => (manualPagination ? onNextPage() : nextPage())}>
-              <ArrowForward />
-            </PagBtn>
-          )}
-
-          {/* Last page */}
-          {!manualPagination && pageIndex !== pageCount - 1 && (
-            <PagBtn title="Last page" onClick={() => gotoPage(pageCount - 1)}>
-              <ArrowToLast />
-            </PagBtn>
-          )}
-          {rows.length === pageSizeLimit && canNextPage && manualPagination && onLastPage && (
-            <PagBtn title="Last page" onClick={() => onLastPage()}>
-              <ArrowToLast />
-            </PagBtn>
-          )}
         </div>
       )}
     </div>

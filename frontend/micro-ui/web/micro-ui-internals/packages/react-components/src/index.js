@@ -276,6 +276,8 @@ import {
   WaterIcon,
   SurveyIconComp,
   CHBIconComp,
+  GridIcon,
+  CollapseIcon,
 } from "./atoms/svgindex";
 import { FormComposer } from "./hoc/FormComposer";
 import { FilterForm, FilterFormField } from "./molecules/FilterForm";
@@ -570,4 +572,6 @@ export {
   WaterIcon,
   SurveyIconComp,
   CHBIconComp,
+  GridIcon,
+  CollapseIcon,
 };
