@@ -147,6 +147,7 @@ public class RequestServiceController {
 						.build(),
 				HttpStatus.OK);
 	}
+
 	@PostMapping("/water-tanker/v1/_update")
 	public ResponseEntity<WaterTankerBookingResponse> waterTankerUpdate(
 			@Schema(description = "Updated water tanker details and RequestInfo meta data.", required = true)
@@ -161,6 +162,19 @@ public class RequestServiceController {
 		return new ResponseEntity<WaterTankerBookingResponse>(response, HttpStatus.OK);
 	}
 
+	@PostMapping("/water-tanker/v1/emergency/_update")
+	public ResponseEntity<WaterTankerBookingResponse> waterTankerEmergencyUpdate(
+			@Schema(description = "Updated water tanker details and RequestInfo meta data.", required = true)
+			@RequestBody WaterTankerBookingRequest waterTankerRequest) {
+
+		WaterTankerBookingDetail waterTankerDetail = waterTankerService.updateWaterTankerEmergencyBooking(waterTankerRequest);
+
+		WaterTankerBookingResponse response = WaterTankerBookingResponse.builder().waterTankerBookingApplication(waterTankerDetail)
+				.responseInfo(RequestServiceUtil.createReponseInfo(waterTankerRequest.getRequestInfo(),
+						RequestServiceConstants.APPLICATION_UPDATED, StatusEnum.SUCCESSFUL))
+				.build();
+		return new ResponseEntity<WaterTankerBookingResponse>(response, HttpStatus.OK);
+	}
 
 	@PostMapping("/water-tanker/fixed-point/v1/_update")
 	public ResponseEntity<WaterTankerFixedPointResponse> updateWaterTankerFixedPointBooking(

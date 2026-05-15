@@ -100,33 +100,6 @@ public class EnrichmentService {
 			log.info("User profile is not enabled, using generated applicantUuid for both tables");
 		}
 
-
-//		WaterTankerBookingDetail existingWaterTankerDetail =
-//				requestServiceRepository.getBookingByMobileNumber(
-//						waterTankerRequest.getWaterTankerBookingDetail()
-//								.getApplicantDetail().getMobileNumber());
-//
-//		if (existingWaterTankerDetail != null) {
-//
-//
-//
-//			waterTankerDetail.setBookingId(existingWaterTankerDetail.getBookingId());
-//
-//			waterTankerDetail.setBookingNo(existingWaterTankerDetail.getBookingNo());
-//
-//			waterTankerDetail.setApplicantId(existingWaterTankerDetail.getApplicantId());
-//
-//			waterTankerDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
-//			waterTankerDetail.getAddress().setApplicantId(existingWaterTankerDetail.getApplicantId());
-//			waterTankerDetail.getApplicantDetail().setAuditDetails(auditDetails);
-//
-//			waterTankerDetail.getApplicantDetail().setApplicantId(existingWaterTankerDetail.getApplicantId());
-//			waterTankerDetail.getApplicantDetail().setBookingId(existingWaterTankerDetail.getBookingId());
-//
-//		} else {
-
-			// ================= NEW =================
-
 			List<String> customIds = getIdList(
 					requestInfo,
 					waterTankerDetail.getTenantId(),
@@ -143,7 +116,21 @@ public class EnrichmentService {
 			waterTankerDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
 			waterTankerDetail.getAddress().setApplicantId(applicantUuid);
 
-//		}
+		if (waterTankerDetail.getWorkflow() == null || StringUtils.isBlank(waterTankerDetail.getWorkflow().getBusinessService())) {
+			throw new CustomException("INVALID_REQUEST", "Business Service is missing in Workflow object");
+		}
+
+		String businessService = waterTankerDetail.getWorkflow().getBusinessService();
+
+		if ("watertanker".equalsIgnoreCase(businessService)) {
+			waterTankerDetail.getWorkflow().setAction("APPLY");
+		} else if ("watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
+			waterTankerDetail.getWorkflow().setAction("CREATE");
+			waterTankerDetail.setBookingStatus("SCHEDULED");
+		} else {
+			throw new CustomException("INVALID_BUSINESS_SERVICE",
+					"Unknown business service: " + businessService);
+		}
 
 		waterTankerDetail.setMobileNumber(
 				waterTankerRequest.getWaterTankerBookingDetail()
@@ -204,11 +191,9 @@ public class EnrichmentService {
 
 
 
-		// Handle filling point mapping
 		if (waterTankerRequest.getWaterTankerBookingDetail().getFillingPointMetadata() != null
 				&& waterTankerRequest.getWaterTankerBookingDetail().getFillingPointMetadata().getId() != null) {
 
-			// Case 1: frontend sends full object
 			waterTankerDetail.setFillingPointId(
 					waterTankerRequest.getWaterTankerBookingDetail()
 							.getFillingPointMetadata()
@@ -217,7 +202,6 @@ public class EnrichmentService {
 
 		} else if (waterTankerRequest.getWaterTankerBookingDetail().getFillingPointId() != null) {
 
-			// Case 2: frontend sends direct ID
 			waterTankerDetail.setFillingPointId(
 					waterTankerRequest.getWaterTankerBookingDetail().getFillingPointId()
 			);
@@ -514,6 +498,29 @@ public class EnrichmentService {
 		waterTankerDetail.getAuditDetails().setLastModifiedTime(System.currentTimeMillis());
 		waterTankerDetail.setBookingStatus(bookingStatus);
 		
+	}
+
+	public void enrichWaterTankerBookingEmergecnyUpdate(
+			WaterTankerBookingRequest waterTankerRequest, String currentDbStatus) {
+
+		WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
+		RequestInfo requestInfo = waterTankerRequest.getRequestInfo();
+
+		if (waterTankerDetail.getBookingStatus() == null) {
+			waterTankerDetail.setBookingStatus(currentDbStatus);
+		}
+
+		if (waterTankerDetail.getBookingStatus() == null) {
+			waterTankerDetail.setBookingStatus("SCHEDULED");
+		}
+
+		if (waterTankerDetail.getAuditDetails() == null) {
+			AuditDetails auditDetails = RequestServiceUtil.getAuditDetails(requestInfo.getUserInfo().getUuid(), true);
+			waterTankerDetail.setAuditDetails(auditDetails);
+		} else {
+			waterTankerDetail.getAuditDetails().setLastModifiedBy(requestInfo.getUserInfo().getUuid());
+			waterTankerDetail.getAuditDetails().setLastModifiedTime(System.currentTimeMillis());
+		}
 	}
 
 	public void enrichMobileToiletBookingUponUpdate(String bookingStatus, MobileToiletBookingRequest mobileToiletRequest) {
