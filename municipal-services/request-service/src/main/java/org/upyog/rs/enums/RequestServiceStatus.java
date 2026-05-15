@@ -2,7 +2,8 @@ package org.upyog.rs.enums;
 
 public enum RequestServiceStatus {
 	BOOKING_CREATED,
-	IN_TRANSIT;
+	IN_TRANSIT,
+	SCHEDULED;
 	String status;
 	
 	public String getStatus() {
