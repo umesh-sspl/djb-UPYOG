@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQueryClient } from "react-query";
 import { useTranslation } from "react-i18next";
 import { Card, Dropdown, SubmitBar, Toast, CardLabel, Label } from "@djb25/digit-ui-react-components";
@@ -46,7 +46,11 @@ const FixedPointScheduleManagement = ({ ...props }) => {
 
   const [filters, setFilters] = useState({ limit: 10, offset: 0 });
 
-  const { isLoading, data: scheduleData } = Digit.Hooks.wt.useFixedPointScheduleSearch(tenantId, filters);
+  const { isLoading, data: scheduleData, refetch } = Digit.Hooks.wt.useFixedPointScheduleSearch(tenantId, filters);
+
+  useEffect(() => {
+    refetch && refetch();
+  }, []);
 
   const { data: fixedPointData, isLoading: isFpLoading } = Digit.Hooks.wt.useFixedPointSearchAPI({ tenantId, filters: { offset: 0, limit: 100 } });
 
