@@ -36,6 +36,7 @@ import { EkycModule } from "@djb25/digit-ui-module-ekyc";
 // import {initCustomisationComponents} from "./customisations";
 
 import { PGRModule, PGRLinks } from "@djb25/digit-ui-module-pgr";
+import {RWHModule, RWHLinks, initRwhComponents} from "@djb25/digit-ui-module-rwh";
 // import { Body, TopBar } from "@djb25/digit-ui-react-components";
 import "@djb25/digit-ui-css/dist/index.css";
 
@@ -100,6 +101,7 @@ const enabledModules = [
   "WT",
   "VENDOR",
   "MT",
+  "RWH",
 ];
 
 const initTokens = (stateCode) => {
@@ -177,6 +179,8 @@ const initDigitUI = () => {
     VENDORModule,
     VENDORLinks,
     ...VENDORComponents,
+    RWHModule,
+    RWHLinks,
   });
 
   initFSMComponents();
@@ -198,6 +202,7 @@ const initDigitUI = () => {
   initFinanceComponents();
   initAssetComponents();
   initWTComponents();
+  initRwhComponents();
 
   // initCustomisationComponents();
 
