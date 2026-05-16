@@ -38,19 +38,8 @@ const enlargedFixedPointIcon = new L.Icon({
   iconSize: [35, 57],
   iconAnchor: [17.5, 57],
   popupAnchor: [1, -45],
-  shadowSize: [50, 50],
-  className: "bouncing-marker"
+  shadowSize: [50, 50]
 });
-
-const bounceStyles = `
-  @keyframes marker-bounce {
-    0%, 100% { margin-top: 0px; }
-    50% { margin-top: -15px; }
-  }
-  .bouncing-marker {
-    animation: marker-bounce 0.6s infinite ease-in-out !important;
-  }
-`;
 
 // Component to handle map bounds and centering
 const ChangeView = ({ bounds, center, zoom }) => {
@@ -108,15 +97,19 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
   }, [relatedFixedPoints]);
 
   useEffect(() => {
-    if (selectedFixedPoint) {
+    if (hoveredFixedPointId) {
+      const marker = markerRefs.current[hoveredFixedPointId];
+      if (marker) marker.openPopup();
+    } else if (selectedFixedPoint) {
       const fxId = selectedFixedPoint.id || selectedFixedPoint.applicantDetail?.applicantId;
       const marker = markerRefs.current[fxId];
-      if (marker) {
-        // Leaflet marker instance has an openPopup method
-        marker.openPopup();
-      }
+      if (marker) marker.openPopup();
+    } else {
+      Object.values(markerRefs.current).forEach(marker => {
+        if (marker && marker.isPopupOpen && marker.isPopupOpen()) marker.closePopup();
+      });
     }
-  }, [selectedFixedPoint]);
+  }, [hoveredFixedPointId, selectedFixedPoint]);
 
   const bounds = useMemo(() => {
     const allPoints = [
@@ -183,7 +176,6 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
       boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
       background: "#fff"
     }}>
-      <style>{bounceStyles}</style>
       {/* Sidebar */}
       <div style={{ 
         width: window.innerWidth < 768 ? "100%" : "320px", 
@@ -399,6 +391,10 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                 key={`fp-${fp.id || index}`} 
                 position={[parseFloat(fp.address.latitude), parseFloat(fp.address.longitude)]}
                 icon={fillingPointIcon}
+                eventHandlers={{
+                  mouseover: (e) => e.target.openPopup(),
+                  mouseout: (e) => e.target.closePopup()
+                }}
               >
                 <Popup>
                   <div style={{ padding: "8px", minWidth: "200px" }}>
@@ -437,6 +433,14 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                 icon={isHovered || isSelected ? enlargedFixedPointIcon : fixedPointIcon}
                 zIndexOffset={isHovered || isSelected ? 1000 : 0}
                 ref={(r) => markerRefs.current[fxId] = r}
+                eventHandlers={{
+                  mouseover: () => {
+                    setHoveredFixedPointId(fxId);
+                  },
+                  mouseout: () => {
+                    setHoveredFixedPointId(null);
+                  }
+                }}
               >
                 <Popup>
                   <div style={{ padding: "8px", minWidth: "200px" }}>
