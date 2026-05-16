@@ -36,4 +36,5 @@ public interface WaterTankerService {
 
 	FixedFillingPointMapping createMapping(FixedFillingPointMappingRequest request);
 	Long getWaterTankerFixedPointCount(WaterTankerFixedPointBookingSearchCriteria criteria);
+	BookingStatusCountResponse getBookingStatusCounts(WaterTankerBookingSearchCriteria criteria,RequestInfo requestInfo);
 }

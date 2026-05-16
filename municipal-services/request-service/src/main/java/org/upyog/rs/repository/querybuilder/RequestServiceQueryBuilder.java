@@ -187,6 +187,24 @@ public class RequestServiceQueryBuilder {
             query.append(" ursbd.driver_id = ? ");
             preparedStmtList.add(criteria.getDriverId());
         }
+        if (criteria.getFromDate() != null) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.createdtime >= ? ");
+            preparedStmtList.add(criteria.getFromDate());
+        }
+
+        if (criteria.getToDate() != null) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.createdtime <= ? ");
+            preparedStmtList.add(criteria.getToDate());
+        }
+
+        if (!ObjectUtils.isEmpty(criteria.getApplicationType())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.application_type = ? ");
+            preparedStmtList.add(criteria.getApplicationType());
+        }
+
 
         // Return count query directly without applying pagination
         if (criteria.isCountCall()) {
@@ -345,5 +363,49 @@ public class RequestServiceQueryBuilder {
     }
 
 
+    private static final String WATER_TANKER_STATUS_COUNT_QUERY =
+            "SELECT booking_status, application_type, COUNT(*) AS cnt " +
+                    "FROM public.upyog_rs_water_tanker_booking_details ursbd";
+
+
+    public String getWaterTankerStatusCountQuery(WaterTankerBookingSearchCriteria criteria,
+                                                 List<Object> preparedStmtList) {
+        StringBuilder query = new StringBuilder(WATER_TANKER_STATUS_COUNT_QUERY);
+
+        if (!ObjectUtils.isEmpty(criteria.getTenantId())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.tenant_id LIKE ? ");
+            preparedStmtList.add("%" + criteria.getTenantId() + "%");
+        }
+
+        if (criteria.getFromDate() != null) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.createdtime >= ? ");
+            preparedStmtList.add(criteria.getFromDate());
+        }
+
+        if (criteria.getToDate() != null) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.createdtime <= ? ");
+            preparedStmtList.add(criteria.getToDate());
+        }
+
+        // If applicationType is provided, filter to that type only.
+        // Otherwise return counts for BOTH types (grouped by application_type).
+        if (!ObjectUtils.isEmpty(criteria.getApplicationType())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.application_type = ? ");
+            preparedStmtList.add(criteria.getApplicationType());
+        }
+
+        if (!ObjectUtils.isEmpty(criteria.getLocalityCode())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.locality_code = ? ");
+            preparedStmtList.add(criteria.getLocalityCode());
+        }
+
+        query.append(" GROUP BY booking_status, application_type ORDER BY booking_status ");
+        return query.toString();
+    }
 
     }

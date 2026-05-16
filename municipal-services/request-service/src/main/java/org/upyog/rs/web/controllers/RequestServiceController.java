@@ -3,9 +3,12 @@ package org.upyog.rs.web.controllers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.Valid;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -95,7 +98,12 @@ public class RequestServiceController {
 
 		count = waterTankerService.getApplicationsCount(waterTankerBookingSearchCriteria,
 				requestInfoWrapper.getRequestInfo());
-
+		if (count == 0 && !applications.isEmpty()) {
+			count = applications.size();
+		}
+		Map<String, Integer> statusCounts = waterTankerService.getBookingStatusCounts(
+				waterTankerBookingSearchCriteria,
+				requestInfoWrapper.getRequestInfo()).getStatusCounts();
 		/*
 		 * Create Response Info with success status and used utilize method to generate
 		 * standardized response
@@ -107,7 +115,9 @@ public class RequestServiceController {
 		 * metadata
 		 */
 		WaterTankerBookingSearchResponse response = WaterTankerBookingSearchResponse.builder()
-				.waterTankerBookingDetails(applications).responseInfo(responseInfo).count(count).build();
+				.waterTankerBookingDetails(applications).responseInfo(responseInfo).count(count)
+				.statusCounts(statusCounts)
+				.applicationType(waterTankerBookingSearchCriteria.getApplicationType()).build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
