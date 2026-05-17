@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "react-query";
 import { Redirect, Route, Switch, useHistory, useLocation, useRouteMatch } from "react-router-dom";
@@ -20,13 +20,15 @@ const WTEmergencyFixedPointCreate = () => {
   const { data: userDetails } = Digit.Hooks.useUserSearch(tenantId, { uuid: [uuid] }, {}, { enabled: uuid ? true : false });
 
   // Build flat config array
-  let config = [];
-  fixedPointConfig.forEach((obj) => {
-    config = config.concat(obj.body);
-  });
-
-  // Default indexRoute for employee flow
-  config.indexRoute = "fp-info";
+  const config = useMemo(() => {
+    let conf = [];
+    fixedPointConfig.forEach((obj) => {
+      conf = conf.concat(obj.body);
+    });
+    // Default indexRoute for employee flow
+    conf.indexRoute = "fp-info";
+    return conf;
+  }, []);
 
   // Clear params if navigating back to info page
   useEffect(() => {
@@ -45,7 +47,7 @@ const WTEmergencyFixedPointCreate = () => {
   /*                            NAVIGATION                               */
   /* ------------------------------------------------------------------ */
 
-  const goNext = (skipStep, index, isAddMultiple, key) => {
+  const goNext = useCallback((skipStep, index, isAddMultiple, key) => {
     let currentPath = pathname.split("/").pop();
     let isMultiple = false;
     let nextPage;
@@ -79,7 +81,8 @@ const WTEmergencyFixedPointCreate = () => {
       nextPage = isMultiple && nextStep !== "map" ? `${match.path}/${nextStep}/${index}` : `${match.path}/${nextStep}`;
     }
     redirectWithHistory(nextPage);
-  };
+  }, [pathname, config, match.path, history]);
+  const formStepRoutes = ["fp-applicant-details", "fp-address-details", "fp-dispatch-details", "fp-request-details"];
 
   /* ------------------------------------------------------------------ */
   /*                          SUBMIT / ACK                               */
@@ -94,32 +97,62 @@ const WTEmergencyFixedPointCreate = () => {
   /*                         FORM STATE                                  */
   /* ------------------------------------------------------------------ */
 
-  function handleSelect(key, data, skipStep, index, isAddMultiple = false) {
+  const paramsRef = useRef(params);
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
+
+  const handleSelect = useCallback((key, data, skipStep, index, isAddMultiple = false) => {
+    const currentParams = paramsRef.current;
     if (key === "multiple") {
-      let newParams = { ...params };
+      let newParams = { ...currentParams };
+      let hasChanged = false;
       Object.keys(data).forEach((k) => {
         if (k !== "navigationKey" && k !== "silent") {
-          newParams[k] = { ...newParams[k], ...data[k] };
+          const updatedValue = { ...newParams[k], ...data[k] };
+          if (JSON.stringify(newParams[k]) !== JSON.stringify(updatedValue)) {
+            newParams[k] = updatedValue;
+            hasChanged = true;
+          }
         }
       });
-      setParams(newParams);
+      if (hasChanged) setParams(newParams);
       if (data.silent) return;
-      // Navigation should be based on the intended current step's key
       const navigationKey = data.navigationKey || Object.keys(data)[0];
       goNext(skipStep, index, isAddMultiple, navigationKey);
       return;
     }
+
     if (key === "owners") {
-      let owners = params.owners || [];
-      owners[index] = data;
-      setParams({ ...params, [key]: [...owners] });
+      let owners = currentParams.owners || [];
+      if (JSON.stringify(owners[index]) !== JSON.stringify(data)) {
+        owners[index] = data;
+        setParams({ ...currentParams, [key]: [...owners] });
+      }
     } else if (key === "units") {
-      setParams({ ...params, units: data });
+      if (JSON.stringify(currentParams.units) !== JSON.stringify(data)) {
+        setParams({ ...currentParams, units: data });
+      }
     } else {
-      setParams({ ...params, [key]: { ...params[key], ...data } });
+      const updatedValue = { ...currentParams[key], ...data };
+      if (JSON.stringify(currentParams[key]) !== JSON.stringify(updatedValue)) {
+        setParams({ ...currentParams, [key]: updatedValue });
+      }
     }
     goNext(skipStep, index, isAddMultiple, key);
-  }
+  }, [setParams, goNext]);
+
+  const formStepConfigs = useMemo(() => {
+    return config
+      .filter((routeObj) => formStepRoutes.includes(routeObj.route))
+      .map((routeObj) => ({
+        ...routeObj,
+        Component: typeof routeObj.component === "string"
+          ? Digit.ComponentRegistryService.getComponent(routeObj.component)
+          : routeObj.component,
+        compConfig: { ...routeObj, isCollapsible: true, defaultOpen: true }
+      }));
+  }, [config]);
 
   const onSuccess = () => {
     clearParams();
@@ -130,7 +163,6 @@ const WTEmergencyFixedPointCreate = () => {
   /*                      SCROLL TO SECTION                              */
   /* ------------------------------------------------------------------ */
 
-  const formStepRoutes = ["fp-applicant-details", "fp-address-details", "fp-dispatch-details", "fp-request-details"];
   const isFormStep = formStepRoutes.some((route) => pathname.includes(route));
   const sectionRefs = useRef({});
 
@@ -196,30 +228,24 @@ const WTEmergencyFixedPointCreate = () => {
             {/* Single-page scrollable form steps */}
             <Route path={formStepRoutes.map((route) => `${match.path}/${route}`)}>
               <div className="single-page-form-container">
-                {config
-                  .filter((routeObj) => formStepRoutes.includes(routeObj.route))
-                  .map((routeObj, index) => {
-                    const { component, texts, inputs, key, additionaFields } = routeObj;
-                    const Component =
-                      typeof component === "string"
-                        ? Digit.ComponentRegistryService.getComponent(component)
-                        : component;
-                    return (
-                      <div
-                        key={index}
-                        ref={(el) => (sectionRefs.current[routeObj.route] = el)}
-                        className="form-section-unit"
-                      >
-                        <Component
-                          config={{ ...routeObj, isCollapsible: true, defaultOpen: true }}
-                          onSelect={handleSelect}
-                          t={t}
-                          formData={params}
-                          userDetails={userDetails?.user?.[0]}
-                        />
-                      </div>
-                    );
-                  })}
+                {formStepConfigs.map((routeObj, index) => {
+                  const { Component, compConfig } = routeObj;
+                  return (
+                    <div
+                      key={index}
+                      ref={(el) => (sectionRefs.current[routeObj.route] = el)}
+                      className="form-section-unit"
+                    >
+                      <Component
+                        config={compConfig}
+                        onSelect={handleSelect}
+                        t={t}
+                        formData={params}
+                        userDetails={userDetails?.user?.[0]}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </Route>
 

@@ -76,7 +76,7 @@ const ApplicationDetails = () => {
         bookingStatus === "DELIVERED" ||
         bookingStatus === "TANKER_DELIVERED";
 
-      if (details?.applicationDetails?.length > 0 && !isDelivered) {
+      if (details?.applicationDetails?.length > 0 && !isDelivered && isFixedPoint) {
         details.applicationDetails[0].Component = () => (
           <div
             onClick={() => setShowEditModal(true)}
@@ -106,7 +106,7 @@ const ApplicationDetails = () => {
 
       setAppDetailsToShow(details);
     }
-  }, [applicationDetails]);
+  }, [applicationDetails, isFixedPoint]);
 
   useEffect(() => {
     if (

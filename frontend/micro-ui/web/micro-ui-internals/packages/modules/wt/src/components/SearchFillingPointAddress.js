@@ -11,7 +11,7 @@ const SearchFillingPointAddress = () => {
   const history = useHistory();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const initialTab = queryParams.get("tab") || "FIXED_POINT";
+  const initialTab = queryParams.get("tab") || "FILLING_POINT";
   const [selectedTab, setSelectedTab] = useState(initialTab);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -627,6 +627,13 @@ const SearchFillingPointAddress = () => {
         <div className="search-tabs-container" style={{ flexDirection: isMobile ? "column" : "row", gap: isMobile ? "16px" : "0" }}>
           <div>
             <button
+              className={selectedTab === "FILLING_POINT" ? "search-tab-head-selected" : "search-tab-head"}
+              onClick={() => onTabChange("FILLING_POINT")}
+              style={{ width: isMobile ? "50%" : "auto" }}
+            >
+              {t("WT_FILLING_POINT")}
+            </button>
+            <button
               className={selectedTab === "FIXED_POINT" ? "search-tab-head-selected" : "search-tab-head"}
               onClick={() => onTabChange("FIXED_POINT")}
               style={{ width: isMobile ? "50%" : "auto" }}
@@ -634,13 +641,7 @@ const SearchFillingPointAddress = () => {
               {t("WT_FIXED_POINT")}
             </button>
 
-            <button
-              className={selectedTab === "FILLING_POINT" ? "search-tab-head-selected" : "search-tab-head"}
-              onClick={() => onTabChange("FILLING_POINT")}
-              style={{ width: isMobile ? "50%" : "auto" }}
-            >
-              {t("WT_FILLING_POINT")}
-            </button>
+            
 
             <button
               className={selectedTab === "VIEW_ON_MAP" ? "search-tab-head-selected" : "search-tab-head"}
