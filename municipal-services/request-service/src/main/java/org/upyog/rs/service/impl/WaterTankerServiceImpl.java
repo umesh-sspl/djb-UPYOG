@@ -11,6 +11,7 @@ import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.upyog.rs.config.RequestServiceConfiguration;
 import org.upyog.rs.constant.RequestServiceConstants;
 import org.upyog.rs.enums.RequestServiceStatus;
@@ -21,11 +22,9 @@ import org.upyog.rs.service.EnrichmentService;
 import org.upyog.rs.service.UserService;
 import org.upyog.rs.service.WaterTankerService;
 import org.upyog.rs.service.WorkflowService;
-import org.upyog.rs.web.models.ApplicantDetail;
-import org.upyog.rs.web.models.CriteriyaSearchDto;
-import org.upyog.rs.web.models.RequestDetailsByDriverId;
+import org.upyog.rs.util.RequestServiceUtil;
+import org.upyog.rs.web.models.*;
 import org.upyog.rs.web.models.waterTanker.*;
-import org.upyog.rs.web.models.Workflow;
 import org.upyog.rs.web.models.workflow.State;
 
 import digit.models.coremodels.PaymentRequest;
@@ -199,28 +198,7 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 	@Override
 	public List<WaterTankerBookingDetail> getWaterTankerBookingDetails(RequestInfo requestInfo,
 			WaterTankerBookingSearchCriteria waterTankerBookingSearchCriteria) {
-		/*
-		 * Retrieve WT booking details from the repository based on search criteria and
-		 * and give the data already retrieved to the repository layer
-		 */
 
-//		if (waterTankerBookingSearchCriteria.getFromDate() == null
-//				&& waterTankerBookingSearchCriteria.getToDate() == null)  {
-//
-//			long startOfDay = java.time.LocalDate.now()
-//					.atStartOfDay(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			long endOfDay = java.time.LocalDate.now()
-//					.atTime(23, 59, 59, 999_000_000)
-//					.atZone(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			waterTankerBookingSearchCriteria.setFromDate(startOfDay);
-//			waterTankerBookingSearchCriteria.setToDate(endOfDay);
-//		}
 
 		List<WaterTankerBookingDetail> applications = requestServiceRepository
 				.getWaterTankerBookingDetails(waterTankerBookingSearchCriteria);
@@ -240,28 +218,6 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 			}
 		}
 
-//		for (WaterTankerBookingDetail booking : applications) {
-//
-//			//  Existing user enrichment
-//			if (config.getIsUserProfileEnabled()) {
-//				userService.enrichBookingWithUserDetails(booking, waterTankerBookingSearchCriteria);
-//			}
-//
-//			// Filling Point Enrichment
-//			if (booking.getFillingPointId() != null) {
-//
-//				FillingPointSearchCriteria criteria = new FillingPointSearchCriteria();
-//				criteria.setTenantId(booking.getTenantId());
-//				criteria.setId(booking.getFillingPointId());
-//
-//				List<FillingPoint> fps = fillingPointRepository.search(criteria);
-//
-//				if (!fps.isEmpty()) {
-//					booking.setFillingPointName(fps.get(0).getFillingPointName());
-//				}
-//			}
-//		}
-
 		// Return retrieved application
 		return applications;
 	}
@@ -271,29 +227,36 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 			RequestInfo requestInfo,
 			WaterTankerFixedPointBookingSearchCriteria criteria) {
 
-
-//		if ((criteria.getFromDate() == null || criteria.getFromDate() == 0) &&
-//				(criteria.getToDate() == null || criteria.getToDate() == 0)) {
-//
-//			long startOfDay = java.time.LocalDate.now()
-//					.atStartOfDay(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			long endOfDay = java.time.LocalDate.now()
-//					.atTime(23, 59, 59, 999_000_000)
-//					.atZone(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			criteria.setFromDate(startOfDay);
-//			criteria.setToDate(endOfDay);
-//		}
-
 		List<WaterTankerFixedPointDetail> applications =
 				requestServiceRepository.getWaterTankerFixedPointBookingDetails(criteria);
 
 		return CollectionUtils.isEmpty(applications) ? new ArrayList<>() : applications;
+	}
+
+	@Override
+	public BookingStatusCountResponse getBookingStatusCounts(
+			WaterTankerBookingSearchCriteria criteria,
+			RequestInfo requestInfo) {
+
+		Map<String, Integer> statusCounts =
+				requestServiceRepository.getStatusCountsByApplicationType(criteria);
+
+		int total = statusCounts.values().stream().mapToInt(Integer::intValue).sum();
+
+		String appType = ObjectUtils.isEmpty(criteria.getApplicationType())
+				? "ALL" : criteria.getApplicationType();
+
+		ResponseInfo responseInfo = RequestServiceUtil.createReponseInfo(
+				requestInfo,
+				RequestServiceConstants.BOOKING_DETAIL_FOUND,
+				ResponseInfo.StatusEnum.SUCCESSFUL);
+
+		return BookingStatusCountResponse.builder()
+				.responseInfo(responseInfo)
+				.totalCount(total)
+				.statusCounts(statusCounts)
+				.applicationType(appType)
+				.build();
 	}
 
 	@Override
