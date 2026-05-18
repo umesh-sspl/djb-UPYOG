@@ -351,4 +351,29 @@ public class RequestServieRepositoryImpl implements RequestServiceRepository {
 		log.info("Updating booking_id={} for applicant_id={}", bookingId, applicantId);
 		jdbcTemplate.update(UPDATE_BOOKING_ID_QUERY, bookingId, applicantId);
 	}
+
+	@Override
+	public String getWaterTankerStatusCountQuery(WaterTankerBookingSearchCriteria criteria, List<Object> preparedStmtList) {
+		return "";
+	}
+
+
+	public Map<String, Integer> getStatusCountsByApplicationType(
+			WaterTankerBookingSearchCriteria criteria) {
+
+		List<Object> preparedStmtList = new ArrayList<>();
+		String query = queryBuilder.getWaterTankerStatusCountQuery(criteria, preparedStmtList);
+
+		log.info("Status count query: {} params: {}", query, preparedStmtList);
+
+		Map<String, Integer> statusCountMap = new LinkedHashMap<>();
+
+		jdbcTemplate.query(query, preparedStmtList.toArray(), rs -> {
+			String status = rs.getString("booking_status");
+			int count = rs.getInt("cnt");
+			statusCountMap.merge(status, count, Integer::sum);
+		});
+
+		return statusCountMap;
+	}
 }

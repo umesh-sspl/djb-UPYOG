@@ -68,13 +68,13 @@ export const processLinkData = (newData, code, t) => {
     const fallbackLinks =
       code === "WT"
         ? [
-            { link: "/digit-ui/citizen/wt/request-service", i18nKey: t("WT_REQUEST_TANKER") },
-            { link: "/digit-ui/citizen/wt/status", i18nKey: t("WT_VIEW_APPLICATIONS") },
-          ]
+          { link: "/digit-ui/citizen/wt/request-service", i18nKey: t("WT_REQUEST_TANKER") },
+          { link: "/digit-ui/citizen/wt/status", i18nKey: t("WT_VIEW_APPLICATIONS") },
+        ]
         : [
-            { link: "/digit-ui/citizen/wt/request-service", i18nKey: t("MT_REQUEST_TANKER") },
-            { link: "/digit-ui/citizen/wt/status", i18nKey: t("MT_VIEW_APPLICATIONS") },
-          ];
+          { link: "/digit-ui/citizen/wt/request-service", i18nKey: t("MT_REQUEST_TANKER") },
+          { link: "/digit-ui/citizen/wt/status", i18nKey: t("MT_VIEW_APPLICATIONS") },
+        ];
 
     const role = code === "WT" ? "WT_VENDOR" : "MT_VENDOR";
     const from = code === "WT" ? "/digit-ui/citizen/wt/wt-Vendor" : "/digit-ui/citizen/wt/mt-Vendor";
@@ -127,8 +127,6 @@ const iconSelector = (code) => {
     case "ADS":
       return <CHBIcon className="fill-path-primary-main" />;
     case "WT":
-      //   return <CHBIcon className="fill-path-primary-main" />;
-      // case "MT":
       return <CHBIcon className="fill-path-primary-main" />;
     default:
       return <PTIcon className="fill-path-primary-main" />;
@@ -154,8 +152,8 @@ const CitizenHome = ({ modules, getCitizenMenu, fetchedCitizen, isLoading }) => 
       code === "WT" && !isAuthWT
         ? null
         : Digit.ComponentRegistryService.getComponent(
-            code === "WT" ? "WTCitizenCard" : code === "MT" ? "MTCitizenCard" : code === "TP" ? "TPCitizenCard" : `${code}Card`
-          );
+          code === "WT" ? "WTCitizenCard" : code === "MT" ? "MTCitizenCard" : code === "TP" ? "TPCitizenCard" : `${code}Card`
+        );
 
     if (Card) return <Card key={index} />;
 
@@ -172,12 +170,12 @@ const CitizenHome = ({ modules, getCitizenMenu, fetchedCitizen, isLoading }) => 
           Info={
             code === "OBPS"
               ? () => (
-                  <CitizenInfoLabel
-                    style={{ margin: "0px", padding: "10px" }}
-                    info={t("CS_FILE_APPLICATION_INFO_LABEL")}
-                    text={t(`BPA_CITIZEN_HOME_STAKEHOLDER_INCLUDES_INFO_LABEL`)}
-                  />
-                )
+                <CitizenInfoLabel
+                  style={{ margin: "0px", padding: "10px" }}
+                  info={t("CS_FILE_APPLICATION_INFO_LABEL")}
+                  text={t(`BPA_CITIZEN_HOME_STAKEHOLDER_INCLUDES_INFO_LABEL`)}
+                />
+              )
               : null
           }
           isInfo={code === "OBPS" ? true : false}
@@ -209,7 +207,122 @@ export const engagementModuleCodes = [
   "Surveys",
 ];
 
-export const ModuleCarousel = ({ modules, title, renderCard }) => {
+/* Maps each engagement module code to a Tabler icon name + display label */
+const engagementModuleMeta = {
+  PGR: { icon: "speakerphone", label: "Grievances" },
+  Events: { icon: "calendar-event", label: "Events" },
+  Surveys: { icon: "clipboard-list", label: "Surveys" },
+  Broadcast: { icon: "broadcast", label: "Broadcasts" },
+  MessageBroadcast: { icon: "broadcast", label: "Broadcasts" },
+  "Public Message broadcast": { icon: "broadcast", label: "Broadcasts" },
+  Documents: { icon: "file-text", label: "Documents" },
+  ENGAGEMENT: { icon: "users", label: "Engagement" },
+  Engagement: { icon: "users", label: "Engagement" },
+};
+
+/* ─── Engagement Panel ───────────────────────────────────────────────────────
+ * Replaces the old ModuleCarousel for engagement modules.
+ * Renders a soft shell with a chip row for filtering, and renders each
+ * module's registered Card component below (if one exists).
+ * ─────────────────────────────────────────────────────────────────────────── */
+export const EngagementPanel = ({ modules, t }) => {
+  const [activeCode, setActiveCode] = React.useState("PGR");
+  const [isCollapsed, setIsCollapsed] = React.useState(true);
+
+  /* Build deduplicated chip list — collapse duplicate broadcast variants */
+  const chips = React.useMemo(() => {
+    const seen = new Set();
+    return modules
+      .map((mod) => {
+        const meta = engagementModuleMeta[mod.code] || { icon: "apps", label: mod.code };
+        return { code: mod.code, ...meta };
+      })
+      .filter(({ label }) => {
+        if (seen.has(label)) return false;
+        seen.add(label);
+        return true;
+      });
+  }, [modules]);
+
+  const handleChipClick = (code) => {
+    /* Toggle: clicking the active chip clears the filter */
+    setActiveCode((prev) => (prev === code ? null : code));
+  };
+
+  const visibleModules = activeCode
+    ? modules.filter((mod) => mod.code === activeCode)
+    : modules;
+
+  if (!modules || modules.length === 0) return null;
+
+  return (
+    <div className="engagement-panel">
+      {/* Header row */}
+      <div 
+        className="engagement-panel__header"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        style={{ cursor: "pointer", userSelect: "none" }}
+      >
+        <div className="engagement-panel__title-group">
+          <span className="engagement-panel__pulse-dot" aria-hidden="true" />
+          <span className="engagement-panel__title">{t("Community engagement")}</span>
+        </div>
+        <div className="engagement-panel__collapse-icon" style={{ color: "#64748b" }}>
+          <svg 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            style={{ transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}
+          >
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      {/* Collapsible Content */}
+      <div 
+        className={`engagement-panel__content ${isCollapsed ? 'collapsed' : ''}`}
+      >
+        <div className="engagement-panel__content-inner">
+
+      {/* Chip / pill navigation row */}
+      <div className="engagement-panel__chip-row" role="list">
+        {chips.map(({ code, icon, label }) => (
+          <button
+            key={code}
+            role="listitem"
+            className={`engagement-chip${activeCode === code ? " engagement-chip--active" : ""}`}
+            onClick={() => handleChipClick(code)}
+            aria-pressed={activeCode === code}
+          >
+            <i className={`ti ti-${icon}`} aria-hidden="true" />
+            {t(label)}
+          </button>
+        ))}
+      </div>
+
+      {/* Registered module cards (filtered by active chip) */}
+      {visibleModules.some((mod) => Digit.ComponentRegistryService.getComponent(`${mod.code}Card`)) && (
+        <div className="engagement-panel__cards">
+          {visibleModules.map((mod, index) => {
+            const Card = Digit.ComponentRegistryService.getComponent(`${mod.code}Card`);
+            if (!Card) return null;
+            return <Card key={index} />;
+          })}
+        </div>
+      )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ModuleCarousel = ({ modules, title, renderCard, className }) => {
   const scrollContainerRef = React.useRef(null);
   const [showLeftArrow, setShowLeftArrow] = React.useState(false);
   const [showRightArrow, setShowRightArrow] = React.useState(true);
@@ -223,7 +336,6 @@ export const ModuleCarousel = ({ modules, title, renderCard }) => {
       setShowRightArrow(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 1);
 
       if (clientWidth > 0) {
-        // Cache layout values to avoid repeated getComputedStyle calls
         if (!scrollContainerRef.current._carouselGap) {
           const computedStyle = window.getComputedStyle(scrollContainerRef.current);
           scrollContainerRef.current._carouselGap = parseInt(computedStyle.columnGap) || 0;
@@ -244,7 +356,6 @@ export const ModuleCarousel = ({ modules, title, renderCard }) => {
       timeoutId = setTimeout(handleScroll, 50);
     };
 
-    // Initial call
     handleScroll();
 
     const container = scrollContainerRef.current;
@@ -270,9 +381,9 @@ export const ModuleCarousel = ({ modules, title, renderCard }) => {
   if (!modules || modules.length === 0) return null;
 
   return (
-    <div className="module-carousel-section" style={{ marginBottom: "20px", marginTop: "10px" }}>
+    <div className={`module-carousel-section ${className || ""}`} style={{ marginBottom: "20px", marginTop: "10px" }}>
       <div className="module-carousel-header" style={{ display: "flex", justifyContent: title ? "space-between" : "flex-end", alignItems: "center" }}>
-        {title && <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#ffffff" }}>{title}</h3>}
+        {title && <h3 style={{ margin: 0, fontWeight: "700" }}>{title}</h3>}
 
         <div className="module-carousel-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button className="carousel-arrow left" onClick={() => scroll("left")} aria-label="Previous" disabled={!showLeftArrow}>
@@ -433,9 +544,11 @@ const EmployeeHome = ({ modules }) => {
             <RecentActivity />
           </div>
 
-          <ModuleCarousel modules={mainModules} title={t("Core Services")} />
+          {/* Core services — unchanged carousel */}
+          <ModuleCarousel modules={mainModules} title={t("Core Services")} className="core-carousel-section" />
 
-          {engagementModules.length > 0 && <ModuleCarousel modules={engagementModules} title={t("Engagement Services")} />}
+          {/* Engagement — new panel replaces the old ModuleCarousel */}
+          {engagementModules.length > 0 && <EngagementPanel modules={engagementModules} t={t} />}
         </div>
       </div>
     </div>

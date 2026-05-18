@@ -74,6 +74,8 @@ import {
   VENDORLinks,
   VENDORModule,
 } from "@djb25/digit-ui-module-vendor";
+
+import { RWHModule, RWHLinks, initRwhComponents ,RwhComponents} from "@djb25/digit-ui-module-rwh";
 // import { initReportsComponents } from "@djb25/digit-ui-module-reports";
 
 initLibraries();
@@ -114,6 +116,7 @@ const enabledModules = [
   "WT",
   "VENDOR",
   "MT",
+  "RWH",
 ];
 window.Digit.ComponentRegistryService.setupRegistry({
   ...paymentConfigs,
@@ -156,6 +159,9 @@ window.Digit.ComponentRegistryService.setupRegistry({
   VENDORModule,
   VENDORLinks,
   ...VENDORComponents,
+  RWHModule,
+  RWHLinks,
+  ...RwhComponents,
 });
 
 initPGRComponents();
@@ -175,6 +181,7 @@ initCommonPTComponents();
 initBillsComponents();
 initFinanceComponents();
 initWTComponents();
+initRwhComponents();
 // initAssetComponents();
 // initReportsComponents();
 // initCustomisationComponents();

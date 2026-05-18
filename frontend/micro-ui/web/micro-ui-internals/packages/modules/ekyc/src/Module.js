@@ -9,10 +9,10 @@ import MobileInbox from "./components/MobileInbox";
 import Filter from "./components/Filter";
 import EmployeeApp from "./pages/employee";
 import CitizenApp from "./pages/citizen";
-import AadhaarVerification from "./pages/employee/AadhaarVerification";
-import AddressDetails from "./pages/employee/AddressDetails";
-import PropertyInfo from "./pages/employee/PropertyInfo";
-import MeterDetails from "./pages/employee/MeterDetails";
+import PropertyInfo from "./components/PropertyInfo";
+import MeterDetails from "./components/MeterDetails";
+import AadhaarVerification from "./components/AadhaarVerification";
+import AddressDetails from "./components/AddressDetails";
 export const EkycModule = ({ userType, tenants }) => {
   const { path, url } = useRouteMatch();
 

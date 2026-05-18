@@ -11,6 +11,7 @@ import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.upyog.rs.config.RequestServiceConfiguration;
 import org.upyog.rs.constant.RequestServiceConstants;
 import org.upyog.rs.enums.RequestServiceStatus;
@@ -21,11 +22,9 @@ import org.upyog.rs.service.EnrichmentService;
 import org.upyog.rs.service.UserService;
 import org.upyog.rs.service.WaterTankerService;
 import org.upyog.rs.service.WorkflowService;
-import org.upyog.rs.web.models.ApplicantDetail;
-import org.upyog.rs.web.models.CriteriyaSearchDto;
-import org.upyog.rs.web.models.RequestDetailsByDriverId;
+import org.upyog.rs.util.RequestServiceUtil;
+import org.upyog.rs.web.models.*;
 import org.upyog.rs.web.models.waterTanker.*;
-import org.upyog.rs.web.models.Workflow;
 import org.upyog.rs.web.models.workflow.State;
 
 import digit.models.coremodels.PaymentRequest;
@@ -53,171 +52,24 @@ public class WaterTankerServiceImpl implements WaterTankerService {
 	@Autowired
 	private UserService userService;
 
-
-//	@Autowired
-//	private FillingPointRepository fillingPointRepository;
-
-//	@Override
-//	public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBookingRequest waterTankerRequest) {
-//
-//		log.info("Create water tanker booking for user : " + waterTankerRequest.getRequestInfo().getUserInfo().getUuid()
-//				+ " for the request : " + waterTankerRequest.getWaterTankerBookingDetail());
-//
-//		enrichmentService.enrichCreateWaterTankerRequest(waterTankerRequest);
-//		ApplicantDetail existingApplicant = requestServiceRepository.getApplicantByMobileNumber(waterTankerRequest.getWaterTankerBookingDetail().getMobileNumber());
-//
-//		WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
-//		try {
-//			RequestInfo requestInfo = waterTankerRequest.getRequestInfo();
-//			ApplicantDetail applicantDetail = waterTankerRequest.getWaterTankerBookingDetail().getApplicantDetail();
-//			String tenantId = waterTankerRequest.getWaterTankerBookingDetail().getTenantId();
-//			org.upyog.rs.web.models.user.User user = userService.fetchExistingUser(tenantId, applicantDetail, requestInfo);
-//			if (user == null) {
-//				throw new RuntimeException("User not found for this mobile number: " +
-//						applicantDetail.getMobileNumber());
-//			}
-//
-//			if (existingApplicant != null) {
-//				// EXISTING USER
-//				waterTankerRequest.getWaterTankerBookingDetail()
-//						.getApplicantDetail()
-//						.setApplicantId(existingApplicant.getApplicantId());
-//
-//				waterTankerRequest.getWaterTankerBookingDetail()
-//						.getAddress()
-//						.setApplicantId(existingApplicant.getApplicantId());
-//				waterTankerDetail.getApplicantDetail().setApplicantId(existingApplicant.getApplicantId());
-//				waterTankerDetail.setApplicantId(existingApplicant.getApplicantId());
-//				waterTankerDetail.getAddress().setApplicantId(existingApplicant.getApplicantId());
-//
-//				log.info("Existing applicant found: {}", existingApplicant.getApplicantId());
-//			} else {
-//
-//				waterTankerRequest.getWaterTankerBookingDetail()
-//						.setApplicantDetail(applicantDetail);
-//
-//			}
-//
-//
-//			if(config.getIsUserProfileEnabled()) {
-//				waterTankerRequest.getWaterTankerBookingDetail().setApplicantUuid(user.getUuid());
-//			} else{
-//				// If user profile is not enabled, set the applicantUuid null
-//				waterTankerRequest.getWaterTankerBookingDetail().setApplicantUuid(null);
-//			}
-//
-//			log.info("Applicant or User Uuid: " + user.getUuid());
-//		} catch (Exception e) {
-//			log.error("Error fetching or creating user: " + e.getMessage(), e);
-//			throw new RuntimeException("Failed to fetch/create user: " + e.getMessage(), e);
-//		}
-//
-////	if (existingApplicant == null) {
-//		workflowService.updateWorkflowStatus(null, waterTankerRequest);
-////		}
-//		requestServiceRepository.saveWaterTankerBooking(waterTankerRequest);
-//
-//		if (waterTankerDetail.getApplicantDetail() != null
-//				&& waterTankerDetail.getApplicantDetail().getApplicantId() != null
-//				&& waterTankerDetail.getBookingId() != null) {
-//			requestServiceRepository.updateApplicantBookingId(
-//					waterTankerDetail.getApplicantDetail().getApplicantId(),
-//					waterTankerDetail.getBookingId());
-//		} else {
-//			log.warn("Skipping updateApplicantBookingId — applicantDetail or bookingId is null");
-//		}
-//
-//		return waterTankerDetail;
-//	}
-//
-//@Override
-//public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBookingRequest waterTankerRequest) {
-//	WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
-//	String userUuid = waterTankerRequest.getRequestInfo().getUserInfo().getUuid();
-//	// 1. Search for existing booking to determine if this is an Update or Create
-//	// We use the mobile number and tenantId to see if a record already exists
-//	WaterTankerBookingSearchCriteria criteria = WaterTankerBookingSearchCriteria.builder()
-//			.mobileNumber(waterTankerDetail.getApplicantDetail().getMobileNumber())
-//			.tenantId(waterTankerDetail.getTenantId())
-//			.build();
-//
-//	List<WaterTankerBookingDetail> existingBookings = requestServiceRepository.getWaterTankerBookingDetails(criteria);
-//	boolean isUpdate = !existingBookings.isEmpty();
-//
-//	if (isUpdate) {
-//		WaterTankerBookingDetail existing = existingBookings.get(0);
-//		log.info("Existing booking found: {}. Switching to Update logic.", existing.getBookingNo());
-//
-//		// Map existing IDs to the incoming request to ensure the DB 'Update' works
-//		waterTankerDetail.setBookingId(existing.getBookingId());
-//		waterTankerDetail.setBookingNo(existing.getBookingNo());
-//
-//		if (existing.getAuditDetails() != null) {
-//			waterTankerDetail.setAuditDetails(existing.getAuditDetails());
-//			waterTankerDetail.getAuditDetails().setLastModifiedBy(userUuid);
-//			waterTankerDetail.getAuditDetails().setLastModifiedTime(System.currentTimeMillis());
-//		}
-//
-//		// For updates, we usually don't trigger the initial workflow action again
-//		// Just save the updated details to the repository
-//		requestServiceRepository.updateWaterTankerBooking(waterTankerRequest);
-//		return waterTankerDetail;
-//	}
-//
-//	// 2. Normal Creation Flow (If no existing booking found)
-//	enrichmentService.enrichCreateWaterTankerRequest(waterTankerRequest);
-//
-//	// Set dynamic action based on Business Service name to avoid "INVALID ACTION"
-//	if ("watertanker".equalsIgnoreCase(waterTankerDetail.getWorkflow().getBusinessService())) {
-//		waterTankerDetail.getWorkflow().setAction("APPLY");
-//	} else if ("watertanker-fixedpoint".equalsIgnoreCase(waterTankerDetail.getWorkflow().getBusinessService())) {
-//		waterTankerDetail.getWorkflow().setAction("CREATE");
-//	}
-//
-//	try {
-//		// User enrichment logic (fetching from userService)
-//		org.upyog.rs.web.models.user.User user = userService.fetchExistingUser(
-//				waterTankerDetail.getTenantId(),
-//				waterTankerDetail.getApplicantDetail(),
-//				waterTankerRequest.getRequestInfo());
-//
-//		if (user != null) {
-//			waterTankerDetail.setApplicantUuid(user.getUuid());
-//		}
-//	} catch (Exception e) {
-//		log.error("User enrichment failed, proceeding with manual details", e);
-//	}
-//
-//	// 3. Workflow Call (Only for new applications)
-//	workflowService.updateWorkflowStatus(null, waterTankerRequest);
-//
-//	// 4. Persistence (New Record)
-//	requestServiceRepository.saveWaterTankerBooking(waterTankerRequest);
-//
-//	// 5. Link Applicant to Booking
-//	if (waterTankerDetail.getApplicantDetail() != null && waterTankerDetail.getBookingId() != null) {
-//		requestServiceRepository.updateApplicantBookingId(
-//				waterTankerDetail.getApplicantDetail().getApplicantId(),
-//				waterTankerDetail.getBookingId());
-//	}
-//
-//	return waterTankerDetail;
-//}
-
 @Override
 public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBookingRequest waterTankerRequest) {
 	WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
 	String userUuid = waterTankerRequest.getRequestInfo().getUserInfo().getUuid();
 
-	// 1. Search for existing bookings for this mobile number
-	WaterTankerBookingSearchCriteria criteria = WaterTankerBookingSearchCriteria.builder()
-			.mobileNumber(waterTankerDetail.getApplicantDetail().getMobileNumber())
-			.tenantId(waterTankerDetail.getTenantId())
-			.build();
+	List<WaterTankerBookingDetail> existingBookings = Collections.emptyList();
 
-	List<WaterTankerBookingDetail> existingBookings = requestServiceRepository.getWaterTankerBookingDetails(criteria);
+	if (waterTankerDetail.getBookingNo() != null
+			&& !waterTankerDetail.getBookingNo().trim().isEmpty()) {
 
-	// 2. Identify if there's an ACTIVE (Not yet Delivered/Cancelled) booking
+		WaterTankerBookingSearchCriteria criteria = WaterTankerBookingSearchCriteria.builder()
+				.bookingNo(waterTankerDetail.getBookingNo())
+				.tenantId(waterTankerDetail.getTenantId())
+				.build();
+
+		existingBookings = requestServiceRepository.getWaterTankerBookingDetails(criteria);
+	}
+
 	WaterTankerBookingDetail activeBooking = null;
 	activeBooking = existingBookings.stream()
 			.filter(b -> !"TANKER_DELIVERED".equalsIgnoreCase(b.getBookingStatus()) &&
@@ -258,18 +110,6 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 
 	// This will generate a NEW UUID for booking_id and a NEW WT-DJB-XXXX booking_no
 	enrichmentService.enrichCreateWaterTankerRequest(waterTankerRequest);
-
-	// Set dynamic action based on Business Service to avoid "INVALID ACTION"
-	String businessService = waterTankerDetail.getWorkflow().getBusinessService();
-	if ("watertanker".equalsIgnoreCase(businessService)) {
-		waterTankerDetail.getWorkflow().setAction("APPLY");
-	} else if ("watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
-		waterTankerDetail.getWorkflow().setAction("CREATE");
-		waterTankerDetail.setBookingStatus("SCHEDULED");
-	} else {
-		throw new CustomException("INVALID_BUSINESS_SERVICE",
-				"Unknown business service: " + businessService);
-	}
 
 	// User enrichment logic
 	try {
@@ -324,11 +164,6 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 			ApplicantDetail applicantDetail = waterTankerFixedPointRequest.getWaterTankerFixedPointDetail().getApplicantDetail();
 			String tenantId = waterTankerFixedPointRequest.getWaterTankerFixedPointDetail().getTenantId();
 			org.upyog.rs.web.models.user.User user = userService.fetchExistingUser(tenantId, applicantDetail, requestInfo);
-//			if (user == null) {
-//				throw new RuntimeException("User not found for this mobile number: " +
-//						applicantDetail.getMobileNumber());
-//			}
-//			log.info("Applicant or User Uuid: " + user.getUuid());
 		} catch (Exception e) {
 			log.error("Error fetching or creating user: " + e.getMessage(), e);
 			throw new RuntimeException("Failed to fetch/create user: " + e.getMessage(), e);
@@ -363,28 +198,7 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 	@Override
 	public List<WaterTankerBookingDetail> getWaterTankerBookingDetails(RequestInfo requestInfo,
 			WaterTankerBookingSearchCriteria waterTankerBookingSearchCriteria) {
-		/*
-		 * Retrieve WT booking details from the repository based on search criteria and
-		 * and give the data already retrieved to the repository layer
-		 */
 
-//		if (waterTankerBookingSearchCriteria.getFromDate() == null
-//				&& waterTankerBookingSearchCriteria.getToDate() == null)  {
-//
-//			long startOfDay = java.time.LocalDate.now()
-//					.atStartOfDay(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			long endOfDay = java.time.LocalDate.now()
-//					.atTime(23, 59, 59, 999_000_000)
-//					.atZone(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			waterTankerBookingSearchCriteria.setFromDate(startOfDay);
-//			waterTankerBookingSearchCriteria.setToDate(endOfDay);
-//		}
 
 		List<WaterTankerBookingDetail> applications = requestServiceRepository
 				.getWaterTankerBookingDetails(waterTankerBookingSearchCriteria);
@@ -404,28 +218,6 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 			}
 		}
 
-//		for (WaterTankerBookingDetail booking : applications) {
-//
-//			//  Existing user enrichment
-//			if (config.getIsUserProfileEnabled()) {
-//				userService.enrichBookingWithUserDetails(booking, waterTankerBookingSearchCriteria);
-//			}
-//
-//			// Filling Point Enrichment
-//			if (booking.getFillingPointId() != null) {
-//
-//				FillingPointSearchCriteria criteria = new FillingPointSearchCriteria();
-//				criteria.setTenantId(booking.getTenantId());
-//				criteria.setId(booking.getFillingPointId());
-//
-//				List<FillingPoint> fps = fillingPointRepository.search(criteria);
-//
-//				if (!fps.isEmpty()) {
-//					booking.setFillingPointName(fps.get(0).getFillingPointName());
-//				}
-//			}
-//		}
-
 		// Return retrieved application
 		return applications;
 	}
@@ -435,29 +227,36 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 			RequestInfo requestInfo,
 			WaterTankerFixedPointBookingSearchCriteria criteria) {
 
-
-//		if ((criteria.getFromDate() == null || criteria.getFromDate() == 0) &&
-//				(criteria.getToDate() == null || criteria.getToDate() == 0)) {
-//
-//			long startOfDay = java.time.LocalDate.now()
-//					.atStartOfDay(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			long endOfDay = java.time.LocalDate.now()
-//					.atTime(23, 59, 59, 999_000_000)
-//					.atZone(java.time.ZoneId.systemDefault())
-//					.toInstant()
-//					.toEpochMilli();
-//
-//			criteria.setFromDate(startOfDay);
-//			criteria.setToDate(endOfDay);
-//		}
-
 		List<WaterTankerFixedPointDetail> applications =
 				requestServiceRepository.getWaterTankerFixedPointBookingDetails(criteria);
 
 		return CollectionUtils.isEmpty(applications) ? new ArrayList<>() : applications;
+	}
+
+	@Override
+	public BookingStatusCountResponse getBookingStatusCounts(
+			WaterTankerBookingSearchCriteria criteria,
+			RequestInfo requestInfo) {
+
+		Map<String, Integer> statusCounts =
+				requestServiceRepository.getStatusCountsByApplicationType(criteria);
+
+		int total = statusCounts.values().stream().mapToInt(Integer::intValue).sum();
+
+		String appType = ObjectUtils.isEmpty(criteria.getApplicationType())
+				? "ALL" : criteria.getApplicationType();
+
+		ResponseInfo responseInfo = RequestServiceUtil.createReponseInfo(
+				requestInfo,
+				RequestServiceConstants.BOOKING_DETAIL_FOUND,
+				ResponseInfo.StatusEnum.SUCCESSFUL);
+
+		return BookingStatusCountResponse.builder()
+				.responseInfo(responseInfo)
+				.totalCount(total)
+				.statusCounts(statusCounts)
+				.applicationType(appType)
+				.build();
 	}
 
 	@Override
@@ -543,6 +342,39 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 			log.info("Processing rejection by vendor for booking no: {}", bookingNo);
 			handleRejectedByVendor(waterTankerRequest);
 		}
+
+		return waterTankerRequest.getWaterTankerBookingDetail();
+	}
+
+	@Override
+	public WaterTankerBookingDetail updateWaterTankerEmergencyBooking(WaterTankerBookingRequest waterTankerRequest) {
+		WaterTankerBookingDetail incomingDetail = waterTankerRequest.getWaterTankerBookingDetail();
+		String bookingNo = incomingDetail.getBookingNo();
+
+		log.info("Updating booking for booking no: {}", bookingNo);
+
+		if (bookingNo == null) {
+			throw new CustomException("INVALID_BOOKING_CODE", "Booking no is required for update.");
+		}
+
+		WaterTankerBookingSearchCriteria criteria = WaterTankerBookingSearchCriteria.builder()
+				.bookingNo(bookingNo)
+				.tenantId(incomingDetail.getTenantId())
+				.build();
+
+		List<WaterTankerBookingDetail> existingBookings = requestServiceRepository.getWaterTankerBookingDetails(criteria);
+
+		if (existingBookings.isEmpty()) {
+			throw new CustomException("BOOKING_NOT_FOUND", "No booking found for booking number: " + bookingNo);
+		}
+
+		String currentDbStatus = existingBookings.get(0).getBookingStatus();
+
+
+		enrichmentService.enrichWaterTankerBookingEmergecnyUpdate(waterTankerRequest, currentDbStatus);
+
+		// 4. Update the record
+		requestServiceRepository.updateWaterTankerBooking(waterTankerRequest);
 
 		return waterTankerRequest.getWaterTankerBookingDetail();
 	}

@@ -92,11 +92,9 @@ const ActionModal = ({
     }
   });
 
-  /* We have used this hook as it is already defined in FSM,
-     and we have used it here to fetch vehicle data when the system state is "DELIVERY_PENDING". */
-
   const { data: vehicleData, isSuccess } = Digit.Hooks.fsm.useVehiclesSearch({
     tenantId,
+    filters: { vendorId: applicationData?.vendorId },
     config: { enabled: action?.state === "DELIVERY_PENDING" || action?.action === "ASSIGN_VEHICLE_DRIVER" },
   });
 
@@ -105,7 +103,7 @@ const ActionModal = ({
 
   let vehicleDescription = [];
   vehicleData?.vehicle
-    ?.filter((item) => item?.driverData?.id || item?.driver?.id)
+    ?.filter((item) => item?.driverData?.id || item?.driver?.id || item?.owner?.id)
     ?.map((item) => {
       vehicleDescription.push({
         code: item?.registrationNumber,
@@ -113,7 +111,7 @@ const ActionModal = ({
         i18nKey: item?.registrationNumber,
         tankerCapacity: item?.tankCapacity,
         vehicleId: item?.id,
-        driverId: item?.driverData?.ownerId || item?.driver?.ownerId,
+        driverId: item?.driverData?.ownerId || item?.driver?.ownerId || item?.ownerId || item?.owner?.uuid,
       });
     });
 
@@ -223,7 +221,7 @@ const ActionModal = ({
       actionCancelLabel={t(config.label.cancel)}
       actionCancelOnSubmit={closeModal}
       actionSaveLabel={t(config.label.submit)}
-      actionSaveOnSubmit={() => {}}
+      actionSaveOnSubmit={() => { }}
       formId="modal-action"
     >
       <FormComposer

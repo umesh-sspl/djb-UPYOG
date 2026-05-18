@@ -371,6 +371,7 @@ import useUpdateFillingPointLocality from "./wt/useUpdateFillingPointLocality";
 import { useUpdateFixedPointSchedule } from "./wt/useUpdateFixedPointSchedule";
 import useVendorFillingMap from "./wt/useVendorFillingMap";
 import useDriverTripReportSearch from "./wt/useDriverTripReportSearch";
+import useUpdateEmergencyBooking from "./wt/useUpdateEmergencyBooking";
 
 
 const wt = {
@@ -398,6 +399,7 @@ const wt = {
   useUpdateFixedPointSchedule,
   useVendorFillingMap,
   useDriverTripReportSearch,
+  useUpdateEmergencyBooking,
 };
 
 const pgr = {

@@ -1,5 +1,5 @@
 body {
-  background-color: #e7e7e7;
+  background-color: #f4f7f9;
 }
 
 .body-container {
@@ -13,14 +13,6 @@ body {
     height: 24px;
   }
 }
-
-/* .navbar-header{
-    @apply text-navbarheader float-left px-sm
-}
-
-.navbar-subheader{
-    @apply font-light px-sm border-solid border-l border-white border-opacity-100
-}*/
 
 .h1 {
   @apply text-heading-l text-text-primary font-bold mb-md ml-md;
@@ -145,7 +137,7 @@ body {
     gap: 12px;
 
     @media (min-width: 768px) {
-      /* padding-right: 55px; // commented by avinash as it was giving padding right in user */
+      /* padding-right: 55px; */
     }
 
     .header {
@@ -299,6 +291,8 @@ body {
   margin-top: 90px;
 }
 
+/* ─── Core services carousel (unchanged) ───────────────────────────────────── */
+
 .module-carousel-section {
   display: flex;
   flex-direction: column;
@@ -307,18 +301,21 @@ body {
 }
 
 .module-carousel-header h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  color: inherit;
   margin: 0;
 }
 
-.module-carousel-header {
-  background: linear-gradient(135deg, #3585c4, #6fa0f0 40%, #80b3ff);
-  padding: 12px 16px;
-  border-radius: 10px;
+.core-carousel-section .module-carousel-header {
+  background: linear-gradient(135deg, #2a75b3, #5c93e8 50%, #7aaeff);
+  padding: 14px 20px;
+  border-radius: 12px;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 12px;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(42, 117, 179, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .module-carousel-actions {
@@ -345,7 +342,8 @@ body {
   width: 100%;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  padding-top: 10px;
+  padding: 12px 8px 32px 8px;
+  margin: 0px -8px -16px -8px;
 }
 
 @media (max-width: 1024px) {
@@ -364,7 +362,7 @@ body {
   display: none;
 }
 
-.carousel-track > div {
+.carousel-track>div {
   scroll-snap-align: start;
   box-sizing: border-box;
   width: 100%;
@@ -411,6 +409,288 @@ body {
   background-color: #fafafa;
   box-shadow: none;
 }
+
+/* ─── Engagement Panel ──────────────────────────────────────────────────────
+ * Replaces the old engagement-carousel-section block entirely.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.engagement-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f7f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 24px 24px;
+  margin-top: -28px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  background-image: linear-gradient(135deg, rgba(186, 230, 253, .2), rgba(243, 232, 255, .15));
+}
+
+.engagement-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0px; /* changed from 14px to accommodate padding below */
+}
+
+/* Used for smooth collapsible vertical animation */
+.engagement-panel__content {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.collapsed {
+    grid-template-rows: 0fr;
+  }
+}
+
+.engagement-panel__content-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding-top: 14px; /* Move the header bottom margin here to avoid collapse jump */
+}
+
+.engagement-panel__title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Pulsing live indicator dot */
+.engagement-panel__pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  animation: eng-pulse 2.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes eng-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.06);
+  }
+}
+
+.engagement-panel__title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #1e293b;
+}
+
+/* Chip / pill row */
+.engagement-panel__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+/* Has visible cards below — add spacing between chips and cards */
+.engagement-panel__chip-row+.engagement-panel__cards {
+  margin-top: 16px;
+}
+
+.engagement-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 15px;
+  border-radius: 100px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+  line-height: 1;
+
+  i {
+    font-size: 15px;
+    color: #64748b;
+    transition: color 0.15s;
+  }
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.engagement-chip--active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #ffffff;
+
+  i {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+}
+
+/* Card grid — shown when registered module cards exist */
+.engagement-panel__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+
+  /* Ensure cards inside the grid fill their cells and don't have extra margins */
+  .new-employee-card {
+    &:nth-child(6n+1) {
+      --card-bg: #f2fbf7;
+      --card-border: #d1efe2;
+      --card-icon-color: #1d9e75;
+      --card-text-color: #0f6e56;
+      --card-hover-shadow: rgba(29, 158, 117, 0.12);
+    }
+    &:nth-child(6n+2) {
+      --card-bg: #f0f7ff;
+      --card-border: #cce3fd;
+      --card-icon-color: #2563eb;
+      --card-text-color: #1e3a8a;
+      --card-hover-shadow: rgba(37, 99, 235, 0.12);
+    }
+    &:nth-child(6n+3) {
+      --card-bg: #f5f3ff;
+      --card-border: #e5d5ff;
+      --card-icon-color: #7c3aed;
+      --card-text-color: #4c1d95;
+      --card-hover-shadow: rgba(124, 58, 237, 0.12);
+    }
+    &:nth-child(6n+4) {
+      --card-bg: #fffbeb;
+      --card-border: #fde08b;
+      --card-icon-color: #d97706;
+      --card-text-color: #78350f;
+      --card-hover-shadow: rgba(217, 119, 6, 0.12);
+    }
+    &:nth-child(6n+5) {
+      --card-bg: #fff1f2;
+      --card-border: #fecdd3;
+      --card-icon-color: #e11d48;
+      --card-text-color: #881337;
+      --card-hover-shadow: rgba(225, 29, 72, 0.12);
+    }
+    &:nth-child(6n+6) {
+      --card-bg: #ecfeff;
+      --card-border: #a5f3fc;
+      --card-icon-color: #0891b2;
+      --card-text-color: #164e63;
+      --card-hover-shadow: rgba(8, 145, 178, 0.12);
+    }
+
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: linear-gradient(160deg, #ffffff, var(--card-bg));
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    gap: 8px;
+    
+    .card-header-row {
+      padding-bottom: 10px;
+      gap: 8px;
+      
+      &::after {
+        background: linear-gradient(90deg, transparent 0%, var(--card-border) 50%, transparent 100%);
+      }
+    }
+
+    .module-icon-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background-color: var(--card-bg) !important;
+      color: var(--card-icon-color) !important;
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .module-title {
+      font-size: 0.95rem;
+      color: var(--card-text-color);
+    }
+    
+    .main-kpi-number {
+      font-size: 1.6rem;
+      color: var(--card-icon-color);
+    }
+
+    .main-kpi-label {
+      font-size: 0.75rem;
+    }
+
+    .trend-icon {
+      width: 14px;
+      height: 14px;
+      border-width: 1px;
+      svg {
+        width: 10px;
+        height: 10px;
+      }
+    }
+
+    .sec-kpi-label {
+      font-size: 0.7rem;
+    }
+    
+    .sec-kpi-value {
+      font-size: 0.8rem;
+    }
+
+    .card-footer-row {
+      gap: 8px;
+    }
+
+    .pill-link {
+      padding: 4px 10px;
+      font-size: 11px;
+      background-color: var(--card-bg);
+      border-color: var(--card-border);
+      color: var(--card-text-color);
+
+      &:hover {
+        filter: brightness(0.95);
+        border-color: var(--card-icon-color);
+      }
+    }
+
+    .details-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px var(--card-hover-shadow);
+      border-color: var(--card-border);
+    }
+  }
+}
+
+/* ─── Header area (unchanged) ───────────────────────────────────────────────── */
 
 .header-right-area {
   display: flex;

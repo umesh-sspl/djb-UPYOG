@@ -1,4 +1,5 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useRef } from "react";
+import { useHistory } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -37,19 +38,8 @@ const enlargedFixedPointIcon = new L.Icon({
   iconSize: [35, 57],
   iconAnchor: [17.5, 57],
   popupAnchor: [1, -45],
-  shadowSize: [50, 50],
-  className: "bouncing-marker"
+  shadowSize: [50, 50]
 });
-
-const bounceStyles = `
-  @keyframes marker-bounce {
-    0%, 100% { margin-top: 0px; }
-    50% { margin-top: -15px; }
-  }
-  .bouncing-marker {
-    animation: marker-bounce 0.6s infinite ease-in-out !important;
-  }
-`;
 
 // Component to handle map bounds and centering
 const ChangeView = ({ bounds, center, zoom }) => {
@@ -65,11 +55,13 @@ const ChangeView = ({ bounds, center, zoom }) => {
 };
 
 const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t }) => {
+  const history = useHistory();
   const [selectedFillingPoint, setSelectedFillingPoint] = useState(null);
   const [selectedFixedPoint, setSelectedFixedPoint] = useState(null);
   const [hoveredFixedPointId, setHoveredFixedPointId] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
   const [mapZoom, setMapZoom] = useState(11);
+  const markerRefs = useRef({});
 
   const defaultCenter = [28.6139, 77.209]; // Default center (Delhi)
 
@@ -101,11 +93,23 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
   }, [fillingPoints, selectedFillingPoint]);
 
   const displayFixedPoints = useMemo(() => {
-    if (selectedFixedPoint) {
-      return [selectedFixedPoint].filter(fx => fx.address?.latitude && fx.address?.longitude);
-    }
     return relatedFixedPoints.filter(fx => fx.address?.latitude && fx.address?.longitude);
-  }, [relatedFixedPoints, selectedFixedPoint]);
+  }, [relatedFixedPoints]);
+
+  useEffect(() => {
+    if (hoveredFixedPointId) {
+      const marker = markerRefs.current[hoveredFixedPointId];
+      if (marker) marker.openPopup();
+    } else if (selectedFixedPoint) {
+      const fxId = selectedFixedPoint.id || selectedFixedPoint.applicantDetail?.applicantId;
+      const marker = markerRefs.current[fxId];
+      if (marker) marker.openPopup();
+    } else {
+      Object.values(markerRefs.current).forEach(marker => {
+        if (marker && marker.isPopupOpen && marker.isPopupOpen()) marker.closePopup();
+      });
+    }
+  }, [hoveredFixedPointId, selectedFixedPoint]);
 
   const bounds = useMemo(() => {
     const allPoints = [
@@ -123,10 +127,23 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
   };
 
   const handleFixedPointSelect = (val) => {
-    setSelectedFixedPoint(val);
-    if (val?.address?.latitude && val?.address?.longitude) {
-      setMapCenter([parseFloat(val.address.latitude), parseFloat(val.address.longitude)]);
-      setMapZoom(16);
+    const currentId = selectedFixedPoint?.applicantDetail?.fixedPointId || selectedFixedPoint?.id || selectedFixedPoint?.applicantDetail?.applicantId;
+    const incomingId = val?.applicantDetail?.fixedPointId || val?.id || val?.applicantDetail?.applicantId;
+
+    if (selectedFixedPoint && currentId === incomingId) {
+      setSelectedFixedPoint(null);
+      // Fallback for marker ref access which might use a different ID priority
+      const markerId = val.id || val.applicantDetail?.applicantId;
+      const marker = markerRefs.current[markerId];
+      if (marker) {
+        marker.closePopup();
+      }
+    } else {
+      setSelectedFixedPoint(val);
+      if (val?.address?.latitude && val?.address?.longitude) {
+        setMapCenter([parseFloat(val.address.latitude), parseFloat(val.address.longitude)]);
+        setMapZoom(16);
+      }
     }
   };
 
@@ -159,7 +176,6 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
       boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
       background: "#fff"
     }}>
-      <style>{bounceStyles}</style>
       {/* Sidebar */}
       <div style={{ 
         width: window.innerWidth < 768 ? "100%" : "320px", 
@@ -169,7 +185,8 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
         flexDirection: "column",
         gap: "20px",
         background: "#f9f9f9",
-        zIndex: 10
+        zIndex: 10,
+        overflowY: "auto"
       }}>
         <h3 style={{ margin: "0 0 8px 0", color: "#1D4E7F", fontSize: "20px", fontWeight: "600" }}>
           {t("WT_MAP_FILTERS")}
@@ -204,13 +221,18 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
             }}>
               {relatedFixedPoints.length > 0 ? (
                 relatedFixedPoints.map((fx, idx) => {
-                  const isSelected = selectedFixedPoint?.id === fx.id || (fx.applicantDetail?.applicantId && selectedFixedPoint?.applicantDetail?.applicantId === fx.applicantDetail?.applicantId);
+                  const currentFxId = fx?.applicantDetail?.fixedPointId || fx?.id || fx?.applicantDetail?.applicantId || idx;
+                  const selectedFxId = selectedFixedPoint?.applicantDetail?.fixedPointId || selectedFixedPoint?.id || selectedFixedPoint?.applicantDetail?.applicantId;
+                  const isSelected = selectedFixedPoint && currentFxId === selectedFxId;
+                  
+                  const hoverOrMarkerId = fx.id || fx.applicantDetail?.applicantId || idx;
+
                   return (
                     <div 
                       key={idx}
                       onClick={() => handleFixedPointSelect(fx)}
                       onMouseEnter={() => {
-                        setHoveredFixedPointId(fx.id || fx.applicantDetail?.applicantId || idx);
+                        setHoveredFixedPointId(hoverOrMarkerId);
                         if (fx?.address?.latitude && fx?.address?.longitude) {
                           setMapCenter([parseFloat(fx.address.latitude), parseFloat(fx.address.longitude)]);
                           setMapZoom(16);
@@ -228,10 +250,10 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                         color: isSelected ? "#1D4E7F" : "#333",
                         fontWeight: isSelected ? "600" : "400",
                         display: "flex",
-                        alignItems: "center",
+                        alignItems: "flex-start",
                         gap: "10px",
-                        boxShadow: isSelected ? "0 2px 8px rgba(29, 78, 127, 0.15)" : (hoveredFixedPointId === (fx.id || fx.applicantDetail?.applicantId || idx) ? "0 4px 12px rgba(0,0,0,0.1)" : "none"),
-                        transform: hoveredFixedPointId === (fx.id || fx.applicantDetail?.applicantId || idx) ? "translateX(4px)" : "none"
+                        boxShadow: isSelected ? "0 2px 8px rgba(29, 78, 127, 0.15)" : (hoveredFixedPointId === hoverOrMarkerId ? "0 4px 12px rgba(0,0,0,0.1)" : "none"),
+                        transform: hoveredFixedPointId === hoverOrMarkerId ? "translateX(4px)" : "none"
                       }}
                     >
                       <div style={{ 
@@ -239,11 +261,53 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                         height: "10px", 
                         borderRadius: "50%", 
                         background: "#417505",
-                        boxShadow: "0 0 4px rgba(65, 117, 5, 0.4)"
+                        boxShadow: "0 0 4px rgba(65, 117, 5, 0.4)",
+                        marginTop: "5px",
+                        flexShrink: 0
                       }}></div>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span>{fx?.applicantDetail?.name || fx?.name || "NA"}</span>
-                        <span style={{ fontSize: "11px", color: "#888", fontWeight: "400" }}>{fx?.applicantDetail?.fixedPointId}</span>
+                      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <div style={{ display: "flex", flexDirection: "column" }}>
+                            <span style={{ fontWeight: "700" }}>{fx?.applicantDetail?.fixedPointId || "NA"}</span>
+                            <span style={{ fontSize: "11px", color: "#888", fontWeight: "400" }}>{fx?.applicantDetail?.name || fx?.name || "NA"}</span>
+                          </div>
+                          <div style={{ color: "#1D4E7F", fontSize: "10px", paddingTop: "4px" }}>
+                            {isSelected ? "▲" : "▼"}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid #eee", fontSize: "12px", color: "#555", display: "flex", flexDirection: "column", gap: "4px" }}>
+                            <div><strong>{t("WT_MOBILE_NUMBER")}:</strong> {fx?.applicantDetail?.mobileNumber || "NA"}</div>
+                            <div><strong>{t("WT_LOCALITY")}:</strong> {fx?.address?.locality || "NA"}</div>
+                            <div><strong>Email:</strong> {fx?.applicantDetail?.emailId || "NA"}</div>
+                            <div><strong>Alt Mobile:</strong> {fx?.applicantDetail?.alternateNumber || "NA"}</div>
+                            <div><strong>Address:</strong> {[fx?.address?.houseNo, fx?.address?.streetName, fx?.address?.city, fx?.address?.pincode].filter(Boolean).join(", ") || "NA"}</div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const idToEdit = fx?.id || fx?.applicantDetail?.applicantId;
+                                history.push(`/digit-ui/employee/wt/add-fix-point-address?id=${idToEdit}`);
+                              }}
+                              style={{
+                                marginTop: "8px",
+                                padding: "6px 12px",
+                                background: "#F47738", // DIGIT primary orange
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                alignSelf: "flex-start",
+                                transition: "background 0.2s"
+                              }}
+                              onMouseEnter={(e) => e.target.style.background = "#D6662E"}
+                              onMouseLeave={(e) => e.target.style.background = "#F47738"}
+                            >
+                              Edit Fixed Point
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -327,6 +391,10 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                 key={`fp-${fp.id || index}`} 
                 position={[parseFloat(fp.address.latitude), parseFloat(fp.address.longitude)]}
                 icon={fillingPointIcon}
+                eventHandlers={{
+                  mouseover: (e) => e.target.openPopup(),
+                  mouseout: (e) => e.target.closePopup()
+                }}
               >
                 <Popup>
                   <div style={{ padding: "8px", minWidth: "200px" }}>
@@ -336,6 +404,11 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_FILLING_POINT_CODE")}:</strong> {fp.fillingPointId}</p>
                       <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_LOCALITY")}:</strong> {fp.address?.locality || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_AE_NAME")}:</strong> {fp?.aeName || "NA"} ({fp?.aeMobile || "NA"})</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_JE_NAME")}:</strong> {fp?.jeName || "NA"} ({fp?.jeMobile || "NA"})</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_EE_NAME")}:</strong> {fp?.eeName || "NA"} ({fp?.eeMobile || "NA"})</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Latitude:</strong> {fp.address?.latitude || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Longitude:</strong> {fp.address?.longitude || "NA"}</p>
                       <p style={{ margin: 0, fontSize: "12px", color: "#1F5FA8" }}><strong>Coverage:</strong> 5 KM Radius</p>
                     </div>
                   </div>
@@ -348,12 +421,26 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
           {displayFixedPoints.map((fx, index) => {
             const fxId = fx.id || fx.applicantDetail?.applicantId || index;
             const isHovered = hoveredFixedPointId === fxId;
+            
+            const currentFxId = fx?.applicantDetail?.fixedPointId || fx?.id || fx?.applicantDetail?.applicantId || index;
+            const selectedFxId = selectedFixedPoint?.applicantDetail?.fixedPointId || selectedFixedPoint?.id || selectedFixedPoint?.applicantDetail?.applicantId;
+            const isSelected = selectedFixedPoint && currentFxId === selectedFxId;
+
             return (
               <Marker 
                 key={`fx-${fxId}`} 
                 position={[parseFloat(fx.address.latitude), parseFloat(fx.address.longitude)]}
-                icon={isHovered ? enlargedFixedPointIcon : fixedPointIcon}
-                zIndexOffset={isHovered ? 1000 : 0}
+                icon={isHovered || isSelected ? enlargedFixedPointIcon : fixedPointIcon}
+                zIndexOffset={isHovered || isSelected ? 1000 : 0}
+                ref={(r) => markerRefs.current[fxId] = r}
+                eventHandlers={{
+                  mouseover: () => {
+                    setHoveredFixedPointId(fxId);
+                  },
+                  mouseout: () => {
+                    setHoveredFixedPointId(null);
+                  }
+                }}
               >
                 <Popup>
                   <div style={{ padding: "8px", minWidth: "200px" }}>
@@ -364,6 +451,11 @@ const PointAddressMap = ({ fillingPoints = [], fixedPoints = [], isLoading, t })
                       <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_FIXED_POINT_CODE")}:</strong> {fx?.applicantDetail?.fixedPointId || "NA"}</p>
                       <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_MOBILE_NUMBER")}:</strong> {fx?.applicantDetail?.mobileNumber || "NA"}</p>
                       <p style={{ margin: 0, fontSize: "12px" }}><strong>{t("WT_LOCALITY")}:</strong> {fx?.address?.locality || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Email:</strong> {fx?.applicantDetail?.emailId || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Alt Mobile:</strong> {fx?.applicantDetail?.alternateNumber || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Address:</strong> {[fx?.address?.houseNo, fx?.address?.streetName, fx?.address?.city, fx?.address?.pincode].filter(Boolean).join(", ") || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Latitude:</strong> {fx?.address?.latitude || "NA"}</p>
+                      <p style={{ margin: 0, fontSize: "12px" }}><strong>Longitude:</strong> {fx?.address?.longitude || "NA"}</p>
                     </div>
                   </div>
                 </Popup>

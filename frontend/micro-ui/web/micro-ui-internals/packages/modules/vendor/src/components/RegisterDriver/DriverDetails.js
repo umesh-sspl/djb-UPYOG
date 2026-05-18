@@ -303,7 +303,7 @@ const DriverDetails = () => {
           {driverData?.[0]?.employeeResponse?.map((detail, index) => (
             <React.Fragment key={index}>
               {index > 0 && <CardSectionHeader style={{ marginBottom: "16px", marginTop: "32px" }}>{t(detail.title)}</CardSectionHeader>}
-              <Card className="card-with-background" style={{ margin: "10px 16px", padding: "20px" }}>
+              <Card className="card-with-background">
                 <div className="additional-grid">
                   {detail?.values?.map((value, index) => {
                     return value?.type === "custom" ? (

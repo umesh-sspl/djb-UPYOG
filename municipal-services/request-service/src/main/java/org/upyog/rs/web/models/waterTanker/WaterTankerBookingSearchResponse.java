@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.validation.annotation.Validated;
 import org.upyog.rs.web.models.ResponseInfo;
 import java.util.List;
+import java.util.Map;
 
 
 @Schema(description = "Store booking details")
@@ -24,4 +25,10 @@ public class WaterTankerBookingSearchResponse {
     private List<WaterTankerBookingDetail> waterTankerBookingDetails;
 
     private Integer count;
+
+    @JsonProperty("statusCounts")
+    private Map<String, Integer> statusCounts;
+
+    @JsonProperty("applicationType")
+    private String applicationType;
 }

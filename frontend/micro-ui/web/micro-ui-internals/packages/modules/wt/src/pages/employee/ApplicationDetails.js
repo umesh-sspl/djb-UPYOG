@@ -44,15 +44,15 @@ const ApplicationDetails = () => {
   const { isLoading, isError, data: applicationDetails, error } = isWaterTanker
     ? Digit.Hooks.wt.useWTApplicationDetail(t, tenantId, bookingNo)
     : isTreePruning
-    ? Digit.Hooks.wt.useTPApplicationDetail(t, tenantId, bookingNo)
-    : Digit.Hooks.wt.useMTApplicationDetail(t, tenantId, bookingNo);
+      ? Digit.Hooks.wt.useTPApplicationDetail(t, tenantId, bookingNo)
+      : Digit.Hooks.wt.useMTApplicationDetail(t, tenantId, bookingNo);
 
   // Fetch application action hooks based on service type
   const { isLoading: updatingApplication, isError: updateApplicationError, data: updateResponse, error: updateError, mutate } = isWaterTanker
     ? Digit.Hooks.wt.useWTApplicationAction(tenantId)
     : isTreePruning
-    ? Digit.Hooks.wt.useTPApplicationAction(tenantId)
-    : Digit.Hooks.wt.useMTApplicationAction(tenantId);
+      ? Digit.Hooks.wt.useTPApplicationAction(tenantId)
+      : Digit.Hooks.wt.useMTApplicationAction(tenantId);
 
   // Fetch workflow details for the application
   let workflowDetails = Digit.Hooks.useWorkflowDetails({
@@ -65,48 +65,48 @@ const ApplicationDetails = () => {
   const closeToast = () => {
     setShowToast(null);
   };
- useEffect(() => {
-  if (applicationDetails) {
-    let details = _.cloneDeep(applicationDetails);
+  useEffect(() => {
+    if (applicationDetails) {
+      let details = _.cloneDeep(applicationDetails);
 
-    const bookingStatus =
-      details?.applicationData?.applicationData?.bookingStatus;
+      const bookingStatus =
+        details?.applicationData?.applicationData?.bookingStatus;
 
-    const isDelivered =
-      bookingStatus === "DELIVERED" ||
-      bookingStatus === "TANKER_DELIVERED";
+      const isDelivered =
+        bookingStatus === "DELIVERED" ||
+        bookingStatus === "TANKER_DELIVERED";
 
-    if (details?.applicationDetails?.length > 0 && !isDelivered) {
-      details.applicationDetails[0].Component = () => (
-        <div
-          onClick={() => setShowEditModal(true)}
-          style={{
-            float: "right",
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer",
-            color: "#f47738",
-            gap: "8px",
-            padding: "4px 12px",
-            backgroundColor: "#fff",
-            borderRadius: "4px",
-            border: "1px solid #f47738",
-            transition: "all 0.2s ease",
-          }}
-        >
-          <EditIcon style={{ fill: "#f47738", width: "16px", height: "16px" }} />
-          <span style={{ fontWeight: "600", fontSize: "14px" }}>
-            {t("WT_EDIT_FIELDS")}
-          </span>
-        </div>
-      );
-    } else if (details?.applicationDetails?.length > 0) {
-      delete details.applicationDetails[0].Component;
+      if (details?.applicationDetails?.length > 0 && !isDelivered && isFixedPoint) {
+        details.applicationDetails[0].Component = () => (
+          <div
+            onClick={() => setShowEditModal(true)}
+            style={{
+              float: "right",
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+              color: "#f47738",
+              gap: "8px",
+              padding: "4px 12px",
+              backgroundColor: "#fff",
+              borderRadius: "4px",
+              border: "1px solid #f47738",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <EditIcon style={{ fill: "#f47738", width: "16px", height: "16px" }} />
+            <span style={{ fontWeight: "600", fontSize: "14px" }}>
+              {t("WT_EDIT_FIELDS")}
+            </span>
+          </div>
+        );
+      } else if (details?.applicationDetails?.length > 0) {
+        delete details.applicationDetails[0].Component;
+      }
+
+      setAppDetailsToShow(details);
     }
-
-    setAppDetailsToShow(details);
-  }
-}, [applicationDetails]);
+  }, [applicationDetails, isFixedPoint]);
 
   useEffect(() => {
     if (
@@ -136,32 +136,32 @@ const ApplicationDetails = () => {
         />
       )}
 
-         {/* Left Column: Workflow Timeline */}
-        <div className={`workflow-timeline-wrapper no-scrollbar ${hideTimeline ? "hide-workflow" : ""}`} style={{ flex: "1 1 300px", maxWidth: hideTimeline ? "fit-content" : "400px", transition: "max-width 0.3s" }}>
-          <WorkflowTimeline hideTimeline={hideTimeline} setHideTimeline={setHideTimeline} workflowDetails={workflowDetails} />
-        </div>
+      {/* Left Column: Workflow Timeline */}
+      <div className={`workflow-timeline-wrapper no-scrollbar ${hideTimeline ? "hide-workflow" : ""}`} style={{ flex: "1 1 300px", maxWidth: hideTimeline ? "fit-content" : "400px", transition: "max-width 0.3s" }}>
+        <WorkflowTimeline workflowDetails={workflowDetails} />
+      </div>
 
-        {/* Right Column: Application Details */}
-        <div style={{ flex: "2 1 500px", minWidth: "300px", overflowY: "auto" }}>
-          <ApplicationDetailsTemplate
-            applicationDetails={appDetailsToShow?.applicationData}
-            isLoading={isLoading}
-            isDataLoading={isLoading}
-            applicationData={appDetailsToShow?.applicationData?.applicationData}
-            mutate={mutate}
-            workflowDetails={workflowDetails}
-            businessService={businessService}
-            moduleCode={isFixedPoint ? "request-service.water_tanker" : "request-service"}
-            showToast={showToast}
-            setShowToast={setShowToast}
-            closeToast={closeToast}
-            timelineStatusPrefix={""}
-            forcedActionPrefix={"RS"}
-            statusAttribute={"state"}
-            MenuStyle={{ color: "#FFFFFF", fontSize: "18px" }}
-            showTimeLine={false} // Hide default timeline
-          />
-        </div>
+      {/* Right Column: Application Details */}
+      <div style={{ flex: "2 1 500px", minWidth: "300px", overflowY: "auto" }}>
+        <ApplicationDetailsTemplate
+          applicationDetails={appDetailsToShow?.applicationData}
+          isLoading={isLoading}
+          isDataLoading={isLoading}
+          applicationData={appDetailsToShow?.applicationData?.applicationData}
+          mutate={mutate}
+          workflowDetails={workflowDetails}
+          businessService={businessService}
+          moduleCode={isFixedPoint ? "request-service.water_tanker" : "request-service"}
+          showToast={showToast}
+          setShowToast={setShowToast}
+          closeToast={closeToast}
+          timelineStatusPrefix={""}
+          forcedActionPrefix={"RS"}
+          statusAttribute={"state"}
+          MenuStyle={{ color: "#FFFFFF", fontSize: "18px" }}
+          showTimeLine={false} // Hide default timeline
+        />
+      </div>
     </React.Fragment>
   );
 };

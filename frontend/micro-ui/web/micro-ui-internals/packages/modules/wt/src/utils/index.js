@@ -56,8 +56,8 @@ export const waterTankerPayload = (data) => {
       address: {
         addressType: data?.address?.addressType?.code,
         pincode: data?.address?.pincode,
-        city: data?.address?.city?.city?.name,
-        cityCode: data?.address?.city?.city?.code,
+        city: data?.address?.city?.city?.name || "DJB",
+        cityCode: data?.address?.city?.city?.code || "DJB",
         addressLine1: data?.address?.addressLine1,
         addressLine2: data?.address?.addressLine2,
         locality: data?.address?.locality?.i18nKey,
@@ -101,8 +101,8 @@ export const mobileToiletPayload = (data) => {
       address: {
         addressType: data?.address?.addressType?.code,
         pincode: data?.address?.pincode,
-        city: data?.address?.city?.city?.name,
-        cityCode: data?.address?.city?.city?.code,
+        city: data?.address?.city?.city?.name || "DJB",
+        cityCode: data?.address?.city?.city?.code || "DJB",
         addressLine1: data?.address?.addressLine1,
         addressLine2: data?.address?.addressLine2,
         locality: data?.address?.locality?.i18nKey,
@@ -146,8 +146,8 @@ export const treePruningPayload = (data) => {
       address: {
         addressType: data?.address?.addressType?.code,
         pincode: data?.address?.pincode,
-        city: data?.address?.city?.city?.name,
-        cityCode: data?.address?.city?.city?.code,
+        city: data?.address?.city?.city?.name || "DJB",
+        cityCode: data?.address?.city?.city?.code || "DJB",
         addressLine1: data?.address?.addressLine1,
         addressLine2: data?.address?.addressLine2,
         locality: data?.address?.locality?.i18nKey,
@@ -198,7 +198,7 @@ export const fillingPointPayload = (data) => {
           addressLine1: data?.address?.addressLine1,
           addressLine2: data?.address?.addressLine2,
           landmark: data?.address?.landmark,
-          city: data?.address?.city?.name || data?.address?.city || "",
+          city: data?.address?.city?.name || data?.address?.city || "DJB",
           cityCode: data?.address?.cityCode || data?.address?.city?.code || "DJB",
           locality: data?.address?.locality?.label || data?.address?.locality?.name || data?.address?.locality || "",
           localityCode: data?.address?.locality?.code || data?.address?.localityCode || "",
@@ -240,7 +240,7 @@ export const fixedPointPayload = (data) => {
         addressLine1: data?.address?.addressLine1 || "",
         addressLine2: data?.address?.addressLine2 || "",
         landmark: data?.address?.landmark || "",
-        city: data?.address?.city?.name || data?.address?.city || "",
+        city: data?.address?.city?.name || data?.address?.city || "DJB",
         cityCode: data?.address?.cityCode || data?.address?.city?.code || "DJB",
         locality: data?.address?.locality?.label || data?.address?.locality?.name || data?.address?.locality || "",
         localityCode: data?.address?.locality?.code || data?.address?.localityCode || "",
@@ -299,7 +299,7 @@ export const emergencyWaterTankerPayload = (data) => {
         addressType: data?.address?.addressType?.code || data?.address?.addressType || "CORRESPONDENCE",
         pincode: data?.address?.pincode || addressFromFP?.pincode || "",
         city: data?.address?.city?.city?.name || data?.address?.city?.name || data?.address?.city || addressFromFP?.city || "",
-        cityCode: data?.address?.city?.city?.code || data?.address?.cityCode || addressFromFP?.cityCode || "DL",
+        cityCode: data?.address?.city?.city?.code || data?.address?.cityCode || addressFromFP?.cityCode || "DJB",
         addressLine1: data?.address?.addressLine1 || addressFromFP?.addressLine1 || "",
         addressLine2: data?.address?.addressLine2 || addressFromFP?.addressLine2 || "",
         locality: data?.address?.locality?.i18nKey || data?.address?.locality?.name || data?.address?.locality || addressFromFP?.locality || "",
@@ -325,3 +325,70 @@ export const emergencyWaterTankerPayload = (data) => {
   };
   return formdata;
 };
+
+export const updateEmergencyWaterTankerPayload = (data) => {
+  const fixedPoint = data?.owner?.fixedPoint;
+  const applicantDetailFromFP = fixedPoint?.applicantDetail || {};
+  const addressFromFP = fixedPoint?.address || {};
+
+  const formdata = {
+    waterTankerBookingDetail: {
+      id: data?.id || data?.waterTankerBookingDetail?.id || "",
+      bookingNo: data?.bookingNo || data?.waterTankerBookingDetail?.bookingNo || null,
+      bookingId: data?.bookingId || data?.waterTankerBookingDetail?.bookingId || "",
+      applicantId: applicantDetailFromFP?.applicantId || data?.owner?.applicantId || data?.applicantId || "",
+      tenantId: data?.tenantId,
+      tankerType: (data?.requestDetails?.tankerType?.code || data?.requestDetails?.tankerType || "")?.toUpperCase(),
+      waterType: data?.requestDetails?.waterType?.code || data?.requestDetails?.waterType,
+      tankerQuantity: data?.requestDetails?.tankerQuantity?.code || data?.requestDetails?.tankerQuantity,
+      waterQuantity: data?.requestDetails?.waterQuantity?.code || data?.requestDetails?.waterQuantity?.value || data?.requestDetails?.waterQuantity,
+      description: data?.requestDetails?.description,
+      deliveryDate: data?.requestDetails?.deliveryDate,
+      deliveryTime: data?.requestDetails?.deliveryTime,
+      extraCharge: data?.requestDetails?.extraCharge ? "Y" : "N",
+      addressDetailId: addressFromFP?.addressId || data?.address?.addressDetailId || data?.addressDetailId || "",
+      vendorId: data?.dispatchDetails?.vendor?.id || data?.owner?.vendor?.id || data?.vendorId || "",
+      vehicleId: data?.dispatchDetails?.vehicle?.id || data?.owner?.vehicle?.id || data?.vehicleId || "",
+      driverId: data?.dispatchDetails?.driver?.id || data?.dispatchDetails?.driver?.uuid || data?.dispatchDetails?.driver?.ownerId || data?.owner?.driver?.ownerId || data?.driverId || "",
+      fillingPointId: data?.dispatchDetails?.fillingPoint?.id || data?.owner?.fillingPoint?.id || data?.fillingPointId || "",
+      vehicleType: data?.dispatchDetails?.vehicle?.vehicleType || data?.owner?.vehicle?.vehicleType || data?.vehicleType || "",
+      vehicleCapacity: data?.dispatchDetails?.vehicle?.capacity || data?.owner?.vehicle?.capacity || data?.vehicleCapacity || "",
+      applicantDetail: {
+        applicantId: applicantDetailFromFP?.applicantId || data?.owner?.applicantId || data?.applicantDetail?.applicantId || "",
+        bookingId: applicantDetailFromFP?.bookingId || data?.applicantDetail?.bookingId || "",
+        name: data?.owner?.applicantName || applicantDetailFromFP?.name || data?.applicantDetail?.name || "",
+        mobileNumber: data?.owner?.mobileNumber || applicantDetailFromFP?.mobileNumber || data?.applicantDetail?.mobileNumber || "",
+        alternateNumber: data?.owner?.alternateNumber || applicantDetailFromFP?.alternateNumber || data?.applicantDetail?.alternateNumber || "",
+        emailId: data?.owner?.emailId || applicantDetailFromFP?.emailId || data?.applicantDetail?.emailId || "",
+        gender: data?.owner?.gender || applicantDetailFromFP?.gender || data?.applicantDetail?.gender || null,
+        type: "FIXED-POINT",
+        fixedPointId: applicantDetailFromFP?.fixedPointId || data?.applicantDetail?.fixedPointId || "",
+      },
+      address: {
+        applicantId: addressFromFP?.applicantId || applicantDetailFromFP?.applicantId || data?.address?.applicantId || "",
+        addressId: addressFromFP?.addressId || data?.address?.addressId || data?.address?.addressDetailId || "",
+        addressType: data?.address?.addressType?.code || data?.address?.addressType || "CORRESPONDENCE",
+        pincode: data?.address?.pincode || addressFromFP?.pincode || "",
+        city: data?.address?.city?.city?.name || data?.address?.city?.name || data?.address?.city || addressFromFP?.city || "",
+        cityCode: data?.address?.city?.city?.code || data?.address?.cityCode || addressFromFP?.cityCode || "DJB",
+        addressLine1: data?.address?.addressLine1 || addressFromFP?.addressLine1 || "",
+        addressLine2: data?.address?.addressLine2 || addressFromFP?.addressLine2 || "",
+        locality: data?.address?.locality?.i18nKey || data?.address?.locality?.name || data?.address?.locality || addressFromFP?.locality || "",
+        localityCode: data?.address?.locality?.code || data?.address?.localityCode || addressFromFP?.localityCode || "",
+        streetName: data?.address?.streetName || addressFromFP?.streetName || "",
+        houseNo: data?.address?.houseNo || addressFromFP?.houseNo || "",
+        landmark: data?.address?.landmark || addressFromFP?.landmark || "",
+        latitude: data?.address?.latitude || addressFromFP?.latitude || "",
+        longitude: data?.address?.longitude || addressFromFP?.longitude || "",
+        ward: data?.address?.ward || data?.address?.block || addressFromFP?.ward || "",
+        zone: data?.address?.zone || addressFromFP?.zone || "",
+        constituency: data?.address?.assembly || data?.address?.constituency || addressFromFP?.constituency || "",
+      },
+      WTfileStoreId: data?.requestDetails?.fileStoreId || data?.WTfileStoreId || null,
+      bookingStatus: data?.bookingStatus || "BOOKING_CREATED",
+      
+    },
+  };
+  return formdata;
+};
+

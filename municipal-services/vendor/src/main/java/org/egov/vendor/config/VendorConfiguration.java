@@ -21,8 +21,13 @@ public class VendorConfiguration {
 	@Value("${persister.save.vendor.topic}")
 	private String saveTopic;
 
+	@Value("${persister.save.vendordrivermapping.topic}")
+	private String saveVendorDriverMappingTopic;
+
+
 	@Value("${persister.update.vendor.topic}")
 	private String updateTopic;
+
 
 	// ── Persister topics — Driver ─────────────────────────────────────────────
 	@Value("${persister.save.driver.topic}")

@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardHeader,
@@ -19,7 +19,6 @@ import { useHistory, useLocation } from "react-router-dom";
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const ActionButton = ({ jumpTo, state }) => {
-  const { t } = useTranslation();
   const history = useHistory();
   function routeTo() {
     history.push(jumpTo, { ...state, isEditing: true });
@@ -33,7 +32,7 @@ const ActionButton = ({ jumpTo, state }) => {
   );
 };
 
-const checkForNA = (value) => (value !== null && value !== undefined && value !== "") ? value : "N/A";
+const checkForNA = (value) => (value !== null && value !== undefined && value !== "" ? value : "N/A");
 
 const boolToYesNo = (value, t) => {
   if (value === true || value === "true" || String(value).toLowerCase() === "yes") return t("CORE_COMMON_YES");
@@ -46,7 +45,7 @@ const boolToYesNo = (value, t) => {
  * The API returns { applicationReview: { newData: { ...flatFields } } }
  */
 const extractActiveData = (searchData, flowState) => {
-  const rawData = (searchData && Object.keys(searchData).length > 0) ? searchData : flowState?.reviewData || {};
+  const rawData = searchData && Object.keys(searchData).length > 0 ? searchData : flowState?.reviewData || {};
 
   // Navigate through applicationReview -> newData
   const reviewWrapper = rawData?.applicationReview || rawData;
@@ -70,11 +69,9 @@ const Review = () => {
 
   const tenantId = Digit.ULBService.getCurrentTenantId();
 
-  const { data: searchData, isLoading: isSearchLoading } = Digit.Hooks.ekyc.useEkycSearchReview(
-    { kno: activeKno, fetchType: "REVIEW" },
-    tenantId,
-    { enabled: !!activeKno }
-  );
+  const { data: searchData, isLoading: isSearchLoading } = Digit.Hooks.ekyc.useEkycSearchReview({ kno: activeKno, fetchType: "REVIEW" }, tenantId, {
+    enabled: !!activeKno,
+  });
 
   // ── Data Consolidation ──────────────────────────────────────────────────
   const activeData = extractActiveData(searchData, flowState);
@@ -181,11 +178,16 @@ const Review = () => {
         {/* ── Header ───────────────────────────────────────────────────── */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <CardHeader style={{ margin: 0 }}>{t("EKYC_REVIEW_APPLICATION")}</CardHeader>
-          <div style={{
-            background: "#F9FAFB", border: "0.5px solid #EAECF0",
-            borderRadius: "20px", padding: "4px 14px",
-            fontSize: "12px", color: "#667085",
-          }}>
+          <div
+            style={{
+              background: "#F9FAFB",
+              border: "0.5px solid #EAECF0",
+              borderRadius: "20px",
+              padding: "4px 14px",
+              fontSize: "12px",
+              color: "#667085",
+            }}
+          >
             {t("EKYC_K_NUMBER")}: <span style={{ color: "#0B0C0C", fontWeight: "600" }}>{activeKno}</span>
           </div>
         </div>
@@ -301,11 +303,7 @@ const Review = () => {
       </Card>
 
       <ActionBar style={{ position: "static", marginTop: "24px" }}>
-        <SubmitBar
-          label={t("EKYC_SUBMIT_APPLICATION")}
-          onSubmit={handleFinalSubmit}
-          disabled={!agree}
-        />
+        <SubmitBar label={t("EKYC_SUBMIT_APPLICATION")} onSubmit={handleFinalSubmit} disabled={!agree} />
       </ActionBar>
     </div>
   );
