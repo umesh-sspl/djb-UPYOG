@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { FormStep, CardLabel, Dropdown } from "@djb25/digit-ui-react-components";
+import React, { useState, useEffect, useMemo } from "react";
+import { FormStep, CardLabel, Dropdown, TextInput } from "@djb25/digit-ui-react-components";
+import { Link } from "react-router-dom";
 
 const EmergencyFixedPointDispatchDetails = ({ t, config, onSelect, formData }) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
@@ -18,10 +19,10 @@ const EmergencyFixedPointDispatchDetails = ({ t, config, onSelect, formData }) =
     { enabled: true }
   );
 
-  const fillingPointOptions = fillingPointsData?.fillingPoints?.map(fp => ({
+  const fillingPointOptions = useMemo(() => fillingPointsData?.fillingPoints?.map(fp => ({
     ...fp,
     name: fp?.fillingPointName || "NA",
-  })) || [];
+  })) || [], [fillingPointsData]);
 
   // Fetch Vendors
   const { data: vendorData } = Digit.Hooks.fsm.useVendorSearch({
@@ -32,25 +33,45 @@ const EmergencyFixedPointDispatchDetails = ({ t, config, onSelect, formData }) =
     config: { enabled: true }
   });
 
-  const vendorOptions = vendorData?.vendor?.map(v => ({
+  const vendorOptions = useMemo(() => vendorData?.vendor?.map(v => ({
     ...v,
     name: v?.name || v?.vendor_id || "NA",
-  })) || [];
+  })) || [], [vendorData]);
 
-  let vehicleOptions = [];
-  let driverOptions = [];
+  const vehicleOptions = useMemo(() => {
+    if (vendor && typeof vendor === "object") {
+      return vendor.vehicles?.map(veh => ({
+        ...veh,
+        name: veh?.registrationNumber || veh?.type || "NA",
+      })) || [];
+    }
+    return [];
+  }, [vendor]);
 
-  if (vendor && typeof vendor === "object") {
-    vehicleOptions = vendor.vehicles?.map(veh => ({
-      ...veh,
-      name: veh?.registrationNumber || veh?.type || "NA",
-    })) || [];
+  const filters = useMemo(() => ({ registrationNumber: vehicle?.registrationNumber }), [vehicle?.registrationNumber]);
 
-    driverOptions = vendor.drivers?.map(drv => ({
-      ...drv,
-      name: drv?.name || drv?.licenseNumber || "NA",
-    })) || [];
-  }
+  const { data: vehicleSearchData } = Digit.Hooks.fsm.useVehiclesSearch({
+    tenantId,
+    filters,
+    config: {
+      enabled: !!vehicle?.registrationNumber,
+    },
+  });
+
+  useEffect(() => {
+    const drv = vehicleSearchData?.vehicle?.[0]?.driverData;
+    if (drv) {
+      const formattedDriver = {
+        ...drv,
+        name: drv?.name || drv?.licenseNumber || "NA",
+      };
+      if (driver?.id !== formattedDriver.id) {
+        setDriver(formattedDriver);
+      }
+    } else if (vehicleSearchData && driver !== "") {
+      setDriver("");
+    }
+  }, [vehicleSearchData, driver]);
 
   const handleVendorSelect = (selected) => {
     setVendor(selected);
@@ -115,16 +136,21 @@ const EmergencyFixedPointDispatchDetails = ({ t, config, onSelect, formData }) =
 
         <div className="form-field wns-search-field">
           <CardLabel>{`${t("WT_DRIVER", "Driver")}`}</CardLabel>
-          <Dropdown
+          <TextInput
             className="form-field"
-            selected={driver}
-            option={driverOptions}
-            select={setDriver}
-            optionKey="name"
+            value={driver?.name || driver || ""}
+            disabled={true}
             t={t}
             name="driver"
-            placeholder={t("WT_SELECT_DRIVER", "Select Driver")}
           />
+          {vehicle?.registrationNumber && vehicleSearchData && !vehicleSearchData?.vehicle?.[0]?.driverData && (
+            <div style={{ marginTop: "10px", color: "red", fontSize: "14px" }}>
+              {t("WT_DRIVER_NOT_MAPPED", "Please map the driver with the selected vehicle to proceed further - ")}
+              <Link to="/digit-ui/employee/vendor/search-vendor" style={{ color: "#a82227", textDecoration: "underline", fontWeight: "bold" }}>
+                {t("WT_CLICK_HERE", "click here")}
+              </Link>
+            </div>
+          )}
         </div>
       </FormStep>
     </React.Fragment>

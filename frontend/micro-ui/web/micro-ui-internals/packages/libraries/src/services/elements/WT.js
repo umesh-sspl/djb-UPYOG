@@ -24,6 +24,17 @@ export const WTService = {
       params: {},
       auth: true,
     }),
+  updateEmergency: (details, tenantId) =>
+    Request({
+      url: Urls.wt.updateEmergency,
+      data: details,
+      useCache: false,
+      setTimeParam: false,
+      userService: true,
+      method: "POST",
+      params: { tenantId },
+      auth: true,
+    }),
   search: ({ tenantId, filters, auth }) =>
     Request({
       url: Urls.wt.search,

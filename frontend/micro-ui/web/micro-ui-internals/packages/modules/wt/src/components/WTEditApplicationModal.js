@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Card, TextInput, CardLabel, Dropdown, MobileNumber, TextArea, Loader } from "@djb25/digit-ui-react-components";
-import { emergencyWaterTankerPayload } from "../utils";
+import { updateEmergencyWaterTankerPayload } from "../utils";
 
 const Close = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF">
@@ -56,7 +56,7 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
   );
 
   // Mutation
-  const mutation = Digit.Hooks.wt.useTankerCreateAPI(tenantId);
+  const mutation = Digit.Hooks.wt.useUpdateEmergencyBooking(tenantId);
 
   useEffect(() => {
     if (applicationData) {
@@ -227,7 +227,7 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
   };
 
   const handleUpdate = () => {
-    const payload = emergencyWaterTankerPayload({ ...formData, tenantId });
+    const payload = updateEmergencyWaterTankerPayload({ ...applicationData, ...formData, tenantId });
     mutation.mutate(payload, {
       onSuccess: () => {
         closeModal();
