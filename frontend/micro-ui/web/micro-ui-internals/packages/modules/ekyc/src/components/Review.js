@@ -16,6 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const ActionButton = ({ jumpTo, state }) => {
@@ -25,8 +26,8 @@ const ActionButton = ({ jumpTo, state }) => {
   }
   return (
     <LinkButton
-      label={<EditIcon style={{ marginTop: "-30px", float: "right", position: "relative", bottom: "32px" }} />}
-      className="check-page-link-button"
+      label={<EditIcon style={{ width: "20px", height: "20px", fill: "#F47738" }} />}
+      style={{ margin: 0, padding: 0 }}
       onClick={routeTo}
     />
   );
@@ -37,29 +38,89 @@ const checkForNA = (value) => (value !== null && value !== undefined && value !=
 const boolToYesNo = (value, t) => {
   if (value === true || value === "true" || String(value).toLowerCase() === "yes") return t("CORE_COMMON_YES");
   if (value === false || value === "false" || String(value).toLowerCase() === "no") return t("CORE_COMMON_NO");
+  if (value === "true") return t("CORE_COMMON_YES");
+  if (value === "false") return t("CORE_COMMON_NO");
   return "N/A";
 };
 
 /**
- * Robust data extraction based on the screenshot provided.
- * The API returns { applicationReview: { newData: { ...flatFields } } }
+ * Robust data extraction for comparison.
+ * The API returns { applicationReviewInfo: { newData: { ... }, oldData: { ... } } }
  */
-const extractActiveData = (searchData, flowState) => {
+const extractReviewData = (searchData, flowState) => {
   const rawData = searchData && Object.keys(searchData).length > 0 ? searchData : flowState?.reviewData || {};
 
-  // Navigate through applicationReview -> newData
-  const reviewWrapper = rawData?.applicationReview || rawData;
+  // Navigate through applicationReviewInfo -> newData/oldData
+  const reviewWrapper = rawData?.applicationReviewInfo || rawData?.applicationReview || rawData;
   const applicationData = (Array.isArray(reviewWrapper) ? reviewWrapper[0] : reviewWrapper) || {};
-  return applicationData?.newData || applicationData;
+
+  return {
+    newData: applicationData?.newData || applicationData,
+    oldData: applicationData?.oldData || null
+  };
+};
+
+const ReviewSection = ({ title, fields, newData, oldData, t, jumpTo, state }) => {
+  return (
+    <div className="review-section-wrapper" style={{ marginBottom: "48px", background: "#fff", borderRadius: "12px", border: "1px solid #EAECF0", overflow: "hidden" }}>
+      <div style={{ padding: "20px 24px", background: "#F9FAFB", borderBottom: "1px solid #EAECF0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <CardSubHeader style={{ margin: 0, fontSize: "18px", color: "#101828", fontWeight: "700" }}>{title}</CardSubHeader>
+        {jumpTo && <ActionButton jumpTo={jumpTo} state={state} />}
+      </div>
+
+      <div style={{ padding: "0 24px" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+          <thead>
+            <tr>
+              <th style={{ padding: "16px 0", textAlign: "left", color: "#667085", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", width: "30%" }}>{t("EKYC_FIELD_NAME")}</th>
+              <th style={{ padding: "16px 0", textAlign: "left", color: "#667085", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", width: "35%" }}>{t("EKYC_EXISTING_INFORMATION")}</th>
+              <th style={{ padding: "16px 0", textAlign: "left", color: "#667085", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", width: "35%" }}>{t("EKYC_PROPOSED_UPDATES")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fields.map((field, idx) => {
+              const valNew = newData?.[field.key];
+              const valOld = oldData?.[field.key];
+              const isChanged = oldData && String(valNew) !== String(valOld) && valOld !== undefined && valOld !== null;
+
+              return (
+                <tr key={idx} style={{ borderTop: "1px solid #F2F4F7" }}>
+                  <td style={{ padding: "16px 0", fontSize: "14px", color: "#344054", fontWeight: "500" }}>
+                    {t(field.label)}
+                  </td>
+                  <td style={{ padding: "16px 0", fontSize: "14px", color: "#667085" }}>
+                    {field.isBool ? boolToYesNo(valOld, t) : checkForNA(valOld)}
+                  </td>
+                  <td style={{ padding: "16px 0", fontSize: "14px", color: isChanged ? "#1B8B32" : "#101828", fontWeight: isChanged ? "700" : "400" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {field.isBool ? boolToYesNo(valNew, t) : checkForNA(valNew)}
+                      {isChanged && (
+                        <span style={{ background: "#ECFDF3", color: "#067647", padding: "2px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: "600" }}>
+                          {t("EKYC_CHANGED")}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 };
 
 const Review = () => {
+
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
 
   const [agree, setAgree] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const flowState = location.state || {};
   const { kNumber, kno, edits = {} } = flowState;
@@ -68,80 +129,239 @@ const Review = () => {
   const { aadhaarData = {}, addressDetails: editedAddress = {}, propertyDetails: editedProperty = {}, meterDetails: editedMeter = {} } = edits;
 
   const tenantId = Digit.ULBService.getCurrentTenantId();
+  const workflowMutation = Digit.Hooks.ekyc.useEkycWorkflow(tenantId);
+  const updateMutation = Digit.Hooks.ekyc.useEkycUpdate(tenantId);
 
   const { data: searchData, isLoading: isSearchLoading } = Digit.Hooks.ekyc.useEkycSearchReview({ kno: activeKno, fetchType: "REVIEW" }, tenantId, {
     enabled: !!activeKno,
   });
 
   // ── Data Consolidation ──────────────────────────────────────────────────
-  const activeData = extractActiveData(searchData, flowState);
+  const { newData: apiNewData, oldData: apiOldData } = extractReviewData(searchData, flowState);
 
-  // Support both structured (connectionDetails.x) and flat (x) formats
-  const apiConn = activeData?.connectionDetails || activeData || {};
-  const apiAddr = activeData?.addressDetails || activeData || {};
-  const apiProp = activeData?.propertyInfo || activeData || {};
-  const apiMeter = activeData?.meterDetails || activeData || {};
+  const prepareConsolidatedData = (data) => {
+    if (!data) return null;
+    const apiConn = data?.connectionDetails || data || {};
+    const apiAddr = data?.addressDetails || data || {};
+    const apiProp = data?.propertyInfo || data || {};
+    const apiMeter = data?.meterDetails || data || {};
 
+    return {
+      connection: {
+        consumerName: apiConn?.consumerName || (apiConn?.firstName ? [apiConn.firstName, apiConn.middleName, apiConn.lastName].filter(Boolean).join(" ") : null),
+        address: apiConn?.address || apiConn?.addressRaw,
+        connectionType: apiConn?.connectionType || apiConn?.connectionCategory,
+        meterNumber: apiConn?.meterNumber || apiConn?.meterNo,
+        phoneNumber: apiConn?.phoneNumber || apiConn?.mobileNo || apiConn?.mobileNumber,
+        email: apiConn?.email,
+        statusflag: apiConn?.statusflag || apiConn?.statusFlag,
+        ekycStatus: apiConn?.ekycStatus,
+        knumber: apiConn?.knumber || apiConn?.kno,
+      },
+      address: {
+        fullAddress: apiAddr?.fullAddress || apiAddr?.addressRaw,
+        flatHouseNumber: apiAddr?.flatHouseNumber || apiAddr?.flatNo,
+        buildingTower: apiAddr?.buildingTower || apiAddr?.building,
+        landmark: apiAddr?.landmark,
+        pinCode: apiAddr?.pinCode || apiAddr?.pincode,
+        ward: apiAddr?.ward || apiAddr?.locality,
+        assembly: apiAddr?.assembly,
+        gpsValid: apiAddr?.gpsValid,
+        latitude: apiAddr?.latitude,
+        longitude: apiAddr?.longitude,
+        mobileNo: apiAddr?.mobileNo || apiAddr?.mobileNumber,
+        whatsappNo: apiAddr?.whatsappNo,
+        email: apiAddr?.email,
+        noOfPerson: apiAddr?.noOfPerson || apiAddr?.noOfPersons,
+        knumber: apiAddr?.knumber || apiAddr?.kno,
+        doorPhotoFilestoreId: apiAddr?.doorPhotoFilestoreId,
+      },
+      property: {
+        kno: apiProp?.kno,
+        pidNumber: apiProp?.pidNumber,
+        typeOfConnection: apiProp?.typeOfConnection,
+        connectionCategory: apiProp?.connectionCategory,
+        userType: apiProp?.userType,
+        numberOfFloors: apiProp?.numberOfFloors || apiProp?.noOfFloor,
+        tenantName: apiProp?.tenantName,
+        tenantMobile: apiProp?.tenantMobile,
+        ekycStatus: apiProp?.ekycStatus,
+        propertyDocumentFileStoreId: apiProp?.propertyDocumentFileStoreId,
+        buildingImageFileStoreId: apiProp?.buildingImageFileStoreId,
+      },
+      meter: {
+        kno: apiMeter?.kno,
+        metered: apiMeter?.meterStatus === "METERED" || apiMeter?.metered,
+        meterNumber: apiMeter?.meterNumber || apiMeter?.meterNo,
+        meterMake: apiMeter?.meterMake,
+        meterLocationAddress: apiMeter?.meterLocationAddress,
+        meterLatitude: apiMeter?.meterLatitude,
+        meterLongitude: apiMeter?.meterLongitude,
+        workingStatus: apiMeter?.workingStatus,
+        lastBillRaised: apiMeter?.lastBillRaised,
+        systemMeterId: apiMeter?.systemMeterId,
+        meterPhotoFileStoreId: apiMeter?.meterPhotoFileStoreId,
+      }
+    };
+  };
+
+  const newDataRaw = prepareConsolidatedData(apiNewData);
+  const oldDataRaw = prepareConsolidatedData(apiOldData);
+
+  // Apply edits to newData if present
   const connectionData = {
-    consumerName: aadhaarData?.name || apiConn?.consumerName,
-    address: apiConn?.address || apiConn?.addressRaw,
-    connectionType: apiConn?.connectionType || apiConn?.connectionCategory,
-    meterNumber: apiConn?.meterNumber || apiConn?.meterNo,
-    phoneNumber: aadhaarData?.mobileNumber || apiConn?.phoneNumber || apiConn?.mobileNo,
-    email: apiConn?.email,
-    statusflag: apiConn?.statusflag || apiConn?.statusFlag,
-    ekycStatus: apiConn?.ekycStatus,
-    knumber: apiConn?.knumber || apiConn?.kno || activeKno,
+    ...newDataRaw?.connection,
+    consumerName: aadhaarData?.name || newDataRaw?.connection?.consumerName,
+    phoneNumber: aadhaarData?.mobileNumber || newDataRaw?.connection?.phoneNumber,
+    knumber: newDataRaw?.connection?.knumber || activeKno,
   };
 
   const addressData = {
-    fullAddress: editedAddress?.fullAddress || apiAddr?.fullAddress || apiAddr?.addressRaw,
-    flatHouseNumber: editedAddress?.flatHouseNumber || editedAddress?.flatNo || apiAddr?.flatHouseNumber,
-    buildingTower: editedAddress?.buildingTower || editedAddress?.building || apiAddr?.buildingTower,
-    landmark: editedAddress?.landmark || apiAddr?.landmark,
-    pinCode: editedAddress?.pinCode || editedAddress?.pincode || apiAddr?.pinCode || apiAddr?.pincode,
-    ward: editedAddress?.ward || apiAddr?.ward || apiAddr?.locality,
-    assembly: editedAddress?.assembly || apiAddr?.assembly,
-    gpsValid: editedAddress?.gpsValid !== undefined ? editedAddress.gpsValid : apiAddr?.gpsValid,
-    latitude: editedAddress?.latitude || apiAddr?.latitude,
-    longitude: editedAddress?.longitude || apiAddr?.longitude,
-    mobileNo: editedAddress?.mobileNo || aadhaarData?.mobileNumber || apiAddr?.mobileNo,
-    whatsappNo: editedAddress?.whatsappNo || aadhaarData?.whatsappNumber || apiAddr?.whatsappNo,
-    email: editedAddress?.email || apiAddr?.email,
-    noOfPerson: editedAddress?.noOfPerson || aadhaarData?.noOfPersons || apiAddr?.noOfPerson,
-    knumber: editedAddress?.knumber || apiAddr?.knumber || apiAddr?.kno || activeKno,
-    doorPhotoFilestoreId: editedAddress?.doorPhotoFileStoreId || apiAddr?.doorPhotoFilestoreId,
+    ...newDataRaw?.address,
+    fullAddress: editedAddress?.fullAddress || newDataRaw?.address?.fullAddress,
+    flatHouseNumber: editedAddress?.flatHouseNumber || editedAddress?.flatNo || newDataRaw?.address?.flatHouseNumber,
+    buildingTower: editedAddress?.buildingTower || editedAddress?.building || newDataRaw?.address?.buildingTower,
+    landmark: editedAddress?.landmark || newDataRaw?.address?.landmark,
+    pinCode: editedAddress?.pinCode || editedAddress?.pincode || newDataRaw?.address?.pinCode,
+    ward: editedAddress?.ward || newDataRaw?.address?.ward,
+    assembly: editedAddress?.assembly || newDataRaw?.address?.assembly,
+    gpsValid: editedAddress?.gpsValid !== undefined ? editedAddress.gpsValid : newDataRaw?.address?.gpsValid,
+    latitude: editedAddress?.latitude || newDataRaw?.address?.latitude,
+    longitude: editedAddress?.longitude || newDataRaw?.address?.longitude,
+    mobileNo: editedAddress?.mobileNo || aadhaarData?.mobileNumber || newDataRaw?.address?.mobileNo,
+    whatsappNo: editedAddress?.whatsappNo || aadhaarData?.whatsappNumber || newDataRaw?.address?.whatsappNo,
+    email: editedAddress?.email || newDataRaw?.address?.email,
+    noOfPerson: editedAddress?.noOfPerson || aadhaarData?.noOfPersons || newDataRaw?.address?.noOfPerson,
+    knumber: editedAddress?.knumber || newDataRaw?.address?.knumber || activeKno,
+    doorPhotoFilestoreId: editedAddress?.doorPhotoFileStoreId || newDataRaw?.address?.doorPhotoFilestoreId,
   };
 
   const propertyData = {
-    kno: apiProp?.kno || activeKno,
-    pidNumber: editedProperty?.pidNumber || apiProp?.pidNumber,
-    typeOfConnection: editedProperty?.connectionTypeData?.label || apiProp?.typeOfConnection,
-    connectionCategory: editedProperty?.connectionCategoryData?.label || apiProp?.connectionCategory,
-    userType: editedProperty?.userTypeData?.label || apiProp?.userType,
-    numberOfFloors: editedProperty?.noOfFloorsData?.label || apiProp?.numberOfFloors,
-    tenantName: apiProp?.tenantName,
-    tenantMobile: apiProp?.tenantMobile,
-    ekycStatus: apiProp?.ekycStatus,
-    propertyDocumentFileStoreId: editedProperty?.propertyDocumentFileStoreId || apiProp?.propertyDocumentFileStoreId,
-    buildingImageFileStoreId: apiProp?.buildingImageFileStoreId,
+    ...newDataRaw?.property,
+    kno: newDataRaw?.property?.kno || activeKno,
+    pidNumber: editedProperty?.pidNumber || newDataRaw?.property?.pidNumber,
+    typeOfConnection: editedProperty?.connectionTypeData?.label || newDataRaw?.property?.typeOfConnection,
+    connectionCategory: editedProperty?.connectionCategoryData?.label || newDataRaw?.property?.connectionCategory,
+    userType: editedProperty?.userTypeData?.label || newDataRaw?.property?.userType,
+    numberOfFloors: editedProperty?.noOfFloorsData?.label || newDataRaw?.property?.numberOfFloors,
+    propertyDocumentFileStoreId: editedProperty?.propertyDocumentFileStoreId || newDataRaw?.property?.propertyDocumentFileStoreId,
   };
 
   const meterData = {
-    kno: editedMeter?.kno || apiMeter?.kno || activeKno,
-    metered: editedMeter?.meterStatusData?.value === "Metered" || apiMeter?.metered,
-    meterNumber: apiMeter?.meterNumber || apiMeter?.meterNo,
-    meterMake: editedMeter?.meterMake || apiMeter?.meterMake,
-    meterLocationAddress: editedMeter?.meterLocation || apiMeter?.meterLocationAddress,
-    meterLatitude: apiMeter?.meterLatitude,
-    meterLongitude: apiMeter?.meterLongitude,
-    workingStatus: editedMeter?.workingStatusData?.value === "Working" || apiMeter?.workingStatus,
-    lastBillRaised: editedMeter?.lastBillRaisedData?.value === "Yes" || apiMeter?.lastBillRaised,
-    systemMeterId: apiMeter?.systemMeterId,
-    meterPhotoFileStoreId: editedMeter?.meterPhotoFileStoreId || apiMeter?.meterPhotoFileStoreId,
+    ...newDataRaw?.meter,
+    kno: editedMeter?.kno || newDataRaw?.meter?.kno || activeKno,
+    metered: editedMeter?.meterStatusData?.value === "Metered" || newDataRaw?.meter?.metered,
+    meterNumber: newDataRaw?.meter?.meterNumber,
+    meterMake: editedMeter?.meterMake || newDataRaw?.meter?.meterMake,
+    meterLocationAddress: editedMeter?.meterLocation || newDataRaw?.meter?.meterLocationAddress,
+    workingStatus: editedMeter?.workingStatusData?.value === "Working" || newDataRaw?.meter?.workingStatus,
+    lastBillRaised: editedMeter?.lastBillRaisedData?.value === "Yes" || newDataRaw?.meter?.lastBillRaised,
+    meterPhotoFileStoreId: editedMeter?.meterPhotoFileStoreId || newDataRaw?.meter?.meterPhotoFileStoreId,
   };
 
+  // ── Section Fields Configuration ─────────────────────────────────────
+  const connectionFields = [
+    { label: "EKYC_K_NUMBER", key: "knumber" },
+    { label: "EKYC_CONSUMER_NAME", key: "consumerName" },
+    { label: "EKYC_ADDRESS", key: "address" },
+    { label: "EKYC_CONNECTION_TYPE", key: "connectionType" },
+    { label: "EKYC_METER_NO", key: "meterNumber" },
+    { label: "EKYC_MOBILE_NO", key: "phoneNumber" },
+    { label: "EKYC_EMAIL", key: "email" },
+    { label: "EKYC_STATUS_FLAG", key: "statusflag" },
+    { label: "EKYC_STATUS", key: "ekycStatus" },
+  ];
+
+  const addressFields = [
+    { label: "EKYC_FULL_ADDRESS", key: "fullAddress" },
+    { label: "EKYC_FLAT_HOUSE_NO", key: "flatHouseNumber" },
+    { label: "EKYC_BUILDING_TOWER", key: "buildingTower" },
+    { label: "EKYC_LANDMARK", key: "landmark" },
+    { label: "EKYC_PINCODE", key: "pinCode" },
+    { label: "EKYC_LOCALITY", key: "ward" },
+    { label: "EKYC_ASSEMBLY", key: "assembly" },
+    { label: "EKYC_GPS_VALID", key: "gpsValid", isBool: true },
+    { label: "EKYC_LATITUDE", key: "latitude" },
+    { label: "EKYC_LONGITUDE", key: "longitude" },
+    { label: "EKYC_MOBILE_NO", key: "mobileNo" },
+    { label: "EKYC_WHATSAPP_NO", key: "whatsappNo" },
+    { label: "EKYC_EMAIL", key: "email" },
+    { label: "EKYC_NO_OF_PERSONS", key: "noOfPerson" },
+    { label: "EKYC_K_NUMBER", key: "knumber" },
+  ];
+
+  const propertyFields = [
+    { label: "EKYC_CONNECTION_CATEGORY", key: "connectionCategory" },
+    { label: "EKYC_PID_NUMBER", key: "pidNumber" },
+    { label: "EKYC_TYPE_OF_CONNECTION", key: "typeOfConnection" },
+    { label: "EKYC_USER_TYPE", key: "userType" },
+    { label: "EKYC_FLOOR_COUNT", key: "numberOfFloors" },
+    { label: "EKYC_TENANT_NAME", key: "tenantName" },
+    { label: "EKYC_TENANT_MOBILE", key: "tenantMobile" },
+    { label: "EKYC_STATUS", key: "ekycStatus" },
+  ];
+
+  const meterFields = [
+    { label: "EKYC_METERED", key: "metered", isBool: true },
+    { label: "EKYC_METER_NO", key: "meterNumber" },
+    { label: "EKYC_METER_MAKE", key: "meterMake" },
+    { label: "EKYC_METER_LOCATION_ADDRESS", key: "meterLocationAddress" },
+    { label: "EKYC_METER_LATITUDE", key: "meterLatitude" },
+    { label: "EKYC_METER_LONGITUDE", key: "meterLongitude" },
+    { label: "EKYC_WORKING_STATUS", key: "workingStatus", isBool: true },
+    { label: "EKYC_LAST_BILL_RAISED", key: "lastBillRaised", isBool: true },
+    { label: "EKYC_SYSTEM_METER_ID", key: "systemMeterId" },
+  ];
+
   const handleDeclaration = () => setAgree(!agree);
+
+  const handleReject = async () => {
+    const payload = {
+      RequestInfo: {
+        apiId: "Rainmaker",
+        ver: "1.0",
+        msgId: "message-id",
+        authToken: Digit.UserService.getUser()?.access_token,
+      },
+      kno: activeKno,
+      action: "REJECTED",
+      remarks: "Application rejected by reviewer",
+      reviewedBy: Digit.UserService.getUser()?.info?.userName,
+      role: "ZRO",
+    };
+    try {
+      const result = await workflowMutation.mutateAsync(payload);
+      if (result) {
+        history.push("/digit-ui/employee/ekyc/response", { success: true, result });
+      }
+    } catch (err) {
+      console.error("Reject Error:", err);
+    }
+  };
+
+  const handleApprove = async () => {
+    const payload = {
+      RequestInfo: {
+        apiId: "Rainmaker",
+        ver: "1.0",
+        msgId: "message-id",
+        authToken: Digit.UserService.getUser()?.access_token,
+      },
+      kno: activeKno,
+      action: "APPROVED",
+      remarks: "All documents verified",
+      reviewedBy: Digit.UserService.getUser()?.info?.userName,
+      role: "ZRO",
+    };
+    try {
+      const result = await workflowMutation.mutateAsync(payload);
+      if (result) {
+        history.push("/digit-ui/employee/ekyc/response", { success: true, result });
+      }
+    } catch (err) {
+      console.error("Approve Error:", err);
+    }
+  };
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
@@ -157,7 +377,7 @@ const Review = () => {
         },
       };
 
-      const result = await Digit.EkycService.application_update(payload, tenantId);
+      const result = await updateMutation.mutateAsync(payload);
       if (result) {
         history.push("/digit-ui/employee/ekyc/response", { success: true, result });
       }
@@ -168,143 +388,183 @@ const Review = () => {
     }
   };
 
+  const handleViewDocument = (fileStoreId) => {
+    if (!fileStoreId) return;
+    const documentUrl = `https://dev-djb.nitcon.in/filestore/v1/files/id?tenantId=dl.djb&fileStoreId=${fileStoreId}`;
+    setPreviewUrl(documentUrl);
+    setShowPreview(true);
+  };
+
   if (isSearchLoading || isSubmitting) return <Loader />;
 
   const baseUrl = "/digit-ui/employee/ekyc";
 
   return (
-    <div className="review-container">
-      <Card>
+    <div className="employeeCard overflow-y-scroll">
+      <Card style={{ padding: "32px" }}>
         {/* ── Header ───────────────────────────────────────────────────── */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <CardHeader style={{ margin: 0 }}>{t("EKYC_REVIEW_APPLICATION")}</CardHeader>
-          <div
-            style={{
-              background: "#F9FAFB",
-              border: "0.5px solid #EAECF0",
-              borderRadius: "20px",
-              padding: "4px 14px",
-              fontSize: "12px",
-              color: "#667085",
-            }}
-          >
-            {t("EKYC_K_NUMBER")}: <span style={{ color: "#0B0C0C", fontWeight: "600" }}>{activeKno}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px", borderBottom: "1px solid #EAECF0", paddingBottom: "20px" }}>
+          <CardHeader style={{ margin: 0, fontSize: "28px" }}>{t("EKYC_REVIEW_APPLICATION")}</CardHeader>
+          <div style={{
+            background: "#F9FAFB", border: "1px solid #EAECF0",
+            borderRadius: "24px", padding: "8px 20px",
+            fontSize: "14px", color: "#475467", fontWeight: "500"
+          }}>
+            {t("EKYC_K_NUMBER")}: <span style={{ color: "#101828", fontWeight: "700" }}>{activeKno}</span>
           </div>
         </div>
 
         {/* ── 1. Connection Details ────────────────────────────────────── */}
-        <CardSubHeader>{t("EKYC_CONNECTION_DETAILS")}</CardSubHeader>
-        <StatusTable style={{ marginTop: "20px", marginBottom: "30px" }}>
-          <Row label={t("EKYC_K_NUMBER")} text={checkForNA(connectionData.knumber)} />
-          <Row label={t("EKYC_CONSUMER_NAME")} text={checkForNA(connectionData.consumerName)} />
-          <Row label={t("EKYC_ADDRESS")} text={checkForNA(connectionData.address)} />
-          <Row label={t("EKYC_CONNECTION_TYPE")} text={checkForNA(connectionData.connectionType)} />
-          <Row label={t("EKYC_METER_NO")} text={checkForNA(connectionData.meterNumber)} />
-          <Row label={t("EKYC_MOBILE_NO")} text={checkForNA(connectionData.phoneNumber)} />
-          <Row label={t("EKYC_EMAIL")} text={checkForNA(connectionData.email)} />
-          <Row label={t("EKYC_STATUS_FLAG")} text={checkForNA(connectionData.statusflag)} />
-          <Row label={t("EKYC_STATUS")} text={checkForNA(connectionData.ekycStatus)} />
-        </StatusTable>
+        <ReviewSection
+          title={t("EKYC_CONNECTION_DETAILS")}
+          fields={connectionFields}
+          newData={connectionData}
+          oldData={oldDataRaw?.connection}
+          t={t}
+          jumpTo={`${baseUrl}/consumer-details`}
+          state={{ ...flowState, reviewData: searchData, edits }}
+        />
 
         {/* ── 2. Address Details ──────────────────────────────────────── */}
-        <CardSubHeader>{t("EKYC_ADDRESS_DETAILS")}</CardSubHeader>
-        <StatusTable style={{ marginTop: "20px", marginBottom: "30px" }}>
-          <Row
-            label={t("EKYC_FULL_ADDRESS")}
-            text={checkForNA(addressData.fullAddress)}
-            actionButton={<ActionButton jumpTo={`${baseUrl}/address-details`} state={{ ...flowState, reviewData: searchData, edits }} />}
-          />
-          <Row label={t("EKYC_FLAT_HOUSE_NO")} text={checkForNA(addressData.flatHouseNumber)} />
-          <Row label={t("EKYC_BUILDING_TOWER")} text={checkForNA(addressData.buildingTower)} />
-          <Row label={t("EKYC_LANDMARK")} text={checkForNA(addressData.landmark)} />
-          <Row label={t("EKYC_PINCODE")} text={checkForNA(addressData.pinCode)} />
-          <Row label={t("EKYC_LOCALITY")} text={checkForNA(addressData.ward)} />
-          <Row label={t("EKYC_ASSEMBLY")} text={checkForNA(addressData.assembly)} />
-          <Row label={t("EKYC_GPS_VALID")} text={boolToYesNo(addressData.gpsValid, t)} />
-          <Row label={t("EKYC_LATITUDE")} text={checkForNA(addressData.latitude)} />
-          <Row label={t("EKYC_LONGITUDE")} text={checkForNA(addressData.longitude)} />
-          <Row label={t("EKYC_MOBILE_NO")} text={checkForNA(addressData.mobileNo)} />
-          <Row label={t("EKYC_WHATSAPP_NO")} text={checkForNA(addressData.whatsappNo)} />
-          <Row label={t("EKYC_EMAIL")} text={checkForNA(addressData.email)} />
-          <Row label={t("EKYC_NO_OF_PERSONS")} text={checkForNA(addressData.noOfPerson)} />
-          <Row label={t("EKYC_K_NUMBER")} text={checkForNA(addressData.knumber)} />
-        </StatusTable>
+        <ReviewSection
+          title={t("EKYC_ADDRESS_DETAILS")}
+          fields={addressFields}
+          newData={addressData}
+          oldData={oldDataRaw?.address}
+          t={t}
+          jumpTo={`${baseUrl}/address-details`}
+          state={{ ...flowState, reviewData: searchData, edits }}
+        />
 
         {/* ── 3. Property Info ────────────────────────────────────────── */}
-        <CardSubHeader>{t("EKYC_PROPERTY_INFO")}</CardSubHeader>
-        <StatusTable style={{ marginTop: "20px", marginBottom: "30px" }}>
-          <Row
-            label={t("EKYC_CONNECTION_CATEGORY")}
-            text={checkForNA(propertyData.connectionCategory)}
-            actionButton={<ActionButton jumpTo={`${baseUrl}/property-info`} state={{ ...flowState, reviewData: searchData, edits }} />}
-          />
-          {/* <Row label={t("EKYC_KNO")} text={checkForNA(propertyData.kno)} /> */}
-          <Row label={t("EKYC_PID_NUMBER")} text={checkForNA(propertyData.pidNumber)} />
-          <Row label={t("EKYC_TYPE_OF_CONNECTION")} text={checkForNA(propertyData.typeOfConnection)} />
-          <Row label={t("EKYC_USER_TYPE")} text={checkForNA(propertyData.userType)} />
-          <Row label={t("EKYC_FLOOR_COUNT")} text={checkForNA(propertyData.numberOfFloors)} />
-          <Row label={t("EKYC_TENANT_NAME")} text={checkForNA(propertyData.tenantName)} />
-          <Row label={t("EKYC_TENANT_MOBILE")} text={checkForNA(propertyData.tenantMobile)} />
-          <Row label={t("EKYC_STATUS")} text={checkForNA(propertyData.ekycStatus)} />
-        </StatusTable>
+        <ReviewSection
+          title={t("EKYC_PROPERTY_INFO")}
+          fields={propertyFields}
+          newData={propertyData}
+          oldData={oldDataRaw?.property}
+          t={t}
+          jumpTo={`${baseUrl}/property-info`}
+          state={{ ...flowState, reviewData: searchData, edits }}
+        />
 
         {/* ── 4. Meter Details ────────────────────────────────────────── */}
-        <CardSubHeader>{t("EKYC_METER_DETAILS")}</CardSubHeader>
-        <StatusTable style={{ marginTop: "20px", marginBottom: "30px" }}>
-          <Row
-            label={t("EKYC_METERED")}
-            text={boolToYesNo(meterData.metered, t)}
-            actionButton={<ActionButton jumpTo={`${baseUrl}/meter-details`} state={{ ...flowState, reviewData: searchData, edits }} />}
-          />
-          {/* <Row label={t("EKYC_KNO")} text={checkForNA(meterData.kno)} /> */}
-          <Row label={t("EKYC_METER_NO")} text={checkForNA(meterData.meterNumber)} />
-          <Row label={t("EKYC_METER_MAKE")} text={checkForNA(meterData.meterMake)} />
-          <Row label={t("EKYC_METER_LOCATION_ADDRESS")} text={checkForNA(meterData.meterLocationAddress)} />
-          <Row label={t("EKYC_METER_LATITUDE")} text={checkForNA(meterData.meterLatitude)} />
-          <Row label={t("EKYC_METER_LONGITUDE")} text={checkForNA(meterData.meterLongitude)} />
-          <Row label={t("EKYC_WORKING_STATUS")} text={boolToYesNo(meterData.workingStatus, t)} />
-          <Row label={t("EKYC_LAST_BILL_RAISED")} text={boolToYesNo(meterData.lastBillRaised, t)} />
-          <Row label={t("EKYC_SYSTEM_METER_ID")} text={checkForNA(meterData.systemMeterId)} />
-        </StatusTable>
+        <ReviewSection
+          title={t("EKYC_METER_DETAILS")}
+          fields={meterFields}
+          newData={meterData}
+          oldData={oldDataRaw?.meter}
+          t={t}
+          jumpTo={`${baseUrl}/meter-details`}
+          state={{ ...flowState, reviewData: searchData, edits }}
+        />
 
         {/* ── 5. Documents ────────────────────────────────────────────── */}
-        <CardSubHeader>{t("EKYC_DOCUMENTS")}</CardSubHeader>
-        <StatusTable style={{ marginTop: "20px", marginBottom: "30px" }}>
-          <Row
-            label={t("EKYC_DOOR_PHOTO")}
-            text={addressData.doorPhotoFilestoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
-            actionButton={addressData.doorPhotoFilestoreId && <GenericFileIcon style={{ cursor: "pointer" }} />}
-          />
-          <Row
-            label={t("EKYC_METER_PHOTO")}
-            text={meterData.meterPhotoFileStoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
-            actionButton={meterData.meterPhotoFileStoreId && <GenericFileIcon style={{ cursor: "pointer" }} />}
-          />
-          <Row
-            label={t("EKYC_BUILDING_IMAGE")}
-            text={propertyData.buildingImageFileStoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
-            actionButton={propertyData.buildingImageFileStoreId && <GenericFileIcon style={{ cursor: "pointer" }} />}
-          />
-          <Row
-            label={t("EKYC_PROPERTY_DOCUMENTS")}
-            text={propertyData.propertyDocumentFileStoreId ? t("EKYC_DOCS_AVAILABLE") : t("CS_NA")}
-            actionButton={propertyData.propertyDocumentFileStoreId && <GenericFileIcon style={{ cursor: "pointer" }} />}
-          />
-        </StatusTable>
+        <div style={{ marginTop: "40px" }}>
+          <CardSubHeader style={{ marginBottom: "20px" }}>{t("EKYC_DOCUMENTS")}</CardSubHeader>
+          <StatusTable style={{ maxWidth: "600px" }}>
+            <Row
+              label={t("EKYC_DOOR_PHOTO")}
+              text={addressData.doorPhotoFilestoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
+              actionButton={addressData.doorPhotoFilestoreId && (
+                <div onClick={() => handleViewDocument(addressData.doorPhotoFilestoreId)}>
+                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                </div>
+              )}
+            />
+            <Row
+              label={t("EKYC_METER_PHOTO")}
+              text={meterData.meterPhotoFileStoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
+              actionButton={meterData.meterPhotoFileStoreId && (
+                <div onClick={() => handleViewDocument(meterData.meterPhotoFileStoreId)}>
+                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                </div>
+              )}
+            />
+            <Row
+              label={t("EKYC_BUILDING_IMAGE")}
+              text={propertyData.buildingImageFileStoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
+              actionButton={propertyData.buildingImageFileStoreId && (
+                <div onClick={() => handleViewDocument(propertyData.buildingImageFileStoreId)}>
+                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                </div>
+              )}
+            />
+            <Row
+              label={t("EKYC_PROPERTY_DOCUMENTS")}
+              text={propertyData.propertyDocumentFileStoreId ? t("EKYC_DOCS_AVAILABLE") : t("CS_NA")}
+              actionButton={propertyData.propertyDocumentFileStoreId && (
+                <div onClick={() => handleViewDocument(propertyData.propertyDocumentFileStoreId)}>
+                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                </div>
+              )}
+            />
+          </StatusTable>
+        </div>
 
-        <CheckBox
-          id="agreeDeclaration"
-          name="agreeDeclaration"
-          label={t("EKYC_FINAL_DECLARATION")}
-          onChange={handleDeclaration}
-          checked={agree}
-          style={{ marginTop: "20px" }}
-        />
+        <div style={{ marginTop: "40px", paddingTop: "30px", borderTop: "1px solid #EAECF0" }}>
+          <CheckBox
+            id="agreeDeclaration"
+            name="agreeDeclaration"
+            label={<span style={{ fontSize: "16px", color: "#344054" }}>{t("EKYC_FINAL_DECLARATION")}</span>}
+            onChange={handleDeclaration}
+            checked={agree}
+          />
+        </div>
       </Card>
 
-      <ActionBar style={{ position: "static", marginTop: "24px" }}>
+      <ActionBar style={{ position: "static", marginTop: "32px", display: "flex", justifyContent: "flex-end" }}>
+        <SubmitBar
+          label={t("EKYC_REJECT")}
+          onSubmit={handleReject}
+          disabled={!agree}
+        />
+        <SubmitBar
+          label={t("EKYC_APPROVE")}
+          onSubmit={handleApprove}
+          disabled={!agree}
+        />
         <SubmitBar label={t("EKYC_SUBMIT_APPLICATION")} onSubmit={handleFinalSubmit} disabled={!agree} />
       </ActionBar>
+
+      {/* ── Document Preview Modal ────────────────────────────────────── */}
+      {showPreview && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+          backgroundColor: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center",
+          alignItems: "center", zIndex: 10000
+        }}>
+          <div style={{
+            position: "relative", backgroundColor: "#fff", padding: "30px",
+            borderRadius: "12px", maxWidth: "600px", width: "100%", maxHeight: "70vh", overflow: "auto",
+            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+          }}>
+            <div
+              onClick={() => setShowPreview(false)}
+              style={{
+                position: "absolute", top: "10px", right: "10px", cursor: "pointer",
+                fontWeight: "bold", fontSize: "20px", color: "#333", background: "#eee",
+                width: "30px", height: "30px", display: "flex", justifyContent: "center",
+                alignItems: "center", borderRadius: "50%"
+              }}
+            >
+              ×
+            </div>
+            <img
+              src={previewUrl}
+              alt="Document Preview"
+              style={{ maxWidth: "100%", height: "auto", display: "block" }}
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextSibling.style.display = "block";
+              }}
+            />
+            <div style={{ display: "none", padding: "40px", textAlign: "center" }}>
+              <p>{t("EKYC_DOCUMENT_PREVIEW_NOT_AVAILABLE")}</p>
+              <LinkButton label={t("EKYC_OPEN_IN_NEW_TAB")} onClick={() => window.open(previewUrl, "_blank")} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

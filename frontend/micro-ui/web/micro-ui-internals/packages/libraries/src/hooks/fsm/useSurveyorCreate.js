@@ -10,7 +10,8 @@ const SurveyorCreateActions = async (data, tenantId) => {
     const response = await FSMService.createSurveyor(data, tenantId);
     return response;
   } catch (error) {
-    throw new Error(error?.response?.data?.Errors[0].message);
+    const message = error?.response?.data?.Errors?.[0]?.message || error?.message || "Something went wrong";
+    throw new Error(message);
   }
 };
 

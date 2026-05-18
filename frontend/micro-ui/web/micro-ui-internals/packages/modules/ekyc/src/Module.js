@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
-import { CitizenHomeCard, DocumentIcon } from "@djb25/digit-ui-react-components";
+import { CitizenHomeCard, DocumentIcon, Loader } from "@djb25/digit-ui-react-components";
 import EKYCCard from "./components/EKYCCard";
 import Inbox from "./components/Dashboard";
 import DesktopInbox from "./components/DesktopInbox";
@@ -13,10 +13,28 @@ import PropertyInfo from "./components/PropertyInfo";
 import MeterDetails from "./components/MeterDetails";
 import AadhaarVerification from "./components/AadhaarVerification";
 import AddressDetails from "./components/AddressDetails";
-export const EkycModule = ({ userType, tenants }) => {
+export const EkycModule = ({ stateCode, userType, tenants }) => {
+
   const { path, url } = useRouteMatch();
+  const moduleCode = "EKYC";
+  const language = Digit.StoreData.getCurrentLanguage();
+  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
 
   Digit.SessionStorage.set("EKYC_TENANTS", tenants);
+
+  useEffect(
+    () =>
+      Digit.LocalizationService.getLocale({
+        modules: [`rainmaker-ekyc`, `rainmaker-${Digit.ULBService.getCurrentTenantId()}`],
+        locale: Digit.StoreData.getCurrentLanguage(),
+        tenantId: Digit.ULBService.getCurrentTenantId(),
+      }),
+    []
+  );
+
+  if (isLoading) {
+    return <Loader page={true} />;
+  }
 
   if (userType === "employee") {
     return <EmployeeApp path={path} url={url} userType={userType} tenants={tenants} />;

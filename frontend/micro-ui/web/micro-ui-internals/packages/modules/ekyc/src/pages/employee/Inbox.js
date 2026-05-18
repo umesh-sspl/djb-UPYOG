@@ -85,13 +85,14 @@ const Inbox = ({ parentRoute, businessService = "EKYC", initialStates = {}, filt
       }
 
       // ✅ dashboard mapping
+      const fullName = [item.firstName, item.middleName, item.lastName].filter(Boolean).join(" ");
       return {
         ...item,
         applicationNo: item.kno || item.applicationNumber || "",
-        connectionNo: item.connectionNo || "",
-        owner: item.consumerName || item.citizenName || "",
+        connectionNo: item.kno || "",
+        owner: fullName || item.consumerName || item.citizenName || "",
         applicationNumber: item.kno || item.applicationNumber || "",
-        citizenName: item.consumerName || item.citizenName || "",
+        citizenName: fullName || item.consumerName || item.citizenName || "",
         status: item.status || "",
         sla: item.sla ?? 0,
       };
@@ -102,7 +103,7 @@ const Inbox = ({ parentRoute, businessService = "EKYC", initialStates = {}, filt
 
   const checkPathName = location.pathname.includes("ekyc/inbox");
   const PropsForInboxLinks = {
-    headerText: checkPathName ? "MODULE_WATER" : "MODULE_SW",
+    headerText: checkPathName ? "EKYC_MODULE" : "MODULE_SW",
   };
 
   const SearchFormFields = useCallback(
@@ -246,6 +247,7 @@ const Inbox = ({ parentRoute, businessService = "EKYC", initialStates = {}, filt
           propsForInboxTable,
           // propsForInboxMobileCards,
           formState,
+          countData: dashboardData?.dashboardInfo,
         }}
       />
     </div>

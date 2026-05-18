@@ -14,38 +14,25 @@ const AddSurveyor = ({ parentUrl, heading }) => {
 
   const { mutate } = Digit.Hooks.fsm.useSurveyorCreate(tenantId);
 
-  // Fetching Agencies (Vendors)
-  const { data: vendorsData } = Digit.Hooks.fsm.useVendorSearch(tenantId, { status: "ACTIVE" });
-
-  const agencies =
-    vendorsData?.vendor?.map((v) => ({
-      code: v.id,
-      name: v.name,
-      ...v,
-    })) || [];
-
-  // Mocking Reporting Managers (Agency Admins or Supervisors)
-  const reportingManagers = [
-    { code: "MGR1", name: "John Doe (Agency Admin)" },
-    { code: "SUP1", name: "Jane Smith (Supervisor)" },
-  ];
-
-  const Config = SurveyorConfig(t, agencies, reportingManagers);
-
-  const { supervisorId } = Digit.Hooks.useQueryParams();
+  const Config = SurveyorConfig(t);
 
   const defaultValues = {
     role: { code: "SURVEYOR", name: "Surveyor" },
-    reportingManager: reportingManagers.find((m) => m.code === supervisorId) || null,
   };
 
   const onFormValueChange = (setValue, formData) => {
     // Basic validation logic
-    const isBasicDetailsFilled = formData?.fullName && formData?.mobileNumber && formData?.emailId && formData?.employeeId;
-    const isRoleAccessFilled = formData?.agencyName;
-    const isAreaAssignmentFilled = formData?.areaAssignment?.zone && formData?.areaAssignment?.ward && formData?.areaAssignment?.areas?.length > 0;
+    const isBasicDetailsFilled =
+      formData?.fullName &&
+      formData?.mobileNumber &&
+      formData?.emailId &&
+      formData?.employeeId &&
+      formData?.fatherOrHusbandName &&
+      formData?.relationship &&
+      formData?.dob &&
+      formData?.correspondenceAddress;
 
-    if (isBasicDetailsFilled && isRoleAccessFilled && isAreaAssignmentFilled) {
+    if (isBasicDetailsFilled) {
       setCanSubmit(true);
     } else {
       setCanSubmit(false);
@@ -60,22 +47,27 @@ const AddSurveyor = ({ parentUrl, heading }) => {
     const formData = {
       surveyor: {
         tenantId: tenantId,
-        name: data?.fullName,
-        employeeId: data?.employeeId,
-        status: "ACTIVE",
+        vendorId: data?.agencyName?.code || data?.agencyName?.id || "DL-DJB-000082", // Fallback for testing as per CURL
+        supervisorId: data?.reportingManager?.code || data?.reportingManager?.id || "7fb7ce1d-1054-46c8-9518-ef0049bffcd4", // Fallback for testing as per CURL
+        description: data?.description || "",
+        additionalDetails: {
+          serviceType: "ekyc",
+        },
         owner: {
           tenantId: tenantId,
           name: data?.fullName,
+          fatherOrHusbandName: data?.fatherOrHusbandName,
+          relationship: data?.relationship?.code,
           gender: data?.gender?.code || "OTHERS",
+          dob: data?.dob ? new Date(data.dob).getTime() : null,
           emailId: data?.emailId,
           mobileNumber: data?.mobileNumber,
+          correspondenceAddress: data?.correspondenceAddress,
         },
-        vendorSurveyorStatus: "ACTIVE",
-        additionalDetails: {
-          agencyId: data?.agencyName?.code,
-          reportingManager: data?.reportingManager?.code,
-          areaAssignment: data?.areaAssignment,
-        },
+      },
+      RequestInfo: {
+        apiId: "Rainmaker",
+        msgId: "ekyc-surveyor-create",
       },
     };
 
