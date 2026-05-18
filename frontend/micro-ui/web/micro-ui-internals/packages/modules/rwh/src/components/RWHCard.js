@@ -9,18 +9,17 @@ const RwhCard = () => {
     Icon: <PersonIcon />,
     moduleName: t("ACTION_TEST_RWH"),
     kpis: [
-      
+      {
+        label: t("RWH_TOTAL_APPLICATIONS"),
+        value: 0,
+      }
     ],
     links: [
       
-      // {
-      //     label: t("EKYC_CREATE_KYC"),
-      //     link: `/digit-ui/employee/ekyc/create-kyc`
-      // },
-      // {
-      //     label: t("EKYC_UPDATE_KYC"),
-      //     link: `/digit-ui/employee/ekyc/update-kyc`
-      // },
+      {
+          label: t("RWH_CREATE"),
+          link: `/digit-ui/employee/rwh/create`
+      },
       
     ],
   };

@@ -5,20 +5,12 @@ const Home = () => {
   const { t } = useTranslation();
   const propsForModuleCard = {
     moduleName: t("ACTION_TEST_RWH"),
-    kpis: [
-      
-    ],
+    kpis: [],
     links: [
-      
-      // {
-      //     label: t("EKYC_CREATE_KYC"),
-      //     link: `/digit-ui/citizen/ekyc/create-kyc`
-      // },
-      // {
-      //     label: t("EKYC_UPDATE_KYC"),
-      //     link: `/digit-ui/citizen/ekyc/update-kyc`
-      // },
-      
+      {
+        label: t("RWH_CREATE"),
+        link: `/digit-ui/citizen/rwh/create-rwh`,
+      },
     ],
   };
   return <ModuleLinksView links={propsForModuleCard.links} />;

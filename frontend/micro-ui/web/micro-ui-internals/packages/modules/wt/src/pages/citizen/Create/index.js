@@ -143,6 +143,7 @@ const WTCreate = () => {
     } else {
       setParams({ ...params, ...{ [key]: { ...params[key], ...data } } });
     }
+    if (data?.silent) return;
     goNext(skipStep, index, isAddMultiple, key);
   }
 
