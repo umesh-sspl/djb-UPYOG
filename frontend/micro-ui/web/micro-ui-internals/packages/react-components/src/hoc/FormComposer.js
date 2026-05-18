@@ -258,9 +258,10 @@ export const FormComposer = (props) => {
         </div>
       );
     } else {
-      return <React.Fragment></React.Fragment>;
+      return null;
     }
   };
+
 
   const formFields = useMemo(
     () =>
@@ -279,7 +280,7 @@ export const FormComposer = (props) => {
                   {section.body.map((field, index) => {
                     const Component =
                       typeof field?.component === "string" ? Digit.ComponentRegistryService.getComponent(field?.component) : field?.component;
-
+                     
                     if (props.inline) {
                       return (
                         <React.Fragment key={index}>
@@ -392,12 +393,12 @@ export const FormComposer = (props) => {
               </CollapsibleCardPage>
             ) : (
               <div className={`formcomposer-section-grid ${props.cardFormWrapperClassName ? props.cardFormWrapperClassName : ""}`}>
-                {section && getCombinedComponent(section)}
+                {/* {section && getCombinedComponent(section)} */}
 
                 {section.body.map((field, index) => {
                   const Component =
                     typeof field?.component === "string" ? Digit.ComponentRegistryService.getComponent(field?.component) : field?.component;
-
+                  
                   if (props.inline) {
                     return (
                       <React.Fragment key={index}>
