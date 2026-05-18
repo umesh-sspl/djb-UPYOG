@@ -17,7 +17,17 @@ const CloseBtn = (props) => {
   );
 };
 
+const normalize = (val) => (val === undefined || val === null ? "" : String(val));
+
+const getFirstAvailable = (...values) => values.find((val) => val !== undefined && val !== null && val !== "");
+
+const matchesAny = (candidate, values = []) => {
+  const normalizedValues = values.map(normalize).filter(Boolean);
+  return normalizedValues.some((val) => normalize(candidate) === val);
+};
+
 const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
+  console.log("Application Data in Edit Modal:", applicationData);
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const stateId = Digit.ULBService.getStateId();
   const [formData, setFormData] = useState({
@@ -26,7 +36,22 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
     requestDetails: {},
     dispatchDetails: {}
   });
-
+ const { data: vendorData } = Digit.Hooks.fsm.useVendorSearch({
+    tenantId,
+    filters: {
+      ...(getFirstAvailable(formData?.dispatchDetails?.fillingPoint?.id, formData?.dispatchDetails?.fillingPoint?.fillingPointId, formData?.dispatchDetails?.fillingPoint?.bookingId)
+        ? { fillingPointId: getFirstAvailable(formData?.dispatchDetails?.fillingPoint?.id, formData?.dispatchDetails?.fillingPoint?.fillingPointId, formData?.dispatchDetails?.fillingPoint?.bookingId) }
+        : {})
+    },
+    config: {
+      enabled: !!getFirstAvailable(
+        formData?.dispatchDetails?.fillingPoint?.id,
+        formData?.dispatchDetails?.fillingPoint?.fillingPointId,
+        formData?.dispatchDetails?.fillingPoint?.bookingId,
+        applicationData?.fillingPointId
+      ),
+    }
+  });
   // MDMS Data
   const { data: VehicleType } = Digit.Hooks.useCustomMDMS(stateId, "request-service", [{ name: "VehicleType" }], {
     select: (data) => data?.["request-service"]?.["VehicleType"] || [],
@@ -60,19 +85,109 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
 
   useEffect(() => {
     if (applicationData) {
-      const tankerTypeObj = TankerType?.find(tt => tt.code === applicationData.tankerType) || { code: applicationData.tankerType, i18nKey: applicationData.tankerType };
-      const tankerQtyObj = TankerDetails?.find(tq => tq.code === applicationData.tankerQuantity) || { code: applicationData.tankerQuantity, i18nKey: applicationData.tankerQuantity };
-      const waterTypeObj = WaterTypeData?.find(wt => wt.code === applicationData.waterType) || { code: applicationData.waterType, i18nKey: applicationData.waterType };
-      
-      const fillingPointObj = fillingPointsData?.fillingPoints?.find(fp => fp.id === applicationData.fillingPointId || fp.fillingPointId === applicationData.fillingPointId) || {};
-      
+      const tankerTypeObj =
+        TankerType?.find((tt) => matchesAny(tt.code, [applicationData.tankerType])) ||
+        { code: applicationData.tankerType, i18nKey: applicationData.tankerType };
+
+      const tankerQtyOptionsLocal =
+        TankerDetails?.map((data) => ({ i18nKey: `${data.code}`, code: `${data.code}`, value: `${data.code}` })) || [];
+      const tankerQtyObj =
+        tankerQtyOptionsLocal.find((tq) => matchesAny(tq.code, [applicationData.tankerQuantity])) ||
+        { code: `${applicationData?.tankerQuantity || ""}`, i18nKey: `${applicationData?.tankerQuantity || ""}`, value: `${applicationData?.tankerQuantity || ""}` };
+
+      const waterTypeObj =
+        WaterTypeData?.find((wt) => matchesAny(wt.code, [applicationData.waterType])) ||
+        { code: applicationData.waterType, i18nKey: applicationData.waterType };
+
+      const fixedPointById =
+        fixedPointsData?.waterTankerBookingDetail?.find((fp) =>
+          matchesAny(
+            getFirstAvailable(fp?.applicantDetail?.fixedPointId, fp?.fixedPointId, fp?.fixedPointCode, fp?.id, fp?.bookingId, fp?.applicantDetail?.applicantId),
+            [
+              applicationData?.applicantDetail?.fixedPointId,
+              applicationData?.fixedPointId,
+              applicationData?.fixedPointCode,
+              applicationData?.applicantId,
+              applicationData?.applicantDetail?.applicantId,
+              applicationData?.bookingId,
+            ]
+          )
+        ) || null;
+
+      const fixedPointByApplicant =
+        fixedPointsData?.waterTankerBookingDetail?.find((fp) =>
+          matchesAny(fp?.applicantDetail?.applicantId, [applicationData?.applicantDetail?.applicantId, applicationData?.applicantId]) ||
+          matchesAny(fp?.applicantDetail?.mobileNumber, [applicationData?.applicantDetail?.mobileNumber])
+        ) || null;
+
+      const fixedPointObj = fixedPointById || fixedPointByApplicant || "";
+
+      const fillingPointObj =
+        fillingPointsData?.fillingPoints?.find((fp) =>
+          matchesAny(getFirstAvailable(fp?.id, fp?.fillingPointId, fp?.bookingId), [applicationData?.fillingPointId, applicationData?.fillingpointId])
+        ) || {};
+
+      const vendorList = vendorData?.vendor || [];
+      const selectedVendorBase =
+        vendorList.find((vendor) =>
+          matchesAny(getFirstAvailable(vendor?.id, vendor?.code, vendor?.vendor_id), [
+            applicationData?.vendorId,
+            applicationData?.vendorDetail?.id,
+            applicationData?.vendorDetail?.code,
+            applicationData?.vendorDetail?.vendor_id,
+          ])
+        ) || applicationData?.vendorDetail || "";
+      const selectedVendor = selectedVendorBase
+        ? { ...selectedVendorBase, name: selectedVendorBase?.name || selectedVendorBase?.vendor_id || "NA" }
+        : "";
+
+      const selectedVehicleBase =
+        selectedVendor?.vehicles?.find((vehicle) =>
+          matchesAny(getFirstAvailable(vehicle?.id, vehicle?.registrationNumber, vehicle?.code), [
+            applicationData?.vehicleId,
+            applicationData?.vehicleDetail?.id,
+            applicationData?.vehicleDetail?.registrationNumber,
+            applicationData?.vehicleDetail?.code,
+          ])
+        ) || applicationData?.vehicleDetail || "";
+      const selectedVehicle = selectedVehicleBase
+        ? { ...selectedVehicleBase, name: selectedVehicleBase?.registrationNumber || selectedVehicleBase?.type || "NA" }
+        : "";
+
+      const selectedDriver =
+        selectedVendor?.drivers?.find((driver) =>
+          matchesAny(getFirstAvailable(driver?.id, driver?.uuid, driver?.ownerId, driver?.licenseNumber), [
+            applicationData?.driverId,
+            applicationData?.driverDetail?.id,
+            applicationData?.driverDetail?.uuid,
+            applicationData?.driverDetail?.ownerId,
+            applicationData?.driverDetail?.licenseNumber,
+          ])
+        ) || applicationData?.driverDetail || "";
+
+      const waterQtyOptionsForType =
+        VehicleType?.filter((data) => {
+          const vType = data.vehicleType ? data.vehicleType.toLowerCase() : "";
+          const tType = tankerTypeObj?.code ? String(tankerTypeObj.code).toLowerCase() : "";
+          return vType === tType || vType.includes("tanker");
+        }).map((data) => ({
+          i18nKey: `${data.capacityName}`,
+          code: `${data.capacity}`,
+          value: `${data.capacity}`,
+          capacity: `${data.capacity}`,
+        })) || [];
+
+      const waterQtyObj =
+        waterQtyOptionsForType.find((opt) => matchesAny(opt.code, [applicationData?.waterQuantity])) ||
+        { code: `${applicationData?.waterQuantity || ""}`, value: `${applicationData?.waterQuantity || ""}`, i18nKey: `${applicationData?.waterQuantity || ""}` };
+
       setFormData({
         owner: {
           applicantName: applicationData?.applicantDetail?.name || "",
           mobileNumber: applicationData?.applicantDetail?.mobileNumber || "",
           alternateNumber: applicationData?.applicantDetail?.alternateNumber || "",
           emailId: applicationData?.applicantDetail?.emailId || "",
-          fixedPoint: fixedPointsData?.waterTankerBookingDetail?.find(fp => fp.applicantDetail?.fixedPointId === applicationData?.applicantDetail?.fixedPointId) || "",
+          fixedPoint: fixedPointObj ? { ...fixedPointObj, name: fixedPointObj?.applicantDetail?.name || fixedPointObj?.applicantDetail?.fixedPointId || "NA" } : "",
           applicantId: applicationData?.applicantDetail?.applicantId || "",
           gender: applicationData?.applicantDetail?.gender || null,
         },
@@ -96,7 +211,7 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
           tankerType: tankerTypeObj,
           waterType: waterTypeObj,
           tankerQuantity: tankerQtyObj,
-          waterQuantity: applicationData?.waterQuantity || "",
+          waterQuantity: waterQtyObj,
           description: applicationData?.description || "",
           deliveryDate: applicationData?.deliveryDate || "",
           deliveryTime: applicationData?.deliveryTime || "",
@@ -104,23 +219,18 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
           extraCharge: applicationData?.extraCharge === "Y"
         },
         dispatchDetails: {
-          fillingPoint: { ...fillingPointObj, name: fillingPointObj?.fillingPointName || "NA" },
-          vendor: applicationData?.vendorDetail || "",
-          vehicle: applicationData?.vehicleDetail || "",
-          driver: applicationData?.driverDetail || ""
+          fillingPoint: {
+            ...fillingPointObj,
+            id: getFirstAvailable(fillingPointObj?.id, fillingPointObj?.fillingPointId, fillingPointObj?.bookingId),
+            name: fillingPointObj?.fillingPointName || fillingPointObj?.name || "NA",
+          },
+          vendor: selectedVendor,
+          vehicle: selectedVehicle,
+          driver: selectedDriver
         }
       });
     }
-  }, [applicationData, TankerType, TankerDetails, WaterTypeData, fixedPointsData, fillingPointsData]);
-
-  // Fetch Vendors based on filling point
-  const { data: vendorData } = Digit.Hooks.fsm.useVendorSearch({
-    tenantId,
-    filters: {
-      ...(formData?.dispatchDetails?.fillingPoint?.id ? { fillingPointId: formData.dispatchDetails.fillingPoint.id } : {})
-    },
-    config: { enabled: !!formData?.dispatchDetails?.fillingPoint?.id }
-  });
+  }, [applicationData, TankerType, TankerDetails, WaterTypeData, fixedPointsData, fillingPointsData, VehicleType]);
 
   const fixedPointOptions = fixedPointsData?.waterTankerBookingDetail?.map(fp => ({
     ...fp,
@@ -266,23 +376,24 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
                 optionKey="name"
                 t={t}
                 placeholder={t("WT_SELECT_FIXED_POINT")}
+                disable={true}
               />
             </div>
             <div style={{ flex: "1 1 200px" }}>
               <CardLabel style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>{t("WT_APPLICANT_NAME")}</CardLabel>
-              <TextInput value={formData.owner.applicantName} onChange={(e) => setFormData({ ...formData, owner: { ...formData.owner, applicantName: e.target.value } })} />
+              <TextInput value={formData.owner.applicantName} onChange={(e) => setFormData({ ...formData, owner: { ...formData.owner, applicantName: e.target.value } })} disable={true} />
             </div>
             <div style={{ flex: "1 1 200px" }}>
               <CardLabel style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>{t("WT_MOBILE_NUMBER")}</CardLabel>
-              <MobileNumber value={formData.owner.mobileNumber} onChange={(val) => setFormData({ ...formData, owner: { ...formData.owner, mobileNumber: val } })} />
+              <MobileNumber value={formData.owner.mobileNumber} onChange={(val) => setFormData({ ...formData, owner: { ...formData.owner, mobileNumber: val } })} disable={true} />
             </div>
             <div style={{ flex: "1 1 200px" }}>
               <CardLabel style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>{t("WT_ALT_MOBILE_NUMBER")}</CardLabel>
-              <MobileNumber value={formData.owner.alternateNumber} onChange={(val) => setFormData({ ...formData, owner: { ...formData.owner, alternateNumber: val } })} />
+              <MobileNumber value={formData.owner.alternateNumber} onChange={(val) => setFormData({ ...formData, owner: { ...formData.owner, alternateNumber: val } })} disable={true} />
             </div>
             <div style={{ flex: "1 1 200px" }}>
               <CardLabel style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>{t("WT_EMAIL_ID")}</CardLabel>
-              <TextInput value={formData.owner.emailId} onChange={(e) => setFormData({ ...formData, owner: { ...formData.owner, emailId: e.target.value } })} />
+              <TextInput value={formData.owner.emailId} onChange={(e) => setFormData({ ...formData, owner: { ...formData.owner, emailId: e.target.value } })} disable={true} />
             </div>
           </div>
         </div>
@@ -296,7 +407,7 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
             {["houseNo", "streetName", "addressLine1", "addressLine2", "landmark", "pincode"].map(key => (
               <div key={key} style={{ flex: "1 1 200px" }}>
                 <CardLabel style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>{t(`WT_${key.toUpperCase()}`)}</CardLabel>
-                <TextInput value={formData.address[key]} onChange={(e) => setFormData({ ...formData, address: { ...formData.address, [key]: e.target.value } })} />
+                <TextInput value={formData.address[key]} onChange={(e) => setFormData({ ...formData, address: { ...formData.address, [key]: e.target.value } }) }  disable={true}/>
               </div>
             ))}
           </div>
@@ -369,4 +480,3 @@ const WTEditApplicationModal = ({ t, applicationData, closeModal }) => {
 };
 
 export default WTEditApplicationModal;
-

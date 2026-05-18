@@ -278,7 +278,14 @@ export const emergencyWaterTankerPayload = (data) => {
       addressDetailId: addressFromFP?.addressId || data?.address?.addressDetailId || "",
       vendorId: data?.dispatchDetails?.vendor?.id || data?.owner?.vendor?.id || "",
       vehicleId: data?.dispatchDetails?.vehicle?.id || data?.owner?.vehicle?.id || "",
-      driverId: data?.dispatchDetails?.driver?.ownerId || data?.owner?.driver?.ownerId || "",
+      driverId:
+        data?.dispatchDetails?.driver?.owner?.uuid ||
+        data?.dispatchDetails?.driver?.ownerId ||
+        data?.dispatchDetails?.driver?.uuid ||
+        data?.dispatchDetails?.driver?.id ||
+        data?.owner?.driver?.owner?.uuid ||
+        data?.owner?.driver?.ownerId ||
+        "",
       fillingPointId: data?.dispatchDetails?.fillingPoint?.id || data?.owner?.fillingPoint?.id || "",
       vehicleType: data?.dispatchDetails?.vehicle?.vehicleType || data?.owner?.vehicle?.vehicleType || "",
       vehicleCapacity: data?.dispatchDetails?.vehicle?.capacity || data?.owner?.vehicle?.capacity || "",
@@ -349,7 +356,15 @@ export const updateEmergencyWaterTankerPayload = (data) => {
       addressDetailId: addressFromFP?.addressId || data?.address?.addressDetailId || data?.addressDetailId || "",
       vendorId: data?.dispatchDetails?.vendor?.id || data?.owner?.vendor?.id || data?.vendorId || "",
       vehicleId: data?.dispatchDetails?.vehicle?.id || data?.owner?.vehicle?.id || data?.vehicleId || "",
-      driverId: data?.dispatchDetails?.driver?.id || data?.dispatchDetails?.driver?.uuid || data?.dispatchDetails?.driver?.ownerId || data?.owner?.driver?.ownerId || data?.driverId || "",
+      driverId:
+        data?.dispatchDetails?.driver?.owner?.uuid ||
+        data?.dispatchDetails?.driver?.ownerId ||
+        data?.dispatchDetails?.driver?.uuid ||
+        data?.dispatchDetails?.driver?.id ||
+        data?.owner?.driver?.owner?.uuid ||
+        data?.owner?.driver?.ownerId ||
+        data?.driverId ||
+        "",
       fillingPointId: data?.dispatchDetails?.fillingPoint?.id || data?.owner?.fillingPoint?.id || data?.fillingPointId || "",
       vehicleType: data?.dispatchDetails?.vehicle?.vehicleType || data?.owner?.vehicle?.vehicleType || data?.vehicleType || "",
       vehicleCapacity: data?.dispatchDetails?.vehicle?.capacity || data?.owner?.vehicle?.capacity || data?.vehicleCapacity || "",
@@ -391,4 +406,3 @@ export const updateEmergencyWaterTankerPayload = (data) => {
   };
   return formdata;
 };
-

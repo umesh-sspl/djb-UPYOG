@@ -103,6 +103,7 @@ module.exports = function (app) {
     "/asset-services/v1/assets/assignment/_search",
     "/request-service/water-tanker/v1/_search",
     "/request-service/water-tanker/v1/_update",
+    "/request-service/water-tanker/v1/emergency/_update",
     "/request-service/water-tanker/fixed-point/v1/_create",
     "/request-service/water-tanker/fixed-point/v1/_search",
     "/request-service/water-tanker/fixed-point/v1/_update",
