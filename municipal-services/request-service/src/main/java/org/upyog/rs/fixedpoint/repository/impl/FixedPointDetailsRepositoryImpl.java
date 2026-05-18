@@ -47,6 +47,7 @@ public class FixedPointDetailsRepositoryImpl implements FixedPointDetailsReposit
         return jdbcTemplate.query(query, preparedStmtList.toArray(), fixedPointRowMapper);
     }
 
+
     @Override
     public Integer getCount(FixedPointSearchCriteria criteria) {
         List<Object> preparedStmtList = new ArrayList<>();
@@ -84,5 +85,33 @@ public class FixedPointDetailsRepositoryImpl implements FixedPointDetailsReposit
         log.info("FixedPointDetailsRepository :: updateFixedPointDetails :: Successfully pushed to Kafka");
     }
 
+
+    /**
+     * Used by auto scheduler and manual scheduler API.
+     *
+     * This fetches active fixed-point timetable records for a selected day.
+     * If fillingPointId is passed, it fetches only that filling point.
+     * If fillingPointId is null/blank, it fetches all filling points.
+     */
+    @Override
+    public List<FixedPointTimeTableDetail> getScheduledFixedPointsForScheduler(
+            String tenantId,
+            String dayOfWeek,
+            String fillingPointId
+    ) {
+        List<Object> preparedStmtList = new ArrayList<>();
+
+        String query = fixedPointTimeTableQueryBuilder.getSchedulerSearchQuery(
+                tenantId,
+                dayOfWeek,
+                fillingPointId,
+                preparedStmtList
+        );
+
+        log.info("Fetching scheduler fixed points. tenantId={}, dayOfWeek={}, fillingPointId={}",
+                tenantId, dayOfWeek, fillingPointId);
+
+        return jdbcTemplate.query(query, preparedStmtList.toArray(), fixedPointRowMapper);
+    }
 
 }

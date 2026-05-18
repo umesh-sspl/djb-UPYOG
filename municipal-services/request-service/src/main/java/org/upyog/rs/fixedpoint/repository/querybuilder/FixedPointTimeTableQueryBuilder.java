@@ -167,4 +167,42 @@ public class FixedPointTimeTableQueryBuilder {
         return count != null && count > 0;
     }
 
+    /**
+     * Scheduler query.
+     *
+     * Important:
+     * - One row from timetable = one booking.
+     * - Same fixed point may have multiple rows on same day with different delivery_time.
+     * - Therefore, do not group by fixed_point_id.
+     */
+    public String getSchedulerSearchQuery(
+            String tenantId,
+            String dayOfWeek,
+            String fillingPointId,
+            List<Object> preparedStmtList
+    ) {
+        StringBuilder query = new StringBuilder();
+
+        query.append("""
+        SELECT
+            *
+            FROM wt_fixed_point_schedule
+            WHERE tenant_id = ?
+                AND day_of_week = ?
+                AND active = true
+        """);
+
+        preparedStmtList.add(tenantId);
+        preparedStmtList.add(dayOfWeek);
+
+        if (fillingPointId != null && !fillingPointId.isBlank()) {
+            query.append(" AND filling_point_id = ? ");
+            preparedStmtList.add(fillingPointId);
+        }
+
+        query.append(" ORDER BY filling_point_id, fixed_point_id, delivery_time ");
+
+        return query.toString();
+    }
+
 }

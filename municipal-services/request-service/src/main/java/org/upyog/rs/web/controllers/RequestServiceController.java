@@ -35,6 +35,9 @@ import org.upyog.rs.web.models.ResponseInfo.StatusEnum;
 
 import digit.models.coremodels.RequestInfoWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.upyog.rs.wt.scheduler.model.FixedPointSchedulerRunRequest;
+import org.upyog.rs.wt.scheduler.model.FixedPointSchedulerRunResponse;
+import org.upyog.rs.wt.scheduler.service.FixedPointBookingSchedulerService;
 
 import javax.annotation.processing.Generated;
 
@@ -56,7 +59,13 @@ public class RequestServiceController {
 	@Autowired
 	private ValidatorService validatorService;
 
-	@PostMapping("/water-tanker/v1/_create")
+	private final FixedPointBookingSchedulerService schedulerService;
+
+    public RequestServiceController(FixedPointBookingSchedulerService schedulerService) {
+        this.schedulerService = schedulerService;
+    }
+
+    @PostMapping("/water-tanker/v1/_create")
 	public ResponseEntity<WaterTankerBookingResponse> createWaterTankerBooking(
 			@Schema(description = "Details for the water tanker booking time, payment and documents", required = true)
 			@RequestBody WaterTankerBookingRequest waterTankerbookingRequest) {
@@ -345,4 +354,23 @@ public class RequestServiceController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
+
+
+
+	@PostMapping("/water-tanker/fixed_point/scheduler/_run")
+	public FixedPointSchedulerRunResponse runSchedulerManually(
+			@Valid @RequestBody FixedPointSchedulerRunRequest request
+	) {
+		log.info("Manual fixed-point scheduler API called. tenantId={}, deliveryDate={}, fillingPointId={}",
+				request.getTenantId(),
+				request.getDeliveryDate(),
+				request.getFillingPointId());
+
+		return schedulerService.runScheduler(
+				request.getTenantId(),
+				request.getDeliveryDate(),
+				request.getFillingPointId(),
+				request.getRequestInfo()
+		);
+	}
 }
