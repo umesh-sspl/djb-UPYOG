@@ -1,46 +1,78 @@
-import React, { useState, Fragment } from "react";
-import { CardLabel, TextInput, Dropdown, UploadFile, Toast, FormStep } from "@djb25/digit-ui-react-components";
+import React, { useState, Fragment, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  CardLabel,
+  TextInput,
+  Dropdown,
+  UploadFile,
+  Toast,
+  FormStep,
+  Loader
+} from "@djb25/digit-ui-react-components";
 
-const MeterDetails = ({ config, onSelect }) => {
+const MeterDetails = ({ config, onSelect, formData }) => {
+  const location = useLocation();
+  const flowState = location.state || {};
   const tenantId = Digit.ULBService.getCurrentTenantId();
 
+  const searchKno = flowState?.kNumber || flowState?.kno || formData?.kNumber || formData?.kno || sessionStorage.getItem("EKYC_K_NUMBER");
+
+  const { isLoading, data: searchData } = Digit.Hooks.ekyc.useSearchConnection(
+    { tenantId, details: { kno: searchKno } },
+    { enabled: !!searchKno, cacheTime: 0 }
+  );
+
+  const updateMutation = Digit.Hooks.ekyc.useEkycUpdate(tenantId);
+
+  const savedData = formData?.meterDetails || {};
+
   // 🔹 STATES
-  const [connectionCategory, setConnectionCategory] = useState("");
-  const [saType, setSaType] = useState("");
-  const [status, setStatus] = useState("");
+  const [connectionCategory, setConnectionCategory] = useState(savedData.connectionCategory || "");
+  const [saType, setSaType] = useState(savedData.saType || "");
+  const [status, setStatus] = useState(savedData.status || "");
 
-  const [mrCode, setMrCode] = useState("");
-  const [areaCode, setAreaCode] = useState("");
-  const [mrKey, setMrKey] = useState("");
+  const [mrCode, setMrCode] = useState(savedData.mrCode || "");
+  const [areaCode, setAreaCode] = useState(savedData.areaCode || "");
+  const [mrKey, setMrKey] = useState(savedData.mrKey || "");
 
-  const [meterNumber, setMeterNumber] = useState("");
-  const [meterMaker, setMeterMaker] = useState("");
+  const [meterNumber, setMeterNumber] = useState(savedData.meterNumber || "");
+  const [meterMaker, setMeterMaker] = useState(savedData.meterMaker || "");
 
-  const [meterStatus, setMeterStatus] = useState(null);
-  const [meterCondition, setMeterCondition] = useState(null);
-  const [meterLocation, setMeterLocation] = useState(null);
+  const [meterStatus, setMeterStatus] = useState(savedData.meterStatus ? { name: savedData.meterStatus } : null);
+  const [meterCondition, setMeterCondition] = useState(savedData.meterCondition ? { name: savedData.meterCondition } : null);
+  const [meterLocation, setMeterLocation] = useState(savedData.meterLocation ? { name: savedData.meterLocation } : null);
 
-  const [lastBillReceived, setLastBillReceived] = useState(null);
-  const [billMonthYear, setBillMonthYear] = useState(null);
-  const [reason, setReason] = useState("");
+  const [lastBillReceived, setLastBillReceived] = useState(savedData.lastBillReceived ? { name: savedData.lastBillReceived } : null);
+  const [billMonthYear, setBillMonthYear] = useState(savedData.billMonthYear ? { name: savedData.billMonthYear } : null);
+  const [reason, setReason] = useState(savedData.reason || "");
 
-  const [accessToMeter, setAccessToMeter] = useState(null);
-  const [sewerConnection, setSewerConnection] = useState(null);
-  const [septicTank, setSepticTank] = useState(null);
+  const [accessToMeter, setAccessToMeter] = useState(savedData.accessToMeter ? { name: savedData.accessToMeter } : null);
+  const [sewerConnection, setSewerConnection] = useState(savedData.sewerConnection ? { name: savedData.sewerConnection } : null);
+  const [septicTank, setSepticTank] = useState(savedData.septicTank ? { name: savedData.septicTank } : null);
 
   const [meterPhoto, setMeterPhoto] = useState(null);
-  const [meterPhotoId, setMeterPhotoId] = useState(null);
+  const [meterPhotoId, setMeterPhotoId] = useState(savedData.meterPhotoId || null);
 
   const [toast, setToast] = useState(null);
 
   // 🔹 OPTIONS
   const yesNo = [{ name: "Yes" }, { name: "No" }];
 
-  const meterStatusOptions = [{ name: "Metered" }, { name: "Unmetered" }, { name: "Can not be identified" }];
+  const meterStatusOptions = [
+    { name: "Metered" },
+    { name: "Unmetered" },
+    { name: "Can not be identified" },
+  ];
 
-  const meterConditionOptions = [{ name: "Damaged" }, { name: "Not-Damaged" }];
+  const meterConditionOptions = [
+    { name: "Damaged" },
+    { name: "Not-Damaged" },
+  ];
 
-  const meterLocationOptions = [{ name: "Inside" }, { name: "Outside" }];
+  const meterLocationOptions = [
+    { name: "Inside" },
+    { name: "Outside" },
+  ];
 
   // 🔹 MONTH-YEAR OPTIONS (1998–2026)
   const monthYearOptions = [];
@@ -49,6 +81,84 @@ const MeterDetails = ({ config, onSelect }) => {
       monthYearOptions.push({ name: `${m}/${y}` });
     }
   }
+
+  useEffect(() => {
+    const rawData = searchData || formData?.connectionDetails;
+    const apiMeter = rawData?.meterDetails || rawData || {};
+
+    if (apiMeter && Object.keys(apiMeter).length > 0 && !savedData.connectionCategory) {
+      if (apiMeter.connectionCategory) setConnectionCategory(apiMeter.connectionCategory);
+      if (apiMeter.saType) setSaType(apiMeter.saType);
+      if (apiMeter.statusFlag) setStatus(apiMeter.statusFlag);
+
+      if (apiMeter.mrcode) setMrCode(String(apiMeter.mrcode));
+      if (apiMeter.areacode) setAreaCode(String(apiMeter.areacode));
+      if (apiMeter.mrkey) setMrKey(String(apiMeter.mrkey));
+
+      if (apiMeter.meterNumber) setMeterNumber(apiMeter.meterNumber);
+      if (apiMeter.meterMake) setMeterMaker(apiMeter.meterMake);
+
+      if (apiMeter.meterStatus) {
+        const matchingStatus = meterStatusOptions.find(o => o.name.toLowerCase() === apiMeter.meterStatus.toLowerCase());
+        if (matchingStatus) setMeterStatus(matchingStatus);
+        else setMeterStatus({ name: apiMeter.meterStatus });
+      } else if (apiMeter.metered !== undefined) {
+        setMeterStatus({ name: apiMeter.metered ? "Metered" : "Unmetered" });
+      }
+
+      if (apiMeter.meterCondition) {
+        const matchingCond = meterConditionOptions.find(o => o.name.toLowerCase() === apiMeter.meterCondition.toLowerCase());
+        if (matchingCond) setMeterCondition(matchingCond);
+        else setMeterCondition({ name: apiMeter.meterCondition });
+      }
+
+      if (apiMeter.meterLocation) {
+        const matchingLoc = meterLocationOptions.find(o => o.name.toLowerCase() === apiMeter.meterLocation.toLowerCase() || apiMeter.meterLocation.toLowerCase().includes(o.name.toLowerCase()));
+        if (matchingLoc) setMeterLocation(matchingLoc);
+        else setMeterLocation({ name: apiMeter.meterLocation });
+      }
+
+      if (apiMeter.lastBillRaised !== undefined && apiMeter.lastBillRaised !== null) {
+        const strVal = String(apiMeter.lastBillRaised).toLowerCase();
+        if (strVal === "true" || strVal === "yes") setLastBillReceived({ name: "Yes" });
+        else setLastBillReceived({ name: "No" });
+      }
+
+      if (apiMeter.lastBillReceivedDate) {
+        const formatted = apiMeter.lastBillReceivedDate.replace("-", "/");
+        const parsedParts = formatted.split("/");
+        if (parsedParts.length === 2) {
+          const mon = parseInt(parsedParts[0], 10);
+          const yr = parseInt(parsedParts[1], 10);
+          setBillMonthYear({ name: `${mon}/${yr}` });
+        } else {
+          setBillMonthYear({ name: apiMeter.lastBillReceivedDate });
+        }
+      }
+
+      if (apiMeter.lastBillNotRaisedReason) setReason(apiMeter.lastBillNotRaisedReason);
+
+      if (apiMeter.accessToMeter !== undefined && apiMeter.accessToMeter !== null) {
+        const strVal = String(apiMeter.accessToMeter).toLowerCase();
+        if (strVal === "true" || strVal === "yes") setAccessToMeter({ name: "Yes" });
+        else setAccessToMeter({ name: "No" });
+      }
+
+      if (apiMeter.sewerConnection !== undefined && apiMeter.sewerConnection !== null) {
+        const strVal = String(apiMeter.sewerConnection).toLowerCase();
+        if (strVal === "true" || strVal === "yes") setSewerConnection({ name: "Yes" });
+        else setSewerConnection({ name: "No" });
+      }
+
+      if (apiMeter.septicTank !== undefined && apiMeter.septicTank !== null) {
+        const strVal = String(apiMeter.septicTank).toLowerCase();
+        if (strVal === "true" || strVal === "yes") setSepticTank({ name: "Yes" });
+        else setSepticTank({ name: "No" });
+      }
+
+      if (apiMeter.meterPhotoFileStoreId) setMeterPhotoId(apiMeter.meterPhotoFileStoreId);
+    }
+  }, [searchData, formData?.connectionDetails]);
 
   // 🔹 FREEZE LOGIC
   const isFrozen = meterStatus?.name === "Can not be identified";
@@ -85,6 +195,7 @@ const MeterDetails = ({ config, onSelect }) => {
     if (meterStatus?.name === "Metered" && !meterPhotoId) return false;
 
     if (lastBillReceived?.name === "No" && !reason) return false;
+    if (lastBillReceived?.name === "Yes" && !billMonthYear) return false;
 
     if (sewerConnection?.name === "No" && !septicTank) return false;
 
@@ -92,11 +203,13 @@ const MeterDetails = ({ config, onSelect }) => {
   };
 
   // 🔹 SUBMIT
-  const onStepSelect = () => {
+  const onStepSelect = async () => {
+    /*
     if (!isValid()) {
       setToast({ type: "error", message: "Fill all mandatory fields" });
       return;
     }
+    */
 
     const data = {
       connectionCategory,
@@ -119,12 +232,27 @@ const MeterDetails = ({ config, onSelect }) => {
       meterPhotoId,
     };
 
-    onSelect(config.key, data);
+    try {
+      await updateMutation.mutateAsync({
+        RequestInfo: {},
+        updateType: "METER",
+        kno: searchKno,
+        ...data,
+      });
+      setToast({ type: "success", message: "Meter details updated successfully!" });
+      onSelect(config.key, data);
+    } catch (error) {
+      setToast({ type: "error", message: "Failed to update meter details" });
+    }
   };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <Fragment>
-      <FormStep onSelect={onStepSelect} config={config}>
+      <FormStep onSelect={onStepSelect} config={config} isDisabled={!isValid()}>
         <div>
           <CardLabel>Connection Category *</CardLabel>
           <TextInput value={connectionCategory} onChange={(e) => setConnectionCategory(e.target.value)} />
@@ -180,7 +308,7 @@ const MeterDetails = ({ config, onSelect }) => {
                 </div>
                 {meterPhoto && (
                   <div style={{ gridColumn: "span 2" }}>
-                    <img src={meterPhoto} style={{ width: "100%" }} alt="" />
+                    <img src={meterPhoto} style={{ width: "100%" }} />
                   </div>
                 )}
               </Fragment>
@@ -235,6 +363,7 @@ const MeterDetails = ({ config, onSelect }) => {
         )}
 
         {toast && <Toast label={toast.message} error={toast.type === "error"} onClose={() => setToast(null)} />}
+
       </FormStep>
     </Fragment>
   );

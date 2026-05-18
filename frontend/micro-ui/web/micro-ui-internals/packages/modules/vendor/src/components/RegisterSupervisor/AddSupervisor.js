@@ -14,24 +14,7 @@ const AddSupervisor = ({ parentUrl, heading }) => {
 
   const { mutate } = Digit.Hooks.fsm.useSupervisorCreate(tenantId);
 
-  // Fetching Agencies (Vendors)
-  const { data: vendorsData } = Digit.Hooks.fsm.useVendorSearch(tenantId, { status: "ACTIVE" });
-
-  const agencies =
-    vendorsData?.vendor?.map((v) => ({
-      code: v.id,
-      name: v.name,
-      ...v,
-    })) || [];
-
-  // Mocking Reporting Managers (Agency Admins)
-  // In a real scenario, this would fetch users with Agency Admin role
-  const reportingManagers = [
-    { code: "MGR1", name: "John Doe (Agency Admin)" },
-    { code: "MGR2", name: "Jane Smith (Agency Admin)" },
-  ];
-
-  const Config = SupervisorConfig(t, agencies, reportingManagers);
+  const Config = SupervisorConfig(t);
 
   const defaultValues = {
     role: { code: "SUPERVISOR", name: "Supervisor" },
@@ -39,15 +22,16 @@ const AddSupervisor = ({ parentUrl, heading }) => {
 
   const onFormValueChange = (setValue, formData) => {
     // Basic validation logic
-    const isBasicDetailsFilled = formData?.fullName && formData?.mobileNumber && formData?.emailId && formData?.employeeId;
-    const isRoleAccessFilled = formData?.agencyName;
-    const isAreaAssignmentFilled =
-      formData?.areaAssignment?.zone &&
-      formData?.areaAssignment?.cluster &&
-      formData?.areaAssignment?.ward &&
-      formData?.areaAssignment?.areas?.length > 0;
+    const isBasicDetailsFilled =
+      formData?.fullName &&
+      formData?.mobileNumber &&
+      formData?.emailId &&
+      formData?.fatherOrHusbandName &&
+      formData?.relationship &&
+      formData?.dob &&
+      formData?.correspondenceAddress;
 
-    if (isBasicDetailsFilled && isRoleAccessFilled && isAreaAssignmentFilled) {
+    if (isBasicDetailsFilled) {
       setCanSubmit(true);
     } else {
       setCanSubmit(false);
@@ -62,24 +46,23 @@ const AddSupervisor = ({ parentUrl, heading }) => {
     const formData = {
       supervisor: {
         tenantId: tenantId,
-        name: data?.fullName,
-        employeeId: data?.employeeId,
-        status: "ACTIVE",
         owner: {
           tenantId: tenantId,
           name: data?.fullName,
+          fatherOrHusbandName: data?.fatherOrHusbandName,
+          relationship: data?.relationship?.code,
+          dob: data?.dob ? new Date(data.dob).getTime() : null,
           gender: data?.gender?.code || "OTHERS",
-          emailId: data?.emailId,
           mobileNumber: data?.mobileNumber,
-        },
-        vendorSupervisorStatus: "ACTIVE",
-        additionalDetails: {
-          agencyId: data?.agencyName?.code,
-          reportingManager: data?.reportingManager?.code,
-          areaAssignment: data?.areaAssignment,
+          emailId: data?.emailId,
+          correspondenceAddress: data?.correspondenceAddress,
         },
       },
+      RequestInfo: {
+        msgId: "ekyc-supervisor-create",
+      },
     };
+    console.log("DEBUG: Supervisor create payload:", formData);
 
     mutate(formData, {
       onError: (error) => {

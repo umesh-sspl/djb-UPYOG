@@ -42,4 +42,40 @@ export const EkycService = {
             auth: true,
             userService: true,
         }),
+    fetchSummary: (data) =>
+        Request({
+            url: Urls.ekyc.dashboard_summary,
+            data: data,
+            useCache: false,
+            method: "POST",
+            auth: true,
+            userService: true,
+        }),
+    fetchAgencyAnalytics: (data) =>
+        Request({
+            url: Urls.ekyc.agency_search,
+            data: data,
+            useCache: false,
+            method: "POST",
+            auth: true,
+            userService: true,
+        }),
+    fetchClusterHeatmap: (data) =>
+        Request({
+            url: Urls.ekyc.cluster_heatmap,
+            data: data,
+            useCache: false,
+            method: "POST",
+            auth: true,
+            userService: true,
+        }),
+    fetchWorkflowTracking: (data) =>
+        Request({
+            url: Urls.ekyc.workflow_tracking,
+            data: data,
+            useCache: false,
+            method: "POST",
+            auth: true,
+            userService: true,
+        }),
 };

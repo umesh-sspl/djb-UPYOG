@@ -290,7 +290,7 @@ const CitizenVendorApp = () => {
           <PrivateRoute
             path={`${path}`}
             component={() =>
-              Digit.UserService.hasAccess(["WT_VENDOR"]) ? (
+              Digit.UserService.hasAccess(["WT_VENDOR", "EKYC_VENDOR"]) ? (
                 <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", width: "100%", padding: "8px 0" }}>
                   <CitizenHomeCard
                     header={t("TITLE_VENDOR_MANAGEMENT")}

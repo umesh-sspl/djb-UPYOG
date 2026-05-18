@@ -170,6 +170,7 @@ const SearchVendor = () => {
           owner: { mobileNumber: "9123456780", userName: "9123456780" },
           auditDetails: { createdTime: new Date().getTime() },
           vendorData: { name: "Clean City Agency" },
+          reportingManager: { name: "Amit Kumar" }
         },
         {
           id: "SUR2",
@@ -179,7 +180,8 @@ const SearchVendor = () => {
           owner: { mobileNumber: "9123456781", userName: "9123456781" },
           auditDetails: { createdTime: new Date().getTime() },
           vendorData: { name: "Green Environment" },
-        },
+          reportingManager: { name: "Rajesh Singh" }
+        }
       ];
       setTableData(dsoData?.surveyor || staticSurveyors);
     }

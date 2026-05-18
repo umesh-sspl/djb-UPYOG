@@ -26,6 +26,9 @@ import AddDriver from "./components/RegisterDriver/AddDriver";
 import DriverDetails from "./components/RegisterDriver/DriverDetails";
 import AddVehicle from "./components/RegisterVehicle/AddVehicle";
 import VehicleDetails from "./components/RegisterVehicle/VehicleDetails";
+import SelectEkycZones from "./pageComponents/SelectEkycZones";
+import SelectEkycClusters from "./pageComponents/SelectEkycClusters";
+import SelectEkycDropdown from "./pageComponents/SelectEkycDropdown";
 
 const componentsToRegister = {
   VendorDetails,
@@ -54,6 +57,9 @@ const componentsToRegister = {
   SupervisorAreaAssignment,
   AddSurveyor,
   SurveyorDetails,
+  SelectEkycZones,
+  SelectEkycClusters,
+  SelectEkycDropdown,
 };
 
 const addComponentsToRegistry = () => {

@@ -98,7 +98,7 @@ const DesktopInbox = ({ tableConfig, filterComponent, ...props }) => {
   );
 
   const tableData = useMemo(() => {
-    return data?.items || [];
+    return data?.items || (Array.isArray(data) ? data : []);
   }, [data]);
 
   return (

@@ -117,6 +117,15 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, di
 
   const getFieldError = (fieldName) => resolveNestedValue(errors, fieldName);
   const location = useLocation();
+
+  const isEkyc = window.location.pathname.includes('/ekyc');
+  const searchKno = isEkyc ? (location?.state?.kNumber || location?.state?.kno || formData?.kNumber || formData?.kno || sessionStorage.getItem("EKYC_K_NUMBER")) : null;
+
+  const { data: searchData } = Digit.Hooks.ekyc.useSearchConnection(
+    { tenantId, details: { kno: searchKno } },
+    { enabled: !!searchKno && isEkyc, cacheTime: 0 }
+  );
+
   const usedAddressTypes = location.state?.usedAddressTypes || [];
 
   const inputStyles = { width: user.type === "EMPLOYEE" ? "50%" : "86%" };
@@ -237,6 +246,55 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, di
     handleGetLocation();
   }, []);
 
+  useEffect(() => {
+    if (isEkyc && searchData) {
+      const rawData = searchData || formData?.connectionDetails;
+      const apiAddress = rawData?.addressDetails || rawData?.address || rawData?.propertyInfo?.address || rawData?.connectionDetails?.address || rawData || {};
+
+      if (apiAddress && Object.keys(apiAddress).length > 0) {
+        const pin = apiAddress.pinCode || apiAddress.pincode;
+        if (!pincode && pin) setPincode(pin.toString().split(".")[0]);
+        
+        const house = apiAddress.flatHouseNumber || apiAddress.houseNo;
+        if (!houseNo && house) setHouseNo(house);
+        
+        if (!streetName && apiAddress.streetName) setstreetName(apiAddress.streetName);
+        
+        const addr1 = apiAddress.subLocality || apiAddress.addressLine1;
+        if (!addressLine1 && addr1) setAddressLine1(addr1);
+        
+        const addr2 = apiAddress.landmark || apiAddress.addressLine2;
+        if (!addressLine2 && addr2) setAddressLine2(addr2);
+        
+        if (!landmark && apiAddress.landmark) setLandmark(apiAddress.landmark);
+        
+        if (!city && apiAddress.city) {
+            const cityObj = allCities?.find(c => c.code === apiAddress.city || c.name === apiAddress.city) || convertToObject(apiAddress.city);
+            if (cityObj) setCity(cityObj);
+        }
+        if (!locality && apiAddress.locality && structuredLocalityData?.length > 0) {
+             const locObj = structuredLocalityData.find(l => l.code === apiAddress.locality || l.name === apiAddress.locality || l.i18nKey === apiAddress.locality) || convertToObject(apiAddress.locality);
+             if (locObj) setLocality(locObj);
+        }
+        if (!zone && apiAddress.zone) setZone(apiAddress.zone);
+        if (!block && (apiAddress.block || apiAddress.ward)) setBlock(apiAddress.block || apiAddress.ward);
+        if (!assembly && apiAddress.assembly) setAssembly(apiAddress.assembly);
+        if (!zro && apiAddress.zro) setZro(apiAddress.zro);
+        
+        const lat = apiAddress.latitude;
+        if (!latitude && lat) setLatitude(lat);
+        
+        const lng = apiAddress.longitude;
+        if (!longitude && lng) setLongitude(lng);
+
+        if (!doorImageId && apiAddress.doorPhotoFilestoreId) {
+            setDoorImageId(apiAddress.doorPhotoFilestoreId);
+            setDoorImage(apiAddress.doorPhotoFilestoreId); // or a generic string, since API only returns ID
+        }
+      }
+    }
+  }, [searchData, isEkyc, allCities, structuredLocalityData]);
+
   const uploadFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -307,7 +365,7 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, di
     }
   }, [formData?.address, allCities, structuredLocalityData]);
 
-  const goNext = () => {
+  const goNext = async () => {
     let ownerAddress = formData.address;
     let addressStep = {
       ...ownerAddress,
@@ -328,9 +386,28 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, di
       zro,
       ...(config?.doorImage ? { doorImage, doorImageId } : {}),
     };
+
+    if (window.location.pathname.includes('/ekyc')) {
+      try {
+        await Digit.CustomService.getResponse({
+          url: "/ekyc-service/user/application/_update",
+          params: { tenantId },
+          data: {
+            RequestInfo: {},
+            updateType: "ADDRESS",
+            kno: searchKno,
+            ...addressStep,
+          },
+        });
+        setToast({ type: "success", message: "Address updated successfully!" });
+      } catch (err) {
+        setToast({ type: "error", message: "Failed to update address" });
+      }
+    }
+
     if (config?.key) {
       onSelect(config.key, { ...formData[config.key], ...addressStep }, false);
-    } else {
+    } else if (config === undefined) {
       onSelect(addressStep);
     }
   };

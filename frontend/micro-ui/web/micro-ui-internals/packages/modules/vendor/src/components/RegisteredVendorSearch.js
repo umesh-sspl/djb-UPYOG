@@ -104,8 +104,8 @@ const RegisteredVendorSearch = ({
               <DropdownStatus
                 onAssignmentChange={props.onChange}
                 value={props.value}
-                // applicationStatuses={applicationStatuses}
-                // areApplicationStatus={areApplicationStatus}
+              // applicationStatuses={applicationStatuses}
+              // areApplicationStatus={areApplicationStatus}
               />
             )}
             name={input.name}
@@ -154,9 +154,9 @@ const RegisteredVendorSearch = ({
 
     ...(matchedRoles?.wt?.includes("WT_VENDOR") ? ["DRIVER", "VEHICLE"] : []),
 
-    ...(matchedRoles?.ekyc?.includes("EKYC-VENDOR") ? ["SUPERVISOR"] : []),
+    ...(matchedRoles?.ekyc?.includes("EKYC_VENDOR") ? ["SUPERVISOR"] : []),
 
-    ...(matchedRoles?.ekyc?.includes("EKYC_SUPERVISOR") || matchedRoles?.ekyc?.includes("EKYC-VENDOR") ? ["SURVEYOR"] : []),
+    ...(matchedRoles?.ekyc?.includes("EKYC_SUPERVISOR") || matchedRoles?.ekyc?.includes("EKYC_VENDOR") ? ["SURVEYOR"] : []),
   ];
   return (
     <React.Fragment>
@@ -179,17 +179,17 @@ const RegisteredVendorSearch = ({
           )}
           <div className="search-tabs-container">
             <div>
-              {matchedRoles?.wt?.includes("WT_VENDOR") && (
-                <button
-                  className={selectedTab === "VENDOR" ? "search-tab-head-selected" : "search-tab-head"}
-                  onClick={() => {
-                    clearSearch({});
-                    onTabChange("VENDOR");
-                  }}
-                >
-                  {t("ES_FSM_REGISTRY_INBOX_TAB_VENDOR")}
-                </button>
-              )}
+
+              <button
+                className={selectedTab === "VENDOR" ? "search-tab-head-selected" : "search-tab-head"}
+                onClick={() => {
+                  clearSearch({});
+                  onTabChange("VENDOR");
+                }}
+              >
+                {t("ES_FSM_REGISTRY_INBOX_TAB_VENDOR")}
+              </button>
+
               {matchedRoles?.wt?.includes("WT_VENDOR") && (
                 <button
                   className={selectedTab === "VEHICLE" ? "search-tab-head-selected" : "search-tab-head"}
@@ -212,7 +212,7 @@ const RegisteredVendorSearch = ({
                   {t("ES_FSM_REGISTRY_INBOX_TAB_DRIVER")}
                 </button>
               )}
-              {matchedRoles?.ekyc?.includes("EKYC-VENDOR") && (
+              {matchedRoles?.ekyc?.includes("EKYC_VENDOR") && (
                 <button
                   className={selectedTab === "SUPERVISOR" ? "search-tab-head-selected" : "search-tab-head"}
                   onClick={() => {
@@ -223,7 +223,7 @@ const RegisteredVendorSearch = ({
                   {t("ES_FSM_REGISTRY_INBOX_TAB_SUPERVISOR")}
                 </button>
               )}
-              {(matchedRoles?.ekyc?.includes("EKYC_SUPERVISOR") || matchedRoles?.ekyc?.includes("EKYC-VENDOR")) && (
+              {(matchedRoles?.ekyc?.includes("EKYC_SUPERVISOR") || matchedRoles?.ekyc?.includes("EKYC_VENDOR")) && (
                 <button
                   className={selectedTab === "SURVEYOR" ? "search-tab-head-selected" : "search-tab-head"}
                   onClick={() => {

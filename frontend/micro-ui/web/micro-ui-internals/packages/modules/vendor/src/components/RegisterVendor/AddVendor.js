@@ -30,8 +30,6 @@ const AddVendor = ({ parentUrl, heading }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const Config = VendorConfig(t);
-
   const defaultValues = {
     serviceType: {
       code: "WT",
@@ -45,10 +43,38 @@ const AddVendor = ({ parentUrl, heading }) => {
     },
   };
 
-  const onFormValueChange = (setValue, formData) => {
-    const isVendorDetailsFilled = formData?.vendorName && formData?.phone && formData?.serviceType?.code;
-    const isAddressFilled = formData?.address?.city && formData?.address?.locality;
-    if (isVendorDetailsFilled && isAddressFilled) {
+  const [formData, setFormData] = useState(defaultValues);
+  const Config = VendorConfig(t, false, formData);
+
+  const onFormValueChange = (setValue, data) => {
+    // Avoid circular JSON error by not stringifying the whole data object
+    // Only update formData state if keys that affect dynamic config or child components change
+    if (
+      data?.serviceType?.code !== formData?.serviceType?.code ||
+      JSON.stringify(data?.zoneIds) !== JSON.stringify(formData?.zoneIds)
+    ) {
+      setFormData(data);
+    }
+
+    const isEkyc = data?.serviceType?.code === "EKYC";
+    const isVendorDetailsFilled = data?.vendorName && data?.phone && data?.serviceType?.code;
+    const isAddressFilled = data?.address?.city && data?.address?.locality;
+
+    let isEkycFieldsFilled = true;
+    if (isEkyc) {
+      isEkycFieldsFilled =
+        data?.ownerName &&
+        data?.contractStartDate &&
+        data?.contractEndDate &&
+        data?.zoneIds?.length > 0 &&
+        data?.clusterIds?.length > 0 &&
+        data?.fatherOrHusbandName &&
+        data?.gender &&
+        data?.dob &&
+        data?.relationship;
+    }
+
+    if (isVendorDetailsFilled && isAddressFilled && isEkycFieldsFilled) {
       setCanSubmit(true);
     } else {
       setCanSubmit(false);
@@ -101,68 +127,80 @@ const AddVendor = ({ parentUrl, heading }) => {
     const localityCode = mergedData?.address?.locality?.code;
     const localityName = mergedData?.address?.locality?.name;
     const localityArea = mergedData?.address?.locality?.area;
-    const gender = "MALE";
     const emailId = mergedData?.emailId;
     const phone = mergedData?.phone;
 
-    const additionalDetails = mergedData?.serviceType?.code;
+    const isEkyc = mergedData?.serviceType?.code === "EKYC";
 
-    const formData = {
-      vendor: {
+    let vendorData = {
+      tenantId: tenantId,
+      name,
+      agencyType: "ULB",
+      paymentPreference: "post-service",
+      address: {
         tenantId: tenantId,
-        name,
-        agencyType: "ULB",
-        paymentPreference: "post-service",
-
-        address: {
-          tenantId: tenantId,
-          landmark,
-          doorNo,
-          plotNo,
-          street,
-          city,
-          district,
-          region,
-          state,
-          country: "in",
-          pincode,
-          buildingName,
-
-          locality: {
-            code: localityCode || "",
-            name: localityName || "",
-            label: "Locality",
-            area: localityArea || "",
-          },
-
-          geoLocation: {
-            latitude: mergedData?.address?.latitude || 0,
-            longitude: mergedData?.address?.longitude || 0,
-          },
+        landmark,
+        doorNo,
+        plotNo,
+        street,
+        city,
+        district,
+        region,
+        state,
+        country: "india",
+        pincode,
+        buildingName,
+        locality: {
+          code: localityCode || "",
+          name: localityName || "",
+          label: "Locality",
+          area: localityArea || "",
         },
-
-        owner: {
-          tenantId: stateId,
-          name: name,
-          fatherOrHusbandName: name,
-          relationship: "OTHER",
-          gender: gender,
-          dob: "915148800",
-          emailId: emailId || "abc@egov.com",
-          mobileNumber: phone,
+        geoLocation: {
+          latitude: mergedData?.address?.latitude || 28.6139,
+          longitude: mergedData?.address?.longitude || 77.2090,
         },
-
-        additionalDetails: {
-          serviceType: additionalDetails,
-        },
-
-        vehicle: [],
-        drivers: [],
-        source: "WhatsApp",
       },
+      owner: {
+        tenantId: "dl", // As per CURL
+        name: mergedData?.ownerName || name,
+        fatherOrHusbandName: mergedData?.fatherOrHusbandName || name,
+        relationship: mergedData?.relationship?.code || "OTHER",
+        gender: mergedData?.gender?.code || "MALE",
+        dob: mergedData?.dob ? (new Date(mergedData.dob).getTime() / 1000).toString() : "915148800",
+        emailId: emailId || "",
+        mobileNumber: phone,
+      },
+      additionalDetails: {
+        serviceType: isEkyc ? "ekyc" : mergedData?.serviceType?.code,
+      },
+      vehicles: [],
+      drivers: [],
+      source: isEkyc ? "eKYC Portal" : "WhatsApp",
     };
 
-    mutate(formData, {
+    if (isEkyc) {
+      vendorData = {
+        ...vendorData,
+        zoneIds: mergedData?.zoneIds?.map((z) => z.code) || [],
+        clusterIds: mergedData?.clusterIds?.map((c) => c.code) || [],
+        contractStartDate: mergedData.contractStartDate ? new Date(mergedData.contractStartDate).getTime() : null,
+        contractEndDate: mergedData.contractEndDate ? new Date(mergedData.contractEndDate).getTime() : null,
+      };
+    }
+
+    const payload = {
+      vendor: vendorData,
+    };
+
+    if (isEkyc) {
+      payload.RequestInfo = {
+        apiId: "Rainmaker",
+        msgId: "ekyc-vendor-create",
+      };
+    }
+
+    mutate(payload, {
       onError: (error) => {
         setShowToast({ key: "error", action: error });
         setTimeout(closeToast, 5000);

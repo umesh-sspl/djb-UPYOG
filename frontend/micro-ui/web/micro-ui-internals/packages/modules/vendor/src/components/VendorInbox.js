@@ -137,9 +137,9 @@ const getDriverFillingPointIdentifiers = (driver = {}) => {
 const getVendorDriversForFillingPoint = (vendor, fillingPoint) => {
   const vendorDrivers = Array.isArray(vendor?.drivers)
     ? vendor.drivers.filter(Boolean).map((d) => ({
-        ...d,
-        displayName: `${d.name} (${d.owner?.mobileNumber || "N/A"})`,
-      }))
+      ...d,
+      displayName: `${d.name} (${d.owner?.mobileNumber || "N/A"})`,
+    }))
     : [];
   if (!fillingPoint) return [];
 
@@ -1113,6 +1113,16 @@ const VendorInbox = (props) => {
               );
             },
           },
+
+          ...(props.selectedTab === "SURVEYOR"
+            ? [
+              {
+                Header: t("ES_FSM_REGISTRY_INBOX_SUPERVISOR_NAME"),
+                accessor: (row) => row.reportingManager?.name || "NA",
+                Cell: ({ row }) => <div>{row.original?.reportingManager?.name || "NA"}</div>,
+              },
+            ]
+            : []),
           {
             Header: t("WT_MOBILE_NUMBER"),
             accessor: "mobileNumber",
@@ -1127,7 +1137,7 @@ const VendorInbox = (props) => {
               GetCell(row.original?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row.original?.auditDetails?.createdTime) : ""),
           },
           {
-            Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
+            Header: props.selectedTab === "SUPERVISOR" ? t("ES_VENDOR_SUPERVISOR_AGENCY_NAME") : t("ES_VENDOR_SURVEYOR_AGENCY_NAME"),
             id: "vendorName",
             accessor: (row) => row.vendorData?.name || row.vendor?.name || "NA",
             minWidth: 250,
@@ -1182,8 +1192,7 @@ const VendorInbox = (props) => {
           {
             Header: t("ES_VENDOR_INBOX_VENDOR_NAME"),
             exportAccessor: (row) =>
-              `${row?.name || row?.dsoDetails?.name || "NA"} (${
-                row?.mobileNumber || row?.owner?.mobileNumber || row?.dsoDetails?.mobileNumber || row?.dsoDetails?.owner?.mobileNumber || "NA"
+              `${row?.name || row?.dsoDetails?.name || "NA"} (${row?.mobileNumber || row?.owner?.mobileNumber || row?.dsoDetails?.mobileNumber || row?.dsoDetails?.owner?.mobileNumber || "NA"
               })`,
           },
           {
@@ -1216,12 +1225,11 @@ const VendorInbox = (props) => {
           {
             Header: "Map Vendor",
             exportAccessor: (row) =>
-              `${row?.vendor?.name || row?.vendorData?.name || "NA"} (${
-                row?.vendor?.mobileNumber ||
-                row?.vendor?.owner?.mobileNumber ||
-                row?.vendorData?.mobileNumber ||
-                row?.vendorData?.owner?.mobileNumber ||
-                "NA"
+              `${row?.vendor?.name || row?.vendorData?.name || "NA"} (${row?.vendor?.mobileNumber ||
+              row?.vendor?.owner?.mobileNumber ||
+              row?.vendorData?.mobileNumber ||
+              row?.vendorData?.owner?.mobileNumber ||
+              "NA"
               })`,
           },
           {
@@ -1235,8 +1243,7 @@ const VendorInbox = (props) => {
           {
             Header: t("ES_FSM_REGISTRY_SELECT_DRIVER"),
             exportAccessor: (row) =>
-              `${row?.driverData?.name || row?.driver?.name || "NA"} (${
-                row?.driverData?.owner?.mobileNumber || row?.driver?.owner?.mobileNumber || "NA"
+              `${row?.driverData?.name || row?.driver?.name || "NA"} (${row?.driverData?.owner?.mobileNumber || row?.driver?.owner?.mobileNumber || "NA"
               })`,
           },
           {
@@ -1261,12 +1268,11 @@ const VendorInbox = (props) => {
           {
             Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
             exportAccessor: (row) =>
-              `${row?.vendorData?.name || row?.vendor?.name || "NA"} (${
-                row?.vendorData?.mobileNumber ||
-                row?.vendorData?.owner?.mobileNumber ||
-                row?.vendor?.mobileNumber ||
-                row?.vendor?.owner?.mobileNumber ||
-                "NA"
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} (${row?.vendorData?.mobileNumber ||
+              row?.vendorData?.owner?.mobileNumber ||
+              row?.vendor?.mobileNumber ||
+              row?.vendor?.owner?.mobileNumber ||
+              "NA"
               })`,
           },
           {
@@ -1274,6 +1280,7 @@ const VendorInbox = (props) => {
             exportAccessor: (row) => row?.status || "NA",
           },
         ];
+
       case "SURVEYOR":
         return [
           {
@@ -1291,12 +1298,11 @@ const VendorInbox = (props) => {
           {
             Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
             exportAccessor: (row) =>
-              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
-                row?.vendorData?.mobileNumber ||
-                row?.vendorData?.owner?.mobileNumber ||
-                row?.vendor?.mobileNumber ||
-                row?.vendor?.owner?.mobileNumber ||
-                "NA"
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${row?.vendorData?.mobileNumber ||
+              row?.vendorData?.owner?.mobileNumber ||
+              row?.vendor?.mobileNumber ||
+              row?.vendor?.owner?.mobileNumber ||
+              "NA"
               }`,
           },
           {
@@ -1321,12 +1327,73 @@ const VendorInbox = (props) => {
           {
             Header: t("ES_FSM_REGISTRY_INBOX_VENDOR_NAME"),
             exportAccessor: (row) =>
-              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${
-                row?.vendorData?.mobileNumber ||
-                row?.vendorData?.owner?.mobileNumber ||
-                row?.vendor?.mobileNumber ||
-                row?.vendor?.owner?.mobileNumber ||
-                "NA"
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${row?.vendorData?.mobileNumber ||
+              row?.vendorData?.owner?.mobileNumber ||
+              row?.vendor?.mobileNumber ||
+              row?.vendor?.owner?.mobileNumber ||
+              "NA"
+              }`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+            exportAccessor: (row) => row?.status || "NA",
+          },
+        ];
+      case "SURVEYOR":
+        return [
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
+            exportAccessor: (row) => row?.owner?.userName || "NA",
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
+            exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_SUPERVISOR_NAME"),
+            exportAccessor: (row) => row?.reportingManager?.name || "NA",
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
+            exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
+          },
+          {
+            Header: t("ES_VENDOR_SURVEYOR_AGENCY_NAME"),
+            exportAccessor: (row) =>
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${row?.vendorData?.mobileNumber ||
+              row?.vendorData?.owner?.mobileNumber ||
+              row?.vendor?.mobileNumber ||
+              row?.vendor?.owner?.mobileNumber ||
+              "NA"
+              }`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_ENABLED"),
+            exportAccessor: (row) => row?.status || "NA",
+          },
+        ];
+      case "SUPERVISOR":
+        return [
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_USERNAME"),
+            exportAccessor: (row) => row?.owner?.userName || "NA",
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DRIVER_NAME"),
+            exportAccessor: (row) => `${row?.name || "NA"} (${row?.owner?.mobileNumber || "NA"})`,
+          },
+          {
+            Header: t("ES_FSM_REGISTRY_INBOX_DATE_DRIVER_CREATION"),
+            exportAccessor: (row) => (row?.auditDetails?.createdTime ? Digit.DateUtils.ConvertEpochToDate(row?.auditDetails?.createdTime) : ""),
+          },
+          {
+            Header: t("ES_VENDOR_SUPERVISOR_AGENCY_NAME"),
+            exportAccessor: (row) =>
+              `${row?.vendorData?.name || row?.vendor?.name || "NA"} ${row?.vendorData?.mobileNumber ||
+              row?.vendorData?.owner?.mobileNumber ||
+              row?.vendor?.mobileNumber ||
+              row?.vendor?.owner?.mobileNumber ||
+              "NA"
               }`,
           },
           {
@@ -1421,7 +1488,7 @@ const VendorInbox = (props) => {
   }
 
   const ekycRoles = {
-    ekycVendor: "EKYC-VENDOR",
+    ekycVendor: "EKYC_VENDOR",
     supervisor: "EKYC_SUPERVISOR",
   };
 
@@ -1442,7 +1509,8 @@ const VendorInbox = (props) => {
     wt: matchedWtRoles,
   };
 
-  matchedRoles.ekyc.push("EKYC-VENDOR");
+  console.log(matchedRoles);
+
 
   return (
     <div className="inbox-container">

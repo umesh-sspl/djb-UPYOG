@@ -2,7 +2,9 @@ import React from "react";
 import { convertEpochToDate } from "../utils";
 const { DatePicker, Dropdown } = require("@djb25/digit-ui-react-components");
 
-const VendorConfig = (t, disabled = false) => {
+const VendorConfig = (t, disabled = false, formData = {}) => {
+  const isEkyc = formData?.serviceType?.code === "EKYC";
+
   return [
     {
       head: "ES_VRNDOR_NEW_VENDOR_DETAILS",
@@ -23,46 +25,6 @@ const VendorConfig = (t, disabled = false) => {
             className: "payment-form-text-input-correction",
           },
         },
-
-        // head: "ES_FSM_REGISTRY_PERSONAL_DETAILS",
-        // body: [
-        // {
-        //   label: "ES_FSM_REGISTRY_NEW_GENDER",
-        //   isMandatory: true,
-        //   type: "component",
-        //   route: "select-gender",
-        //   hideInEmployee: false,
-        //   key: "selectGender",
-        //   component: "SelectGender",
-        //   disable: disabled,
-        //   texts: {
-        //     headerCaption: "",
-        //     header: "CS_COMMON_CHOOSE_GENDER",
-        //     cardText: "CS_COMMON_SELECT_GENDER",
-        //     submitBarLabel: "CS_COMMON_NEXT",
-        //     skipText: "CORE_COMMON_SKIP_CONTINUE",
-        //   },
-        // },
-        // {
-        //   label: t("ES_FSM_REGISTRY_NEW_DOB"),
-        //   isMandatory: false,
-        //   type: "custom",
-        //   key: "dob",
-        //   populators: {
-        //     name: "dob",
-        //     validation: {
-        //       required: true,
-        //     },
-        //     component: (props, customProps) => (
-        //       <DatePicker
-        //         onChange={props.onChange}
-        //         date={props.value}
-        //         {...customProps}
-        //         max={convertEpochToDate(new Date().setFullYear(new Date().getFullYear()))}
-        //       />
-        //     ),
-        //   },
-        // },
         {
           label: "ES_FSM_REGISTRY_NEW_EMAIL",
           isMandatory: false,
@@ -117,6 +79,140 @@ const VendorConfig = (t, disabled = false) => {
             submitBarLabel: "CS_COMMON_NEXT",
           },
         },
+        ...(isEkyc
+          ? [
+              {
+                label: "ES_VENDOR_CONTRACT_START_DATE",
+                isMandatory: true,
+                type: "custom",
+                key: "contractStartDate",
+                populators: {
+                  name: "contractStartDate",
+                  validation: {
+                    required: true,
+                  },
+                  component: (props, customProps) => (
+                    <DatePicker
+                      onChange={props.onChange}
+                      date={props.value}
+                      {...customProps}
+                    />
+                  ),
+                },
+              },
+              {
+                label: "ES_VENDOR_CONTRACT_END_DATE",
+                isMandatory: true,
+                type: "custom",
+                key: "contractEndDate",
+                populators: {
+                  name: "contractEndDate",
+                  validation: {
+                    required: true,
+                  },
+                  component: (props, customProps) => (
+                    <DatePicker
+                      onChange={props.onChange}
+                      date={props.value}
+                      {...customProps}
+                    />
+                  ),
+                },
+              },
+              {
+                label: "ES_VENDOR_ZONE",
+                isMandatory: true,
+                type: "component",
+                key: "zoneIds",
+                component: "SelectEkycZones",
+              },
+              {
+                label: "ES_VENDOR_CLUSTER",
+                isMandatory: true,
+                type: "component",
+                key: "clusterIds",
+                component: "SelectEkycClusters",
+              },
+              {
+                label: "ES_FSM_REGISTRY_NEW_OWNER_NAME",
+                isMandatory: true,
+                type: "text",
+                populators: {
+                  name: "ownerName",
+                  validation: {
+                    required: true,
+                    pattern: /^[A-Za-z\s.,/]+$/,
+                  },
+                  error: t("FSM_REGISTRY_INVALID_NAME"),
+                  className: "payment-form-text-input-correction",
+                },
+              },
+              {
+                label: "ES_FSM_REGISTRY_NEW_FATHER_NAME",
+                isMandatory: true,
+                type: "text",
+                populators: {
+                  name: "fatherOrHusbandName",
+                  validation: {
+                    required: true,
+                  },
+                  className: "payment-form-text-input-correction",
+                },
+              },
+              {
+                label: "ES_FSM_REGISTRY_NEW_GENDER",
+                isMandatory: true,
+                type: "component",
+                key: "gender",
+                component: "SelectEkycDropdown",
+                populators: {
+                  name: "gender",
+                  options: [
+                    { code: "MALE", name: "ES_COMMON_GENDER_MALE" },
+                    { code: "FEMALE", name: "ES_COMMON_GENDER_FEMALE" },
+                    { code: "OTHER", name: "ES_COMMON_GENDER_OTHER" },
+                  ],
+                  optionsKey: "name",
+                },
+              },
+              {
+                label: "ES_FSM_REGISTRY_NEW_DOB",
+                isMandatory: true,
+                type: "custom",
+                key: "dob",
+                populators: {
+                  name: "dob",
+                  validation: {
+                    required: true,
+                  },
+                  component: (props, customProps) => (
+                    <DatePicker
+                      onChange={props.onChange}
+                      date={props.value}
+                      {...customProps}
+                      max={convertEpochToDate(new Date().setFullYear(new Date().getFullYear()))}
+                    />
+                  ),
+                },
+              },
+              {
+                label: "ES_FSM_REGISTRY_NEW_RELATIONSHIP",
+                isMandatory: true,
+                type: "component",
+                key: "relationship",
+                component: "SelectEkycDropdown",
+                populators: {
+                  name: "relationship",
+                  options: [
+                    { code: "FATHER", name: "ES_COMMON_RELATION_FATHER" },
+                    { code: "HUSBAND", name: "ES_COMMON_RELATION_HUSBAND" },
+                    { code: "OTHER", name: "ES_COMMON_RELATION_OTHER" },
+                  ],
+                  optionsKey: "name",
+                },
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -182,9 +278,6 @@ const VendorConfig = (t, disabled = false) => {
             className: "payment-form-text-input-correction",
           },
         },
-
-        //for city and locality
-
         {
           route: "address",
           component: "VendorSelectAddress",
@@ -212,40 +305,6 @@ const VendorConfig = (t, disabled = false) => {
         },
       ],
     },
-
-    // {
-    //   head: "",
-    //   body: [
-
-    //     {
-    //       label: "ES_VENDOR_REGISTRY_SERVICE_TYPE",
-    //       isMandatory: true,
-    //       type: "component",
-    //       route: "select-gender",
-    //       hideInEmployee: false,
-    //       key: "serviceType",
-    //       component: "SelectServiceType",
-    //       disable: disabled,
-    //       texts: {
-    //         headerCaption: "",
-    //         header: "CS_COMMON_CHOOSE_GENDER",
-    //         cardText: "CS_COMMON_SELECT_GENDER",
-    //         submitBarLabel: "CS_COMMON_NEXT",
-    //         skipText: "CORE_COMMON_SKIP_CONTINUE",
-    //       },
-    //     },
-    //     // {
-    //     //   label: "ES_FSM_REGISTRY_NEW_VENDOR_ADDITIONAL_DETAILS",
-    //     //   isMandatory: false,
-    //     //   type: "textarea",
-    //     //   key: "additionalDetails",
-    //     //   populators: {
-    //     //     name: "additionalDetails",
-    //     //     className: "payment-form-text-input-correction",
-    //     //   },
-    //     // },
-    //   ],
-    // },
   ];
 };
 

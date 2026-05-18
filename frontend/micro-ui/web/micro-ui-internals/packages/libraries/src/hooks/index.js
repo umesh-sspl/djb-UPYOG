@@ -92,13 +92,13 @@ import useDriverUpdate from "./fsm/useDriverUpdate";
 import useDriverDetails from "./fsm/useDriverDetails";
 import useVendorSearch from "./fsm/useVendorSearch";
 import useAdvanceBalanceCalulation from "./fsm/useAdvanceBalanceCalculation";
-import useSupervisorDetails from "./fsm/useSupervisorDetails";
-import useSurveyorDetails from "./fsm/useSurveyorDetails";
+// import useSupervisorDetails from "./fsm/useSupervisorDetails";
+// import useSurveyorDetails from "./fsm/useSurveyorDetails";
 import useWorkerSearch from "./fsm/useWorkerSearch";
 import useSupervisorCreate from "./fsm/useSupervisorCreate";
-import useSupervisorUpdate from "./fsm/useSupervisorUpdate";
+// import useSupervisorUpdate from "./fsm/useSupervisorUpdate";
 import useSurveyorCreate from "./fsm/useSurveyorCreate";
-import useSurveyorUpdate from "./fsm/useSurveyorUpdate";
+// import useSurveyorUpdate from "./fsm/useSurveyorUpdate";
 
 import useEmployeeSearch from "./useEmployeeSearch";
 
@@ -355,7 +355,7 @@ import useSelectedMDMS from "./useSelectedMDMS";
 import useVendorAdditionaldetailsAPI from "./vendor/useVendorAdditionaldetailsAPI";
 import useCreateDemand from "./sv/useCreateDemand";
 import useEmpvendorCommonSearch from "./vendor/useEmpvendorCommonSearch";
-import { useSearchConnection, useGetConnectionTypeV2, useGetUserType, useGetFloorCount, useGetPropertyType, useEkycSurveyorDashboard, useEkycApplicationReview, useEkycSearchReview, useEkycApplicationUpdate, useEkycAPI } from "./ekyc/useEkyc";
+import { useSearchConnection, useGetConnectionTypeV2, useGetUserType, useGetFloorCount, useGetPropertyType, useEkycSurveyorDashboard, useEkycApplicationReview, useEkycSearchReview, useEkycApplicationUpdate, useEkycAPI, useEkycWorkflow, useEkycUpdate, useEkycDashboardData, useEkycDashboardConfigs } from "./ekyc/useEkyc";
 import { useCreateFixedPoint } from "./wt/createFixedPoint";
 import { useCreateFixedPointSchedule } from "./wt/useCreateFixedPointSchedule";
 import { useUpdateFixedPoint } from "./wt/updateFixedPoint";
@@ -459,13 +459,13 @@ const fsm = {
   useVehicleTripCreate,
   useVendorSearch,
   useAdvanceBalanceCalulation,
-  useSupervisorDetails,
-  useSurveyorDetails,
+//  useSupervisorDetails,
+//  useSurveyorDetails,
   useWorkerSearch,
   useSupervisorCreate,
-  useSupervisorUpdate,
-  useSurveyorCreate,
-  useSurveyorUpdate,
+  //  useSupervisorUpdate,
+    useSurveyorCreate,
+  //  useSurveyorUpdate,
 };
 const ptr = {
   usePetMDMS,
@@ -545,6 +545,10 @@ const ekyc = {
   useEkycSearchReview,
   useEkycApplicationUpdate,
   useEkycAPI,
+  useEkycWorkflow,
+  useEkycUpdate,
+  useEkycDashboardData,
+  useEkycDashboardConfigs,
 };
 
 const hrms = {
