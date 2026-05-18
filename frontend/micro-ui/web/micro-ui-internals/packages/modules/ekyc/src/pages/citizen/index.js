@@ -1,16 +1,15 @@
-import { AppContainer, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon } from "@djb25/digit-ui-react-components";
 import React from "react";
+import { PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon, LayoutWrapper } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation, useRouteMatch } from "react-router-dom";
-import Create from "../employee/Create";
-import AadhaarVerification from "../employee/AadhaarVerification";
-import AddressDetails from "../employee/AddressDetails";
-import PropertyInfo from "../employee/PropertyInfo";
-import MeterDetails from "../employee/MeterDetails";
-import Review from "../employee/Review";
+import AadhaarVerification from "../../components/AadhaarVerification";
+import PropertyInfo from "../../components/PropertyInfo";
+import MeterDetails from "../../components/MeterDetails";
+import Review from "../../components/Review";
 import Home from "./Home";
 import Dashboard from "../../components/Dashboard";
 import Inbox from "./Inbox";
+import AddressDetails from "../../components/AddressDetails";
 
 const CitizenApp = () => {
   const { t } = useTranslation();
@@ -33,8 +32,8 @@ const CitizenApp = () => {
   const breadcrumbs = [{ icon: HomeIcon, path: "/digit-ui/citizen" }, { label: t(getBreadcrumbLabel()) }];
 
   return (
-    <AppContainer>
-      <div className="ground-container employee-app-container form-container">
+    <React.Fragment>
+      <div className="ground-container form-container">
         <ModuleHeader
           leftContent={
             <React.Fragment>
@@ -47,22 +46,79 @@ const CitizenApp = () => {
         />
 
         <Switch>
-          <PrivateRoute exact path={`${path}`} component={() => <Home />} />
-          <PrivateRoute path={`${path}/dashboard`} component={() => <Dashboard />} />
-          <PrivateRoute path={`${path}/inbox`} component={() => <Inbox />} />
+          <PrivateRoute
+            exact
+            path={`${path}`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <Home />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/dashboard`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <Dashboard />
+              </LayoutWrapper>
+            )}
+          />
+          <PrivateRoute
+            path={`${path}/inbox`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <Inbox />
+              </LayoutWrapper>
+            )}
+          />
 
-          <PrivateRoute path={`${path}/aadhaar-verification`} component={() => <AadhaarVerification />} />
+          <PrivateRoute
+            path={`${path}/aadhaar-verification`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <AadhaarVerification />
+              </LayoutWrapper>
+            )}
+          />
 
-          <PrivateRoute path={`${path}/address-details`} component={() => <AddressDetails />} />
+          <PrivateRoute
+            path={`${path}/address-details`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <AddressDetails />
+              </LayoutWrapper>
+            )}
+          />
 
-          <PrivateRoute path={`${path}/property-info`} component={() => <PropertyInfo />} />
+          <PrivateRoute
+            path={`${path}/property-info`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <PropertyInfo />
+              </LayoutWrapper>
+            )}
+          />
 
-          <PrivateRoute path={`${path}/meter-details`} component={() => <MeterDetails />} />
+          <PrivateRoute
+            path={`${path}/meter-details`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <MeterDetails />
+              </LayoutWrapper>
+            )}
+          />
 
-          <PrivateRoute path={`${path}/review`} component={() => <Review />} />
+          <PrivateRoute
+            path={`${path}/review`}
+            component={() => (
+              <LayoutWrapper layoutClass="normal">
+                <Review />
+              </LayoutWrapper>
+            )}
+          />
         </Switch>
       </div>
-    </AppContainer>
+    </React.Fragment>
   );
 };
 

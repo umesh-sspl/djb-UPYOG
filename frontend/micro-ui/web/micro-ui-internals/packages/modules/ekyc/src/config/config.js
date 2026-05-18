@@ -1,4 +1,4 @@
-import AadhaarVerification from "../pages/employee/AadhaarVerification";
+import AadhaarVerification from "../components/AadhaarVerification";
 
 export const ekycConfig = [
   {

@@ -341,6 +341,24 @@ function CloseSvg({ onClick }) {
   );
 }
 
+const CollapseIcon = ({ isCollapsed = false, width = 18, height = 18, stroke = "currentColor", strokeWidth = 2, className = "" }) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d={isCollapsed ? "M13 17l5-5-5-5M6 17l5-5-5-5" : "M11 17l-5-5 5-5M18 17l-5-5 5-5"} />
+    </svg>
+  );
+};
+
 const CollectionIcon = ({ styles, className }) => (
   <svg width="24" height="27" className={className} style={{ ...styles }} viewBox="0 0 24 27" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
     <path d="M21.3333 2.99967H15.76C15.2 1.45301 13.7333 0.333008 12 0.333008C10.2667 0.333008 8.8 1.45301 8.24 2.99967H2.66667C1.2 2.99967 0 4.19967 0 5.66634V24.333C0 25.7997 1.2 26.9997 2.66667 26.9997H21.3333C22.8 26.9997 24 25.7997 24 24.333V5.66634C24 4.19967 22.8 2.99967 21.3333 2.99967ZM12 2.99967C12.7333 2.99967 13.3333 3.59967 13.3333 4.33301C13.3333 5.06634 12.7333 5.66634 12 5.66634C11.2667 5.66634 10.6667 5.06634 10.6667 4.33301C10.6667 3.59967 11.2667 2.99967 12 2.99967ZM14.6667 21.6663H5.33333V18.9997H14.6667V21.6663ZM18.6667 16.333H5.33333V13.6663H18.6667V16.333ZM18.6667 10.9997H5.33333V8.33301H18.6667V10.9997Z" />
@@ -721,6 +739,27 @@ const GetApp = ({ className }) => (
     <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
   </svg>
 );
+
+const GridIcon = ({ width = 20, height = 20, stroke = "currentColor", strokeWidth = 2.5, className = "" }) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+    </svg>
+  );
+};
 
 const HamburgerIcon = ({ className, styles, color = "#fdfdfd" }) => (
   <svg style={{ ...styles }} width="24" height="24" focusable="false" viewBox="0 0 24 24" aria-hidden="true">
@@ -1797,6 +1836,7 @@ export {
   Clock,
   Close,
   CloseSvg,
+  CollapseIcon,
   CollectionIcon,
   CollectionsBookmarIcons,
   ComplaintIcon,
@@ -1837,6 +1877,7 @@ export {
   GalleryIcon,
   GenericFileIcon,
   GetApp,
+  GridIcon,
   HamburgerIcon,
   HelpIcon,
   HelpLineIcon,

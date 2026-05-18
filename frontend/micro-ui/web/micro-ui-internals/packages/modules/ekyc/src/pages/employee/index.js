@@ -1,4 +1,4 @@
-import { AppContainer, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon } from "@djb25/digit-ui-react-components";
+import { AppContainer, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon, LayoutWrapper } from "@djb25/digit-ui-react-components";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation } from "react-router-dom";
@@ -7,7 +7,7 @@ import Inbox from "./Inbox";
 import Mapping from "./Mapping";
 import Create from "./Create";
 
-import Review from "./Review";
+import Review from "../../components/Review";
 import EKYCForm from "./EKYCForm";
 
 const EmployeeApp = ({ path }) => {
@@ -52,20 +52,56 @@ const EmployeeApp = ({ path }) => {
             <Switch>
               <PrivateRoute
                 path={`${path}/dashboard`}
-                component={() => <Dashboard parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <Dashboard parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />
+                  </LayoutWrapper>
+                )}
               />
               <PrivateRoute
                 path={`${path}/inbox`}
-                component={() => <Inbox parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <Inbox parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />
+                  </LayoutWrapper>
+                )}
               />
 
-              <PrivateRoute path={`${path}/create-kyc`} component={() => <Create />} />
+              <PrivateRoute
+                path={`${path}/create-kyc`}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <Create />
+                  </LayoutWrapper>
+                )}
+              />
 
-              <PrivateRoute path={`${path}/mapping`} component={() => <Mapping />} />
+              <PrivateRoute
+                path={`${path}/mapping`}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <Mapping />
+                  </LayoutWrapper>
+                )}
+              />
 
-              <PrivateRoute path={formStepRoutes.map((route) => `${path}/${route}`)} component={(props) => <EKYCForm {...props} path={path} />} />
+              <PrivateRoute
+                path={formStepRoutes.map((route) => `${path}/${route}`)}
+                component={(props) => (
+                  <LayoutWrapper layoutClass="normal">
+                    <EKYCForm {...props} path={path} />
+                  </LayoutWrapper>
+                )}
+              />
 
-              <PrivateRoute path={`${path}/review`} component={() => <Review />} />
+              <PrivateRoute
+                path={`${path}/review`}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <Review />
+                  </LayoutWrapper>
+                )}
+              />
 
               {/* <PrivateRoute
                 path={`${path}/`}

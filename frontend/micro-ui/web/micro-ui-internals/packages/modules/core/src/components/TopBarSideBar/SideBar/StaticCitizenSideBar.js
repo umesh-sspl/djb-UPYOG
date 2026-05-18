@@ -21,12 +21,13 @@ import {
   LoginIcon,
   CHBIcon,
   LocationIcon,
+  GridIcon,
+  CollapseIcon,
 } from "@djb25/digit-ui-react-components";
 import { Link, useLocation } from "react-router-dom";
 import SideBarMenu from "../../../config/sidebar-menu";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import LogoutDialog from "../../Dialog/LogoutDialog";
 import ChangeCity from "../../ChangeCity";
 import { APPLICATION_PATH } from "../../../pages/citizen/Home/EDCR/utils";
 
@@ -70,7 +71,7 @@ const Profile = ({ info, stateName, t }) => {
         onClick={redirectToProfile} // Redirects to the profile page when clicked
         style={{ cursor: "pointer" }}
       >
-        <img className="img-responsive img-circle img-Profile" src={info?.photo ? info?.photo : defaultImage} />
+        <img className="img-responsive img-circle img-Profile" src={info?.photo ? info?.photo : defaultImage} alt="" />
       </div>
       <div id="profile-location" className="label-container loc-Profile" onClick={redirectToProfile} style={{ cursor: "pointer" }}>
         <div className="label-text"> {info?.mobileNumber} </div>
@@ -117,10 +118,6 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading, logout }) => {
   const { data: storeData, isFetched } = Digit.Hooks.useStore.getInitData();
   const { stateInfo } = storeData || {};
   const user = Digit.UserService.getUser();
-  let isMobile = window.Digit.Utils.browser.isMobile();
-
-  const [isEmployee, setisEmployee] = useState(false);
-  const [isSidebarOpen, toggleSidebar] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -164,9 +161,7 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading, logout }) => {
   const tenantId = Digit.ULBService.getCitizenCurrentTenant();
   const filteredTenantContact = storeData?.tenants?.filter((e) => e.code === tenantId)[0]?.contactNumber || storeData?.tenants?.[0]?.contactNumber;
 
-  let menuItems = [
-    ...SideBarMenu(t, showProfilePage, redirectToLoginPage, redirectToRegisterPage, redirectToScrutinyPage, isEmployee, storeData, tenantId),
-  ];
+  let menuItems = [...SideBarMenu(t, showProfilePage, redirectToLoginPage, redirectToRegisterPage, redirectToScrutinyPage, storeData, tenantId)];
 
   menuItems = menuItems.filter((item) => item.element !== "LANGUAGE");
 
@@ -241,16 +236,18 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading, logout }) => {
     ];
   }
   Object.keys(linkData)
-    ?.filter((key) => !linkData[key][0]?.sidebarURL?.includes("wt-home"))
-    ?.sort((x, y) => y.localeCompare(x))
-    ?.map((key) => {
-      if (linkData[key][0]?.sidebar === "digit-ui-links") {
+    .filter((key) => !linkData[key][0]?.sidebarURL?.includes("wt-home"))
+    .sort((a, b) => b.localeCompare(a))
+    .forEach((key) => {
+      const item = linkData[key][0];
+
+      if (item?.sidebar === "digit-ui-links") {
         menuItems.splice(1, 0, {
-          type: linkData[key][0]?.sidebarURL?.includes("digit-ui") ? "link" : "external-link",
+          type: item?.sidebarURL?.includes("digit-ui") ? "link" : "external-link",
           text: t(`ACTION_TEST_${Digit.Utils.locale.getTransformedLocale(key)}`),
           links: linkData[key],
-          icon: linkData[key][0]?.leftIcon,
-          link: linkData[key][0]?.sidebarURL,
+          icon: item?.leftIcon,
+          link: item?.sidebarURL,
         });
       }
     });
@@ -258,21 +255,7 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading, logout }) => {
   return (
     <React.Fragment>
       <button id="citizen-mobile-toggle" className={`citizen-mobile-toggle ${isMobileOpen ? "hidden" : ""}`} onClick={() => setIsMobileOpen(true)}>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
+        <GridIcon />
         <span className="toggle-label">Dash</span>
       </button>
 
@@ -294,30 +277,20 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading, logout }) => {
             aria-label="Toggle sidebar"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {isCollapsed ? <path d="M13 17l5-5-5-5M6 17l5-5-5-5" /> : <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />}
-            </svg>
+            <CollapseIcon isCollapsed={isCollapsed} />
           </button>
         </div>
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            height: isMobile ? "calc(100vh - 56px)" : "auto",
-            zIndex: "99",
+            zIndex: 99,
+            flex: 1,
+            minHeight: 0,
           }}
         >
           {profileItem}
-          <div className="drawer-desktop" style={{ backgroundColor: "white" }}>
+          <div className="drawer-desktop no-scrollbar">
             {menuItems?.map((item, index) => (
               <div className={`sidebar-list ${pathname === item?.link || pathname === item?.sidebarURL ? "active" : ""}`} key={index}>
                 <MenuItem item={item} />
@@ -329,6 +302,5 @@ const StaticCitizenSideBar = ({ linkData, islinkDataLoading, logout }) => {
     </React.Fragment>
   );
 };
-
 
 export default StaticCitizenSideBar;
