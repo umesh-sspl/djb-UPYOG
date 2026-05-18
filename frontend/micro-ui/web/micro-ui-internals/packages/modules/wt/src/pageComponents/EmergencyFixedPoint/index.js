@@ -139,6 +139,7 @@ const WTEmergencyFixedPointCreate = () => {
         setParams({ ...currentParams, [key]: updatedValue });
       }
     }
+    if (data?.silent) return;
     goNext(skipStep, index, isAddMultiple, key);
   }, [setParams, goNext]);
 

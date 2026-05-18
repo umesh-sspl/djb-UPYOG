@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation, useRouteMatch } from "react-router-dom";
 import Home from "./Home";
+import RwhCreateformComponent from "../../pageComponents/RwhCreateform";
 
 const CitizenApp = () => {
   const { t } = useTranslation();
@@ -13,13 +14,8 @@ const CitizenApp = () => {
 
   const getBreadcrumbLabel = () => {
     const pathname = location.pathname;
-    if (pathname.includes("/create-kyc")) return "EKYC_CREATE_KYC";
-    if (pathname.includes("/aadhaar-verification")) return "EKYC_AADHAAR_VERIFICATION";
-    if (pathname.includes("/address-details")) return "EKYC_ADDRESS_DETAILS";
-    if (pathname.includes("/property-info")) return "EKYC_PROPERTY_INFO";
-    if (pathname.includes("/meter-details")) return "EKYC_METER_DETAILS";
-    if (pathname.includes("/review")) return "EKYC_REVIEW";
-    return "EKYC_HOME";
+    if (pathname.includes("/create-rwh")) return "RWH_CREATE";
+    return "RWH_HOME";
   };
 
   const breadcrumbs = [{ icon: HomeIcon, path: "/digit-ui/citizen" }, { label: t(getBreadcrumbLabel()) }];
@@ -40,6 +36,7 @@ const CitizenApp = () => {
 
         <Switch>
           <PrivateRoute exact path={`${path}`} component={() => <Home />} />
+          <PrivateRoute path={`${path}/create-rwh`} component={() => <RwhCreateformComponent />} />
         </Switch>
       </div>
     </AppContainer>

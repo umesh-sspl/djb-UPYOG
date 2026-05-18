@@ -44,6 +44,7 @@ const MobileInbox = ({
 }) => {
   const { t } = useTranslation();
   const getData = () => {
+    if (data?.[0]?.dataEmpty) return [];
     return data?.map((dataObj) => {
       const obj = {};
       const columns = isSearch ? tableConfig.searchColumns() : tableConfig.inboxColumns();

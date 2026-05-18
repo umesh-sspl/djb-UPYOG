@@ -5,6 +5,12 @@ import { CitizenHomeCard, DocumentIcon } from "@djb25/digit-ui-react-components"
 import RWHCard from "./components/RWHCard";
 import EmployeeApp from "./pages/employee";
 import CitizenApp from "./pages/citizen";
+import RwhCustomerDetailsComponent from "./pageComponents/RwhCustomerDetails";
+import RwhLocation from "./pageComponents/RwhLocation";
+import RwhPropertyWaterConnection from "./pageComponents/RwhPropertyWaterConnection";
+import RwhUploadDocuments from "./pageComponents/RwhUploadDocuments";
+import RwhDeclaration from "./pageComponents/RwhDeclaration";
+import RwhSizeOfPit from "./pageComponents/RwhSizeOfPit";
 export const RWHModule = ({ userType, tenants }) => {
   const { path, url } = useRouteMatch();
   const moduleCode = "RWH";
@@ -34,11 +40,7 @@ export const RWHLinks = ({ matchPath, userType }) => {
   const links = [
     {
       link: `${matchPath}/create-rwh`,
-      i18nKey: t("RWH_CREATE_KYC"),
-    },
-    {
-      link: `${matchPath}/update-rwh`,
-      i18nKey: t("RWH_UPDATE_KYC"),
+      i18nKey: t("RWH_CREATE"),
     },
   ];
 
@@ -55,6 +57,12 @@ const componentsToRegister = {
   RWHModule,
   RWHCard,
   RWHLinks,
+  RwhCustomerDetailsComponent,
+  RwhLocation,
+  RwhPropertyWaterConnection,
+  RwhUploadDocuments,
+  RwhDeclaration,
+  RwhSizeOfPit,
 };
 
 export const initRwhComponents = () => {

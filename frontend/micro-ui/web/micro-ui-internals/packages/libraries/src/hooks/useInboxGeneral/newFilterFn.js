@@ -265,7 +265,7 @@ export const filterFunctions = {
     const workflowFilters = {};
 
 
-    const { bookingNo, mobileNumber, fillingPointId, limit, offset, sortBy, sortOrder, total, services } = filtersArg || {};
+    const { bookingNo, mobileNumber, fillingPointId, limit, offset, sortBy, sortOrder, total, services, applicationStatus, fromDate } = filtersArg || {};
 
     if (filtersArg?.uuid && filtersArg?.uuid.code === "ASSIGNED_TO_ME") {
       workflowFilters.assignee = uuid;
@@ -278,6 +278,18 @@ export const filterFunctions = {
     }
     if (fillingPointId) {
       searchFilters.fillingPointId = fillingPointId;
+    }
+    if (filtersArg?.locality?.length) {
+      searchFilters.locality = filtersArg?.locality.map((item) => item.code.split("_").pop());
+    }
+    if (applicationStatus && applicationStatus?.[0]) {
+      workflowFilters.status = applicationStatus.map((status) => status.uuid || status.code).filter(Boolean);
+      if (applicationStatus?.some((e) => e.nonActionableRole)) {
+        searchFilters.fetchNonActionableRecords = true;
+      }
+    }
+    if (fromDate) {
+      searchFilters.fromDate = new Date(fromDate).getTime();
     }
     if (services) {
       workflowFilters.businessService = services;
@@ -309,7 +321,7 @@ export const filterFunctions = {
     const workflowFilters = {};
 
 
-    const { bookingNo, mobileNumber,limit, offset, sortBy, sortOrder, total, services } = filtersArg || {};
+    const { bookingNo, mobileNumber,limit, offset, sortBy, sortOrder, total, services, applicationStatus, fromDate } = filtersArg || {};
 
     if (filtersArg?.uuid && filtersArg?.uuid.code === "ASSIGNED_TO_ME") {
       workflowFilters.assignee = uuid;
@@ -319,6 +331,18 @@ export const filterFunctions = {
     }
     if(bookingNo) {   
       searchFilters.bookingNo = bookingNo;
+    }
+    if (filtersArg?.locality?.length) {
+      searchFilters.locality = filtersArg?.locality.map((item) => item.code.split("_").pop());
+    }
+    if (applicationStatus && applicationStatus?.[0]) {
+      workflowFilters.status = applicationStatus.map((status) => status.uuid || status.code).filter(Boolean);
+      if (applicationStatus?.some((e) => e.nonActionableRole)) {
+        searchFilters.fetchNonActionableRecords = true;
+      }
+    }
+    if (fromDate) {
+      searchFilters.fromDate = new Date(fromDate).getTime();
     }
     if (services) {
       workflowFilters.businessService = services;

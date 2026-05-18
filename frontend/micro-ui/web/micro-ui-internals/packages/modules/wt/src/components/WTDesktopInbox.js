@@ -53,7 +53,12 @@ const WTDesktopInbox = ({ tableConfig, filterComponent, ...props }) => {
         },
         {
           Header: columns?.[3]?.Header || t("LOCALITY"),
-          exportAccessor: (row) => (row?.searchData?.localityCode ? t(row.searchData.localityCode) : ""),
+          exportAccessor: (row) => {
+            if (!row?.searchData?.localityCode) return "";
+            const tenant = row?.searchData?.tenantId || Digit.ULBService.getCurrentTenantId() || "djb";
+            const prefix = tenant.replace(".", "_").toUpperCase();
+            return t(`${prefix}_REVENUE_${row.searchData.localityCode}`);
+          },
         },
       ];
 
@@ -76,63 +81,63 @@ const WTDesktopInbox = ({ tableConfig, filterComponent, ...props }) => {
 
   let result;
   if (props.isLoading) {
-  result = <Loader />;
-} else if (clearSearchCalled) {
-  result = null;
-} else if (
-  !data ||
-  data?.length === 0 ||
-  (useNewInboxAPI && data?.[0]?.dataEmpty)
-) {
-  if (EmptyInboxComp) {
-    result = <EmptyInboxComp data={data} />;
+    result = <Loader />;
+  } else if (clearSearchCalled) {
+    result = null;
   } else if (
+    !data ||
     data?.length === 0 ||
     (useNewInboxAPI && data?.[0]?.dataEmpty)
   ) {
+    if (EmptyInboxComp) {
+      result = <EmptyInboxComp data={data} />;
+    } else if (
+      data?.length === 0 ||
+      (useNewInboxAPI && data?.[0]?.dataEmpty)
+    ) {
+      result = (
+        <Card style={{ marginTop: 20 }}>
+          {t("DATA_NOT_FOUND", "Data Not Found")
+            .split("\n")
+            .map((text, index) => (
+              <p key={index} style={{ textAlign: "center" }}>
+                {text}
+              </p>
+            ))}
+        </Card>
+      );
+    } else {
+      result = <Loader />;
+    }
+  } else if (data?.length > 0) {
     result = (
-      <Card style={{ marginTop: 20 }}>
-        {t("CS_MYAPPLICATIONS_NO_APPLICATION")
-          .split("\n")
-          .map((text, index) => (
-            <p key={index} style={{ textAlign: "center" }}>
-              {text}
-            </p>
-          ))}
-      </Card>
+      <ApplicationTable
+        t={t}
+        data={data}
+        columns={columns}
+        getCellProps={(cellInfo) => ({
+          style: {
+            padding: "8px 12px",
+            fontSize: "13.5px",
+          },
+        })}
+        onPageSizeChange={props.onPageSizeChange}
+        currentPage={props.currentPage}
+        onNextPage={props.onNextPage}
+        onPrevPage={props.onPrevPage}
+        pageSizeLimit={props.pageSizeLimit}
+        onSort={props.onSort}
+        disableSort={props.disableSort}
+        sortParams={props.sortParams}
+        autoSort={false}
+        totalRecords={props.totalRecords}
+        showCSVExport={true}
+        getCSVExportData={props.getCSVExportData}
+        csvExportColumns={inboxCsvColumns}
+        csvExportFileName={`${String(props.moduleCode || "wt").toLowerCase()}-inbox`}
+      />
     );
-  } else {
-    result = <Loader />;
   }
-} else if (data?.length > 0) {
-  result = (
-    <ApplicationTable
-      t={t}
-      data={data}
-      columns={columns}
-      getCellProps={(cellInfo) => ({
-        style: {
-          padding: "8px 12px",
-          fontSize: "13.5px",
-        },
-      })}
-      onPageSizeChange={props.onPageSizeChange}
-      currentPage={props.currentPage}
-      onNextPage={props.onNextPage}
-      onPrevPage={props.onPrevPage}
-      pageSizeLimit={props.pageSizeLimit}
-      onSort={props.onSort}
-      disableSort={props.disableSort}
-      sortParams={props.sortParams}
-      autoSort={false}
-      totalRecords={props.totalRecords}
-      showCSVExport={true}
-      getCSVExportData={props.getCSVExportData}
-      csvExportColumns={inboxCsvColumns}
-      csvExportFileName={`${String(props.moduleCode || "wt").toLowerCase()}-inbox`}
-    />
-  );
-}
 
   return (
     <div className="inbox-container">
@@ -155,6 +160,62 @@ const WTDesktopInbox = ({ tableConfig, filterComponent, ...props }) => {
         </div>
       )}
       <div className="employee-form-content" style={{ flex: 1 }}>
+        {!props.isSearch && (
+          <div className="summary-cards-container" style={{ display: "flex", gap: "12px", flexWrap: "wrap", width: "100%" }}>
+            {(() => {
+              const getCount = (statusList) => {
+                return (data?.[0]?.statusMap || [])
+                  .filter((s) => {
+                    const st = (s.applicationStatus || s.applicationstatus || s.bookingStatus || s.bookingstatus || s.statusid || "").toUpperCase().replace(/\s+/g, "_");
+                    return statusList.includes(st);
+                  })
+                  .reduce((acc, curr) => acc + curr.count, 0);
+              };
+
+              const isFixedPoint = props.businessService === "watertanker-fixedpoint" || props.searchParams?.services?.includes("watertanker-fixedpoint");
+              const cards = [
+                { label: "WT_TOTAL_BOOKINGS", count: data?.[0]?.totalCount || 0, color: "#0B2559", filter: null, active: !props.searchParams?.status },
+                { label: "WT_SCHEDULED", count: getCount(["SCHEDULED", "VENDOR_ASSIGNED"]), color: "#F59E0B", filter: ["SCHEDULED"] },
+                { label: "WT_DELIVERED", count: getCount(["TANKER_DELIVERED", "DELIVERED"]), color: "#10B981", filter: ["TANKER_DELIVERED"] },
+              ];
+              cards.push(
+                { label: "IN_TRANSIT", count: getCount(["IN_TRANSIT", "DELIVERY_PENDING"]), color: "#A855F7", filter: ["IN_TRANSIT"] },
+                { label: "MISSED", count: getCount(["MISSED", "DELIVERY_MISSED"]), color: "#EF4444", filter: ["MISSED"] },
+                { label: "REJECTED", count: getCount(["CANCELLED", "REJECTED", "REQUEST_REJECTED"]), color: "#64748B", filter: ["CANCELLED"] }
+              );
+              return cards;
+            })().map((card, idx) => {
+              const isActive = props.searchParams?.status?.code ? card.filter?.includes(props.searchParams?.status?.code) : card.active;
+              return (
+                <div
+                  key={idx}
+                  className="summary-card"
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "6px",
+                    padding: "16px 14px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    flex: "1 1 0%",
+                    minWidth: "110px",
+                    border: isActive ? `2px solid ${card.color}` : "1px solid #E2E8F0",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    transition: "all 0.2s ease-in-out",
+                  }}
+                >
+                  <div style={{ fontSize: "11px", color: "#64748B", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {t(card.label)}
+                  </div>
+                  <div style={{ fontSize: "28px", fontWeight: "700", color: card.color, marginTop: "12px" }}>
+                    {String(card.count).padStart(2, "0")}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
         <SearchApplication
           defaultSearchParams={props.defaultSearchParams}
           onSearch={(d) => {

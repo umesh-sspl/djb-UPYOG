@@ -16,8 +16,15 @@ const GetSlaCell = (value) => {
 
 const GetMobCell = (value) => <span className="sla-cell">{value}</span>;
 
+const getLocalityTranslation = (localityCode, tenantId, t) => {
+  if (!localityCode) return "";
+  const tenant = tenantId || Digit.ULBService.getCurrentTenantId() || "djb";
+  const prefix = tenant.replace(".", "_").toUpperCase();
+  return t(`${prefix}_REVENUE_${localityCode}`);
+};
+
 export const TableConfig = (t) => ({
-   WT: {
+  WT: {
     inboxColumns: (props) => [
       {
         Header: t("WT_BOOKING_NO"),
@@ -27,9 +34,7 @@ export const TableConfig = (t) => ({
           return (
             <div>
               <span className="link">
-                
                 <Link to={`${props.detailRoute || `${props.parentRoute}/booking-details`}/${row?.original?.searchData?.["bookingNo"]}`}>
-
                   {row.original?.searchData?.["bookingNo"]}
                 </Link>
               </span>
@@ -38,40 +43,43 @@ export const TableConfig = (t) => ({
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.["bookingNo"]),
       },
-      
+
       {
         Header: t("WT_APPLICANT_NAME"),
         id: "applicantName",
         accessor: (row) => row?.searchData?.applicantDetail?.["name"] || "",
-        Cell: ( row ) => {
-        
-          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["name"]}`)
-          
+        Cell: (row) => {
+          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["name"]}`);
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.applicantDetail?.["name"]),
-        
       },
       {
         Header: t("WT_MOBILE_NUMBER"),
         id: "mobileNumber",
         accessor: (row) => row?.searchData?.applicantDetail?.["mobileNumber"] || "",
-        Cell: ( row ) => {
-        
-          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["mobileNumber"]}`)
-          
+        Cell: (row) => {
+          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["mobileNumber"]}`);
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.applicantDetail?.["mobileNumber"]),
-        
       },
       {
         Header: t("LOCALITY"),
         id: "localityCode",
         accessor: (row) => row?.searchData?.["localityCode"] || "",
         Cell: ({ row }) => {
-          return GetCell(t(`${row.original?.searchData?.["localityCode"]}`));
+          return GetCell(getLocalityTranslation(row.original?.searchData?.["localityCode"], row.original?.searchData?.tenantId, t));
         },
-        mobileCell: (original) => GetMobCell(t(`${original?.searchData?.["localityCode"]}`)),
-    
+        mobileCell: (original) => GetMobCell(getLocalityTranslation(original?.searchData?.["localityCode"], original?.searchData?.tenantId, t)),
+      },
+      {
+        Header: t("Filling Point"),
+        id: "fillingPoint",
+        accessor: (row) => row?.searchData?.fillingPointMetadata?.name || row?.searchData?.fillingPointName || "-",
+        Cell: ({ row }) => {
+          const val = row.original?.searchData?.fillingPointMetadata?.name || row.original?.searchData?.fillingPointName || "-";
+          return GetCell(val);
+        },
+        mobileCell: (original) => GetMobCell(original?.searchData?.fillingPointMetadata?.name || original?.searchData?.fillingPointName || "-"),
       },
       {
         Header: t("CREATED_AT"),
@@ -81,26 +89,19 @@ export const TableConfig = (t) => ({
           return GetCell(getFormattedCreatedAt(row?.original));
         },
         mobileCell: (original) => GetMobCell(getFormattedCreatedAt(original)),
-        
       },
       {
         Header: t("WT_STATUS"),
         id: "applicationStatus",
         accessor: (row) => row?.workflowData?.state?.["applicationStatus"] || "",
         Cell: ({ row }) => {
-          
           const wf = row.original?.workflowData;
           return GetCell(t(`${row?.original?.workflowData?.state?.["applicationStatus"]}`));
-
         },
         mobileCell: (original) => GetMobCell(t(`ES_WT_COMMON_STATUS_${original?.workflowData?.state?.["applicationStatus"]}`)),
-    
       },
-      
     ],
     serviceRequestIdKey: (original) => original?.[t("WT_INBOX_UNIQUE_BOOKING_NO")]?.props?.children,
-
-    
   },
 
   MT: {
@@ -113,9 +114,7 @@ export const TableConfig = (t) => ({
           return (
             <div>
               <span className="link">
-                
                 <Link to={`${props.parentRoute}/booking-details/` + `${row?.original?.searchData?.["bookingNo"]}`}>
-
                   {row.original?.searchData?.["bookingNo"]}
                 </Link>
               </span>
@@ -124,61 +123,46 @@ export const TableConfig = (t) => ({
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.["bookingNo"]),
       },
-      
+
       {
         Header: t("MT_APPLICANT_NAME"),
         id: "applicantName",
         accessor: (row) => row?.searchData?.applicantDetail?.["name"] || "",
-        Cell: ( row ) => {
-        
-          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["name"]}`)
-          
+        Cell: (row) => {
+          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["name"]}`);
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.applicantDetail?.["name"]),
-        
       },
       {
         Header: t("MT_MOBILE_NUMBER"),
         id: "mobileNumber",
         accessor: (row) => row?.searchData?.applicantDetail?.["mobileNumber"] || "",
-        Cell: ( row ) => {
-        
-          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["mobileNumber"]}`)
-          
+        Cell: (row) => {
+          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["mobileNumber"]}`);
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.applicantDetail?.["mobileNumber"]),
-        
       },
       {
         Header: t("LOCALITY"),
         id: "localityCode",
         accessor: (row) => row?.searchData?.["localityCode"] || "",
         Cell: ({ row }) => {
-          return GetCell(t(`${row.original?.searchData?.["localityCode"]}`));
+          return GetCell(getLocalityTranslation(row.original?.searchData?.["localityCode"], row.original?.searchData?.tenantId, t));
         },
-        mobileCell: (original) => GetMobCell(t(`${original?.searchData?.["localityCode"]}`)),
-    
+        mobileCell: (original) => GetMobCell(getLocalityTranslation(original?.searchData?.["localityCode"], original?.searchData?.tenantId, t)),
       },
       {
         Header: t("MT_STATUS"),
         id: "applicationStatus",
         accessor: (row) => row?.workflowData?.state?.["applicationStatus"] || "",
         Cell: ({ row }) => {
-          
           const wf = row.original?.workflowData;
           return GetCell(t(`${row?.original?.workflowData?.state?.["applicationStatus"]}`));
-
-
         },
         mobileCell: (original) => GetMobCell(t(`ES_WT_COMMON_STATUS_${original?.workflowData?.state?.["applicationStatus"]}`)),
-      
-
       },
-      
     ],
     serviceRequestIdKey: (original) => original?.[t("WT_INBOX_UNIQUE_BOOKING_NO")]?.props?.children,
-
-    
   },
   TP: {
     inboxColumns: (props) => [
@@ -190,9 +174,7 @@ export const TableConfig = (t) => ({
           return (
             <div>
               <span className="link">
-                
                 <Link to={`${props.parentRoute}/booking-details/` + `${row?.original?.searchData?.["bookingNo"]}`}>
-
                   {row.original?.searchData?.["bookingNo"]}
                 </Link>
               </span>
@@ -201,60 +183,45 @@ export const TableConfig = (t) => ({
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.["bookingNo"]),
       },
-      
+
       {
         Header: t("MT_APPLICANT_NAME"),
         id: "applicantName",
         accessor: (row) => row?.searchData?.applicantDetail?.["name"] || "",
-        Cell: ( row ) => {
-        
-          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["name"]}`)
-          
+        Cell: (row) => {
+          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["name"]}`);
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.applicantDetail?.["name"]),
-        
       },
       {
         Header: t("MT_MOBILE_NUMBER"),
         id: "mobileNumber",
         accessor: (row) => row?.searchData?.applicantDetail?.["mobileNumber"] || "",
-        Cell: ( row ) => {
-        
-          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["mobileNumber"]}`)
-          
+        Cell: (row) => {
+          return GetCell(`${row?.cell?.row?.original?.searchData?.applicantDetail?.["mobileNumber"]}`);
         },
         mobileCell: (original) => GetMobCell(original?.searchData?.applicantDetail?.["mobileNumber"]),
-        
       },
       {
         Header: t("LOCALITY"),
         id: "localityCode",
         accessor: (row) => row?.searchData?.["localityCode"] || "",
         Cell: ({ row }) => {
-          return GetCell(t(`${row.original?.searchData?.["localityCode"]}`));
+          return GetCell(getLocalityTranslation(row.original?.searchData?.["localityCode"], row.original?.searchData?.tenantId, t));
         },
-        mobileCell: (original) => GetMobCell(t(`${original?.searchData?.["localityCode"]}`)),
-    
+        mobileCell: (original) => GetMobCell(getLocalityTranslation(original?.searchData?.["localityCode"], original?.searchData?.tenantId, t)),
       },
       {
         Header: t("MT_STATUS"),
         id: "applicationStatus",
         accessor: (row) => row?.workflowData?.state?.["applicationStatus"] || "",
         Cell: ({ row }) => {
-          
           const wf = row.original?.workflowData;
           return GetCell(t(`${row?.original?.workflowData?.state?.["applicationStatus"]}`));
-
-
         },
         mobileCell: (original) => GetMobCell(t(`ES_WT_COMMON_STATUS_${original?.workflowData?.state?.["applicationStatus"]}`)),
-      
-
       },
-      
     ],
     serviceRequestIdKey: (original) => original?.[t("WT_INBOX_UNIQUE_BOOKING_NO")]?.props?.children,
-
-    
   },
 });

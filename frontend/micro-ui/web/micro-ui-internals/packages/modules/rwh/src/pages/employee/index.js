@@ -1,8 +1,8 @@
-import { AppContainer, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon } from "@djb25/digit-ui-react-components";
+import { AppContainer, PrivateRoute, ModuleHeader, ArrowLeft, HomeIcon, LayoutWrapper } from "@djb25/digit-ui-react-components";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation } from "react-router-dom";
-
+import RwhCreateformComponent from "../../pageComponents/RwhCreateform";
 
 const EmployeeApp = ({ path }) => {
   const { t } = useTranslation();
@@ -13,13 +13,7 @@ const EmployeeApp = ({ path }) => {
   const getBreadcrumbLabel = () => {
     const pathname = location.pathname;
     if (pathname.includes("/dashboard")) return "ES_COMMON_INBOX";
-    if (pathname.includes("/create-kyc")) return "EKYC_CREATE_KYC";
-    if (pathname.includes("/k-details")) return "EKYC_K_DETAILS";
-    if (pathname.includes("/consumer-details")) return "EKYC_CONSUMER_DETAILS";
-    if (pathname.includes("/address-details")) return "EKYC_ADDRESS_DETAILS";
-    if (pathname.includes("/property-info")) return "EKYC_PROPERTY_INFO";
-    if (pathname.includes("/meter-details")) return "EKYC_METER_DETAILS";
-    if (pathname.includes("/review")) return "EKYC_REVIEW";
+    if (pathname.includes("/create")) return "RWH_CREATE";
     return "ES_COMMON_INBOX";
   };
 
@@ -44,7 +38,14 @@ const EmployeeApp = ({ path }) => {
         <div className="employee-form">
           <div className="employee-form-content">
             <Switch>
-             
+              <PrivateRoute
+                path={`${path}/create`}
+                component={() => (
+                  <LayoutWrapper layoutClass="action">
+                    <RwhCreateformComponent />
+                  </LayoutWrapper>
+                )}
+              />
             </Switch>
           </div>
         </div>
