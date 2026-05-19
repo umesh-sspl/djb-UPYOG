@@ -2,13 +2,7 @@ package org.egov.vendor.surveyor.service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.Role;
@@ -112,15 +106,23 @@ public class SurveyorUserService {
 
     private User assignRole(User user, RequestInfo requestInfo,
                             HashMap<String, String> errorMap, ModuleRoleMapping roleMapping) {
-        // FIX: use roleMapping from MDMS
+        // Add the MDMS role (EKYC_SURVEYOR)
         user.getRoles().add(getRoleObj(roleMapping.getRoleCode(), roleMapping.getRoleName()));
+
+        // Also add CITIZEN role if not already present
+        boolean hasCitizen = user.getRoles().stream()
+                .anyMatch(r -> "CITIZEN".equals(r.getCode()));
+        if (!hasCitizen) {
+            user.getRoles().add(getRoleObj("CITIZEN", "Citizen"));
+        }
+
         StringBuilder uri = new StringBuilder(config.getUserHost())
                 .append(config.getUserContextPath()).append(config.getUserUpdateEndpoint());
         UserDetailResponse resp = ownerCall(UserRequest.builder()
                 .user(user).requestInfo(requestInfo).build(), uri);
         if (resp != null && !resp.getUser().isEmpty()) return resp.getUser().get(0);
         errorMap.put(VendorErrorConstants.INVALID_DRIVER_ERROR,
-                "Unable to assign DJB_SURVEYOR role");
+                "Unable to assign Surveyor roles");
         return null;
     }
 
@@ -140,10 +142,18 @@ public class SurveyorUserService {
             throw new CustomException(VendorErrorConstants.INVALID_DRIVER_ERROR,
                     "Name, DOB, gender, fatherName, relationship and emailId are mandatory for Surveyor");
         }
-        // FIX: use roleMapping.getRoleCode() / getRoleName() from MDMS
+
+        // Create the primary role from MDMS (EKYC_SURVEYOR)
         Role role = getRoleObj(roleMapping.getRoleCode(), roleMapping.getRoleName());
-        if (owner.getRoles() != null) owner.getRoles().add(role);
-        else owner.setRoles(Arrays.asList(role));
+
+        // CREATE the CITIZEN role
+        Role citizenRole = getRoleObj("CITIZEN", "Citizen");
+
+        // Add BOTH roles
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+        roles.add(citizenRole);
+        owner.setRoles(roles);
 
         owner.setActive(true);
         owner.setTenantId(owner.getTenantId());
@@ -154,7 +164,7 @@ public class SurveyorUserService {
         StringBuilder uri = new StringBuilder(config.getUserHost())
                 .append(config.getUserContextPath()).append(config.getUserCreateEndpoint());
         UserDetailResponse resp = userCall(new UserRequest(requestInfo, owner), uri);
-        log.info("Surveyor user created: {}", resp.getUser().get(0).getUuid());
+        log.info("Surveyor user created with roles {}, CITIZEN: {}", roleMapping.getRoleCode(), resp.getUser().get(0).getUuid());
         return resp.getUser().get(0);
     }
 
