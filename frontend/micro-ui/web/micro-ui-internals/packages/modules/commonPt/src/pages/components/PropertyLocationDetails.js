@@ -1,228 +1,249 @@
-import { CardLabel, CardLabelError, Dropdown, LabelFieldPair, Localities, TextInput } from "@djb25/digit-ui-react-components";
-import _ from "lodash";
-import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
 
-const PropertyLocationDetails = ({ t, config, onSelect, userType, formData, formState, ownerIndex, setError, clearErrors }) => {
-  let validation = {};
-  let allCities = Digit.Hooks.pt.useTenants() ? Digit.Hooks.pt.useTenants() : Digit.Hooks.tl.useTenants();
-  if(window.location.href.includes("obps"))
-  {
-    allCities = Digit.SessionStorage.get("OBPS_TENANTS")
 
-  }
-  if(window.location.href.includes("fsm"))
-  {
-    allCities = Digit.SessionStorage.get("FSM_TENANTS")
-    console.log("allc", allCities)
-  }
-  // if called from tl module get tenants from tl usetenants
-  const userInfo = Digit.UserService.getUser()?.info;
-  userType = userInfo?.type == "EMPLOYEE" ? "employee" : "citizen";
-  const cityId = userInfo?.tenantId;
-  const cityName = 'TENANT_TENANTS_' + userInfo?.tenantId.replace('.', '_').toUpperCase();
-  const cityObj = (allCities || []).find(city => city.code === (userInfo?.tenantId || "dl.djb")) || { code: "dl.djb", name: t("TENANT_TENANTS_DL_DJB"), i18nKey: "TENANT_TENANTS_DL_DJB" };
+import React, { useState, useEffect } from "react";
+import { AddressDetails } from "@djb25/digit-ui-react-components";
+import { useTranslation } from "react-i18next";
+import { useForm } from "react-hook-form";
 
-  const [locationDetails, setLocationDetails] = React.useState({
-    ...formData?.locationDet,
-    cityCode: cityObj,
-    locality: formData?.locality,
-    houseDoorNo: formData?.houseDoorNo,
-    buildingColonyName: formData?.buildingColonyName,
-    landmarkName: formData?.landmarkName
+const Heading = ({ t }) => <h1 className="heading-m">{t("FILL_ADDRESS_DETAILS")}</h1>;
+/**
+ * AddressDetailss component renders a  popup for capturing and submitting user address details.
+ * It utilizes Digit's UI components and services to present a form and update the user's profile address.
+ * Using the `AddressDetails` component to handle all address-related input fields such as pincode, city, locality, street name, house number, landmark, and address lines.
+ * - Displaying success or error toasts based on the response.
+ */
+const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSelect, config, formData: formDataProp, ...props }) => {
+  const { t } = useTranslation();
+  const { data: allCities } = Digit.Hooks.useTenants();
+  const { handleSubmit } = useForm();
+  const [showToast, setShowToast] = useState(null);
+  const [formData, setFormData] = useState({
+    addressType: address?.addressType || "",
+    pincode: address?.pinCode || "",
+    city: address?.city || "",
+    locality: address?.locality || "",
+    streetName: address?.streetName || "",
+    houseNo: address?.houseNumber || "",
+    houseName: address?.houseName || "",
+    landmark: address?.landmark || "",
+    addressLine1: address?.address || "",
+    addressLine2: address?.address2 || "",
+    latitude: address?.latitude || "",
+    longitude: address?.longitude || "",
+    assembly: address?.assembly || "",
+    block: address?.block || "",
+    zone: address?.zone || "",
+    zro: address?.zro || "",
   });
-  const [isErrors, setIsErrors] = React.useState(false);
+  
+  const isPropertyFound = !!formDataProp?.cpt?.details?.propertyId;
 
-  const { control, formState: { errors, touched }, trigger, watch, setError: setLocalError, clearErrors: clearLocalErrors, setValue, getValues } = useForm();
-  const formValue = watch();
+  useEffect(() => {
+    if (formDataProp?.cpt?.details) {
+      const details = formDataProp.cpt.details;
+      const addressData = details.address || {};
+      const additionalDetails = details.additionalDetails || {};
+      
+      const localityCode = addressData.locality?.code || addressData.locality || "";
+      const lat = addressData.geoLocation?.latitude && addressData.geoLocation?.latitude !== 0 ? addressData.geoLocation.latitude : addressData.locality?.latitude || addressData.latitude || "";
+      const lng = addressData.geoLocation?.longitude && addressData.geoLocation?.longitude !== 0 ? addressData.geoLocation.longitude : addressData.locality?.longitude || addressData.longitude || "";
 
-  React.useEffect(() => {
-    let hasErrors = false;
-    const part = {};
-
-    Object.keys(locationDetails).forEach((key) => {
-      part[key] = formValue?.[key];
-    });
-
-    if (!_.isEqual(part, locationDetails)) {
-      Object.keys(locationDetails).forEach((key) => {
-        if (locationDetails[key]) {
-          hasErrors = false;
-          clearLocalErrors(key);
-        } else {
-          hasErrors = true;
+      setFormData({
+        pincode: addressData.pincode || "",
+        city: addressData.city || "",
+        locality: localityCode,
+        streetName: addressData.street || "",
+        houseNo: addressData.houseNo || "",
+        landmark: addressData.landmark || "",
+        latitude: lat,
+        longitude: lng,
+        assembly: additionalDetails.assembly || addressData.additionalDetails?.assembly || "",
+        block: additionalDetails.block || addressData.additionalDetails?.block || "",
+        zone: additionalDetails.zone || addressData.additionalDetails?.zone || "",
+        zro: additionalDetails.zro || addressData.additionalDetails?.zro || "",
+        address: {
+          ...addressData,
+          city: addressData.city || "",
+          pincode: addressData.pincode || "",
+          locality: localityCode,
+          streetName: addressData.street || "",
+          houseNo: addressData.houseNo || "",
+          addressLine1: addressData.street || "",
+          latitude: lat,
+          longitude: lng,
+          zro: additionalDetails.zro || addressData.additionalDetails?.zro || "",
+          assembly: additionalDetails.assembly || addressData.additionalDetails?.assembly || "",
+          block: additionalDetails.block || addressData.additionalDetails?.block || "",
+          zone: additionalDetails.zone || addressData.additionalDetails?.zone || "",
         }
       });
     }
-
-    if (hasErrors) {
-      setError(config?.key, { type: errors })
-    } else {
-      clearErrors(config?.key);
+  }, [formDataProp?.cpt?.details]);
+  /*
+   * This component renders a modal for capturing and updating user address details.
+   * - Manages form state for address fields like pincode, city, locality, etc., using `useState`.
+   * - Uses `updateProfile` to send updated address details to the backend via `Digit.UserService.createAddressV2`.
+   * - Displays success or error toasts based on the API response.
+   * - Renders a form inside a modal using `AddressDetails` for input fields and React Hook Form for submission handling.
+   */
+  // timer for toast
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(null);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
+  }, [showToast]);
 
-    trigger();
-    setIsErrors(hasErrors);
-    onSelect(config?.key, locationDetails);
-  }, [locationDetails]);
+  const { createAddress, updateAddress: updateAddressMutation } = Digit.Hooks.useAddress(null, Digit.ULBService.getCurrentTenantId());
 
-  React.useEffect(() => {
-    if (Object.keys(errors).length && !_.isEqual(formState.errors[config.key]?.type || {}, errors)) {
-      setError(config.key, { type: errors });
-    } else if (!Object.keys(errors).length && formState.errors[config.key] && isErrors) {
-      clearErrors(config.key);
+  const updateProfile = async () => {
+    try {
+      const stateCode = Digit.ULBService.getStateId();
+      const tenantId = Digit.ULBService.getCurrentTenantId();
+      const user = Digit.UserService.getUser();
+      const userInfo = user?.info;
+      const userUuid = userInfo?.uuid || userInfo?.userUuid || "";
+
+      if (!userInfo) {
+        throw new Error("User session not found");
+      }
+
+      const requestData = {
+        pinCode: formData.pincode,
+        city: formData.city?.name || formData.city,
+        address: formData.addressLine1,
+        type: formData.addressType?.code || formData.addressType,
+        tenantId: stateCode,
+        userId: userInfo?.id,
+        addressType:
+          (formData.addressType?.code || formData.addressType) === "CORRESPONDENCE"
+            ? "COPONDENCE"
+            : formData.addressType?.code || formData.addressType,
+        address2: formData.addressLine2,
+        houseNumber: formData.houseNo,
+        houseName: formData.houseName || formData.city?.name || formData.city,
+        streetName: formData.streetName,
+        landmark: formData.landmark,
+        locality: formData.locality?.code || formData.locality,
+        zro: formData.zro?.code || formData.zro,
+      };
+
+      createAddress.mutate(
+        { address: requestData, userUuid },
+        {
+          onSuccess: (data) => {
+            actionCancelOnSubmit();
+          },
+          onError: (error) => {
+            let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
+            try {
+              const errorObj = typeof error === "string" ? JSON.parse(error) : error;
+              message = errorObj?.message || message;
+            } catch (e) {}
+            setShowToast({
+              error: true,
+              label: message,
+            });
+          },
+        }
+      );
+    } catch (error) {
+      let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
+      try {
+        const errorObj = JSON.parse(error);
+        message = errorObj?.message || message;
+      } catch (e) {}
+      setShowToast({
+        error: true,
+        label: message,
+      });
     }
-  }, [errors]);
+  };
 
-  const errorStyle = { width: "70%", marginLeft: "30%", fontSize: "12px", marginTop: "-21px" };
+  const updateAddress = async () => {
+    try {
+      const stateCode = Digit.ULBService.getStateId();
+      const tenantId = Digit.ULBService.getCurrentTenantId();
+      const user = Digit.UserService.getUser();
+      const userInfo = user?.info;
+      const userUuid = userInfo?.uuid || userInfo?.userUuid || "";
+
+      if (!userInfo) {
+        throw new Error("User session not found");
+      }
+
+      const requestUpdatedData = {
+        pinCode: formData.pincode,
+        city: formData.city?.name || formData.city,
+        address: formData.addressLine1,
+        type: formData.addressType?.code || formData.addressType,
+        tenantId: stateCode,
+        userId: address?.userId || userInfo?.id || userInfo?.userId || null,
+        addressType:
+          (formData.addressType?.code || formData.addressType) === "CORRESPONDENCE"
+            ? "COPONDENCE"
+            : formData.addressType?.code || formData.addressType,
+        address2: formData.addressLine2,
+        houseNumber: formData.houseNo,
+        houseName: formData.houseName || formData.city?.name || formData.city,
+        streetName: formData.streetName,
+        landmark: formData.landmark,
+        locality: formData.locality?.code || formData.locality,
+        zro: formData.zro?.code || formData.zro,
+
+        id: address?.id,
+      };
+
+      updateAddressMutation.mutate(
+        { address: requestUpdatedData, userUuid },
+        {
+          onSuccess: (data) => {
+            actionCancelOnSubmit();
+          },
+          onError: (error) => {
+            let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
+            try {
+              const errorObj = typeof error === "string" ? JSON.parse(error) : error;
+              message = errorObj?.message || message;
+            } catch (e) {}
+            setShowToast({
+              error: true,
+              label: message,
+            });
+          },
+        }
+      );
+    } catch (error) {
+      let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
+      try {
+        const errorObj = JSON.parse(error);
+        message = errorObj?.message || message;
+      } catch (e) {}
+      setShowToast({
+        error: true,
+        label: message,
+      });
+    }
+  };
 
   return (
-    <div>
-      <LabelFieldPair>
-        <CardLabel>{`${t('PT_PROP_CITY')}*`}</CardLabel>
-        <div className="form-field">
-          <Controller
-            name="cityCode"
-            defaultValue={ locationDetails?.cityCode }
-            control={ control }
-            rules={{
-              required: t("REQUIRED_FIELD")
-            }}
-            render={({value, onBlur, onChange}) => (
-              <Dropdown
-                selected={value}
-                disable={true}
-                option={(allCities || []).sort((a,b) => (a.name > b.name)? 1 : (b.name>a.name)? -1 : 0)}
-                select={(value)=>{
-                  onChange(value);
-                  setLocationDetails({...locationDetails, cityCode: value})
-                }}
-                optionKey="code"
-                onBlur={onBlur}
-                t={t}
-              />
-            )} />
-        </div>
-      </LabelFieldPair>
-      {touched?.cityCode && errors?.cityCode?.message && <CardLabelError style={errorStyle}>{errors?.cityCode?.message}</CardLabelError>}
-
-      <LabelFieldPair>
-        <CardLabel>{`${t("PT_PROP_LOCALITY")}*`}</CardLabel>
-        <div className="form-field">
-          <Controller
-            name="locality"
-            defaultValue={ locationDetails?.locality}
-            control={ control }
-            rules={{required: t("REQUIRED_FIELD")}}
-            render={({value, onBlur, onChange}) => (
-              <Localities
-                selectLocality={(value)=>{
-                  onChange(value);
-                  setLocationDetails({...locationDetails, locality: value});
-                }}
-                tenantId={locationDetails?.cityCode?.code}
-                boundaryType="revenue"
-                keepNull={false}
-                optionCardStyles={{ height: "600px", overflow: "auto", zIndex: "10" }}
-                selected={value}
-                disable={!locationDetails?.cityCode?.code}
-                disableLoader={true}
-                onBlur={onBlur}
-              />
-            )} />
-        </div>
-      </LabelFieldPair>
-      {touched?.locality && errors?.locality?.message && <CardLabelError style={errorStyle}>{errors?.locality?.message}</CardLabelError>}
-
-      <LabelFieldPair>
-        <CardLabel>{`${t("PT_HOUSE_DOOR_NO")}*`}</CardLabel>
-        <div className="form-field">
-          <Controller
-            name="houseDoorNo"
-            defaultValue={locationDetails?.houseDoorNo}
-            control={ control}
-            rules={{
-              required: t("REQUIRED_FIELD"),
-              validate: (value)=> /^([a-zA-Z0-9 !@#$%^&*()_+\-={};':\\\\|,.<>/?]){1,64}$/i.test(value) ? true: t("PT_HOUSE_DOOR_NO_ERROR_MESSAGE"),
-            }}
-            render={({value, onBlur, onChange}) => (
-              <TextInput
-                t={t}
-                type={"text"}
-                isMandatory={false}
-                optionKey="i18nKey"
-                name="houseDoorNo"
-                value={value}
-                onChange={(ev)=>{
-                  onChange(ev.target.value);
-                  setLocationDetails({...locationDetails, houseDoorNo: ev.target.value})
-                }}
-                onBlur={onBlur}
-                {...(validation = { pattern: "^([a-zA-Z0-9 !@#$%^&*()_+\-={};':\\\\|,.<>/?]){1,64}$", title: t("PT_HOUSE_DOOR_NO_ERROR_MESSAGE") })}
-              />
-            )} />
-        </div>
-      </LabelFieldPair>
-      {touched?.houseDoorNo && errors?.houseDoorNo?.message && <CardLabelError style={errorStyle}>{errors?.houseDoorNo?.message}</CardLabelError>}
-
-      <LabelFieldPair>
-        <CardLabel>{`${t("PT_PROPERTY_ADDRESS_STREET_NAME")}*`}</CardLabel>
-        <div className="form-field">
-          <Controller
-            name="buildingColonyName"
-            defaultValue={ locationDetails?.buildingColonyName}
-            control={control }
-            rules={{
-              required: t("REQUIRED_FIELD"),
-            }}
-            render={({value, onChange, onBlur}) => (
-              <TextInput
-                t={t}
-                type={"text"}
-                isMandatory={false}
-                optionKey="i18nKey"
-                name="buildingColonyName"
-                value={value}
-                onChange={(ev)=>{
-                  onChange(ev.target.value);
-                  setLocationDetails({...locationDetails, buildingColonyName: ev.target.value})
-                }}
-                onBlur={onBlur}
-              />
-            )} />
-        </div>
-      </LabelFieldPair>
-      {touched?.buildingColonyName && errors?.buildingColonyName?.message && <CardLabelError style={errorStyle}>{errors?.buildingColonyName?.message}</CardLabelError>}
-
-      <LabelFieldPair>
-        <CardLabel>{`${t("PT_LANDMARK_NAME")}`}</CardLabel>
-        <div className="form-field">
-          <Controller
-            name="landmarkName"
-            defaultValue={locationDetails?.landmarkName}
-            control={ control}
-            rules={{
-            }}
-            render={({value, onChange, onBlur}) => (
-              <TextInput
-                t={t}
-                type={"text"}
-                isMandatory={false}
-                optionKey="i18nKey"
-                name="landmarkName"
-                value={value}
-                onChange={(ev)=>{
-                  onChange(ev.target.value);
-                  setLocationDetails({...locationDetails, landmarkName: ev.target.value})
-                }}
-                onBlur={onBlur}
-              />
-            )} />
-        </div>
-      </LabelFieldPair>
-      {touched?.landmarkName && errors?.landmarkName?.message && <CardLabelError style={errorStyle}>{errors?.landmarkName?.message}</CardLabelError>}
+    <div style={{ boxShadow: "none", ...props.style }}>
+      <AddressDetails
+        t={t}
+        formData={formData}
+        onSelect={(key, data) => {
+          setFormData(data);
+          onSelect(key, data);
+        }}
+        config={config}
+        isEdit={isEdit}
+        showZRO={true}
+        disable={isPropertyFound}
+        hideNextButton={true}
+      />
     </div>
   );
 };
-
 export default PropertyLocationDetails;

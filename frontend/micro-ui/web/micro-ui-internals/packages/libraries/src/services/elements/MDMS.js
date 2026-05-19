@@ -573,6 +573,19 @@ const getPTPropertyTypeList = (tenantId, moduleCode, type) => ({
   },
 });
 
+const getPropertyCategoryCriteria = (tenantId, moduleCode, type) => ({
+  type,
+  details: {
+    tenantId: tenantId,
+    moduleDetails: [
+      {
+        moduleName: moduleCode,
+        masterDetails: [{ name: "PropertyCategory" }],
+      },
+    ],
+  },
+});
+
 const getTLStructureTypeList = (tenantId, moduleCode, type) => ({
   type,
   details: {
@@ -2351,6 +2364,9 @@ export const MdmsService = {
   },
   getPTPropertyType: (tenantId, moduleCode, type) => {
     return MdmsService.getDataByCriteria(tenantId, getPTPropertyTypeList(tenantId, moduleCode), moduleCode);
+  },
+  getPropertyCategory: (tenantId, moduleCode, type) => {
+    return MdmsService.getDataByCriteria(tenantId, getPropertyCategoryCriteria(tenantId, moduleCode), moduleCode);
   },
   getTLStructureType: (tenantId, moduleCode, type) => {
     return MdmsService.getDataByCriteria(tenantId, getTLStructureTypeList(tenantId, moduleCode), moduleCode);

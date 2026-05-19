@@ -21,6 +21,9 @@ const usePropertyMDMS = (tenantId, moduleCode, type, config = {}) => {
   const usePTPropertyType = () => {
     return useQuery("PT_PROPERTY_TYPE", () => MdmsService.getPTPropertyType(tenantId, moduleCode, type), config);
   };
+  const usePropertyCategory = () => {
+    return useQuery("PT_PROPERTY_CATEGORY", () => MdmsService.getPropertyCategory(tenantId, moduleCode, type), config);
+  };
   const useRentalDetails = () => {
     return useQuery("PT_RENTAL_DETAILS", () => MdmsService.getRentalDetails(tenantId, moduleCode), config);
   };
@@ -32,6 +35,18 @@ const usePropertyMDMS = (tenantId, moduleCode, type, config = {}) => {
   };
   const useMapConfig = () => {
     return useQuery("PT_MAP_CONFIG", () => MdmsService.getMapConfig(tenantId, moduleCode), config);
+  };
+
+  const useNoOfFloors = () => {
+    return useQuery("PT_NO_OF_FLOORS", () => MdmsService.getNoOfFloors(tenantId, moduleCode), config);
+  };
+
+  const usePropertyNewUsageType = () => {
+    return useQuery("PT_NEW_USAGE_TYPE", () => MdmsService.getPropertyNewUsageType(tenantId, moduleCode), config);
+  };
+
+  const usePropertyNewType = () => {
+    return useQuery("PT_NEW_PROPERTY_TYPE", () => MdmsService.getPropertyNewPropertyType(tenantId, moduleCode), config);
   };
 
   const _default = () => {
@@ -49,8 +64,10 @@ const usePropertyMDMS = (tenantId, moduleCode, type, config = {}) => {
       return useDocumentRequiredScreen();
     case "UsageCategory":
       return useUsageCategory();
-    case "PTPropertyType":
+    case "PropertyType":
       return usePTPropertyType();
+    case "PropertyCategory":
+      return usePropertyCategory();
     case "RentalDetails":
       return useRentalDetails();
     case "Floor":
@@ -59,8 +76,12 @@ const usePropertyMDMS = (tenantId, moduleCode, type, config = {}) => {
       return useMapConfig();
     case "ChargeSlabs":
       return useChargeSlabs();
-    case "UsageCategory":
-      return getUsageCategory();  
+    case "NoOfFloors":
+      return useNoOfFloors();
+    case "PropertyNewUsageType":
+      return usePropertyNewUsageType();
+    case "PropertyNewType":
+      return usePropertyNewType();
     default:
       return _default();
   }

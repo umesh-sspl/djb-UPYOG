@@ -1,4 +1,4 @@
-import { FormComposer, Header, Loader, Toast } from "@djb25/digit-ui-react-components";
+import { FormComposer, Header, Loader, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 import cloneDeep from "lodash/cloneDeep";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +10,8 @@ import { createPayloadOfWS, updatePayloadOfWS } from "../../../utils";
 
 const OLDApplication = () => {
   const { t } = useTranslation();
-  const { state } = useLocation();
+  const location = useLocation();
+  const { state } = location;
   const history = useHistory();
   let filters = func.getQueryStringParams(location.search);
   const [canSubmit, setSubmitValve] = useState(false);
@@ -18,7 +19,29 @@ const OLDApplication = () => {
   const [showToast, setShowToast] = useState(null);
   const [appDetails, setAppDetails] = useState({});
   const [waterAndSewerageBoth, setWaterAndSewerageBoth] = useState(null);
-  const [config, setConfig] = useState({ head: "", body: [] });
+  const [config, setConfig] = useState({ body: [] });
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const timelineConfig = [
+    {
+      label: "WS_COMMON_PROPERTY_DETAILS",
+    },
+    {
+      label: "WS_COMMON_CONNECTION_DETAIL",
+    },
+    {
+      label: "WS_COMMON_CONNECTION_HOLDER_DETAILS_HEADER",
+    },
+    {
+      label: "WS_COMMON_DOCS",
+    },
+    {
+      label: "WS_COMMON_SUMMARY",
+    },
+  ].map((step, index) => ({
+    route: `step-${index + 1}`,
+    timeLine: [{ actions: step.label, currentStep: index + 1 }],
+  }));
 
   // FIX 1: Properly assign tenantId fallback (was a no-op before)
   let tenantId = Digit.ULBService.getCurrentTenantId();
@@ -44,56 +67,122 @@ const OLDApplication = () => {
   }, []);
 
   useEffect(() => {
-    console.log("[WS] useEffect newConfig triggered", { isLoading, newConfig });
     if (!isLoading && newConfig) {
       const config = newConfig.find((conf) => conf.hideInCitizen && conf.isCreate);
-      console.log("[WS] found config", config);
       if (config) {
-        config.head = "WS_APP_FOR_WATER_AND_SEWERAGE_LABEL";
-        
+        // config.head = "WS_APP_FOR_WATER_AND_SEWERAGE_LABEL";
+
         // Filter sections that are for creation
-        const allCreateSections = config?.body?.filter(section => section?.isCreateConnection) || [];
-        console.log("[WS] allCreateSections", allCreateSections);
-        
+        const allCreateSections = config?.body?.filter((section) => section?.isCreateConnection) || [];
+
         // Define the desired order based on the component inside the section
         const desiredComponentOrder = [
           "CPTPropertySearchNSummary",
-          "WSConnectionHolderDetails",
           "WSConnectionDetails",
+          "WSConnectionHolderDetails",
+          "CPTPropertyLocationDetails",
+          "PropertyWaterConnection",
+          "WSDjbEmployee",
           "WSActivationPlumberDetails",
           "WSRoadCuttingDetails",
-          "WSDocumentsEmployee"
+          "WSDocumentsEmployee",
+          "WSBankDetails",
+          "WSDeclaration",
         ];
 
         // Manually reorder sections
         const reorderedBody = [];
-        desiredComponentOrder.forEach(compName => {
-          const section = allCreateSections.find(s => {
+        desiredComponentOrder.forEach((compName) => {
+          const section = allCreateSections.find((s) => {
             const bodyComp = s.body?.[0]?.component;
             return bodyComp === compName || (compName === "WSConnectionDetails" && bodyComp === "WSConnectionDetails");
           });
           if (section) {
             // Override headers to match primary form if needed
-            if (compName === "CPTPropertySearchNSummary") section.head = "WS_COMMON_PROPERTY_DETAILS";
-            if (compName === "WSConnectionHolderDetails") section.head = "WS_COMMON_CONNECTION_HOLDER_DETAILS_HEADER";
-            if (compName === "WSConnectionDetails") section.head = "WS_COMMON_CONNECTION_DETAIL";
-            if (compName === "WSDocumentsEmployee") section.head = "WS_COMMON_DOCS";
-            
+            if (compName === "CPTPropertySearchNSummary");
+            if (compName === "WSConnectionHolderDetails");
+            if (compName === "WSConnectionDetails");
+            if (compName === "WSDocumentsEmployee");
+
             reorderedBody.push(section);
+          } else if (compName === "CPTPropertyLocationDetails") {
+            reorderedBody.push({
+              // head: "WS_PROPERTY_LOCATION_DETAILS",
+              isCreateConnection: true,
+              body: [
+                {
+                  type: "component",
+                  key: "propertyAddress",
+                  component: "CPTPropertyLocationDetails",
+                  withoutLabel: true,
+                },
+              ],
+            });
+          } else if (compName === "PropertyWaterConnection") {
+            reorderedBody.push({
+              // head: "WS_PROPERTY_AND_WATER_CONNECTION_USE_DETAILS",
+              isCreateConnection: true,
+              body: [
+                {
+                  type: "component",
+                  key: "useDetails",
+                  component: "PropertyWaterConnection",
+                  withoutLabel: true,
+                },
+              ],
+            });
+          } else if (compName === "WSBankDetails") {
+            reorderedBody.push({
+              // head: "WS_BANK_DETAILS",
+              isCreateConnection: true,
+              body: [
+                {
+                  type: "component",
+                  key: "bankDetails",
+                  component: "WSBankDetails",
+                  withoutLabel: true,
+                },
+              ],
+            });
+          } else if (compName === "WSDeclaration") {
+            reorderedBody.push({
+              // head: "WS_DECLARATION_UNDERTAKING",
+              isCreateConnection: true,
+              body: [
+                {
+                  type: "component",
+                  key: "declarationData",
+                  component: "WSDeclaration",
+                  withoutLabel: true,
+                },
+              ],
+            });
+          } else if (compName === "WSDjbEmployee") {
+            reorderedBody.push({
+              // head: "WS_DJB_EMPLOYEE_DETAILS",
+              isCreateConnection: true,
+              body: [
+                {
+                  type: "component",
+                  key: "djbEmployee",
+                  component: "WSDjbEmployee",
+                  withoutLabel: true,
+                },
+              ],
+            });
           } else {
             console.warn(`[WS] section for component ${compName} not found in allCreateSections`);
           }
         });
 
         // Add any remaining sections that were not in desiredComponentOrder
-        allCreateSections.forEach(section => {
+        allCreateSections.forEach((section) => {
           const bodyComp = section.body?.[0]?.component;
-          if (!reorderedBody.find(r => r.body?.[0]?.component === bodyComp)) {
+          if (!reorderedBody.find((r) => r.body?.[0]?.component === bodyComp)) {
             reorderedBody.push(section);
           }
         });
 
-        console.log("[WS] reorderedBody", reorderedBody);
         config.body = reorderedBody;
         setConfig(config);
       }
@@ -107,6 +196,7 @@ const OLDApplication = () => {
   useEffect(() => {
     setSessionFormData({ ...sessionFormData, cpt: { details: propertyDetails?.Properties?.[0] } });
   }, [propertyDetails]);
+
 
   const {
     isLoading: creatingWaterApplicationLoading,
@@ -164,7 +254,6 @@ const OLDApplication = () => {
 
   const onSubmit = async (data) => {
     // DEBUG: Remove these logs once issue is confirmed fixed
-    console.log("[WS] onSubmit triggered", { data, propertyId, propertyDetails });
 
     // FIX 3: Proper property validation with clear logging
     if (!data?.cpt?.id && !propertyDetails?.Properties?.[0]) {
@@ -177,7 +266,6 @@ const OLDApplication = () => {
 
     // FIX 4: Read and validate sessionStorage errors
     const errors = sessionStorage.getItem("FORMSTATE_ERRORS");
-    console.log("[WS] FORMSTATE_ERRORS from sessionStorage:", errors);
     const formStateErros = typeof errors === "string" && errors !== "null" ? JSON.parse(errors) : {};
 
     if (
@@ -195,35 +283,120 @@ const OLDApplication = () => {
       return;
     }
 
-    // Ensure cpt details are set before payload creation
-      if (!data?.cpt?.details) {
-        data.cpt = {
-          details: propertyDetails?.Properties?.[0],
-        };
-      }
-      data.channel = "CITIZEN";
-
-    // Ensure applicationSelection is set for createPayloadOfWS compatibility
-    const connDetail = data?.ConnectionDetails?.[0] || {};
-    data.applicationSelection = {
-      serviceType: { code: "WATER" },
-      connectionType: { code: connDetail?.connectionType || "Metered" },
-      applicantType: { code: "NONPTPRESSURE" }, // Default for legacy form
-      categoryType: { code: data?.ConnectionHolderDetails?.[0]?.ownerType?.code || data?.ConnectionHolderDetails?.[0]?.ownerType || propertyDetails?.Properties?.[0]?.owners?.[0]?.ownerType || "NONE" },
-      ownerContactNumber: data?.ConnectionHolderDetails?.[0]?.mobileNumber || data?.cpt?.details?.owners?.[0]?.mobileNumber,
-    };
+    if (data?.useDetails?.useDetails) {
+      data.useDetails = { ...data.useDetails, ...data.useDetails.useDetails };
+      delete data.useDetails.useDetails;
+    }
 
     if (data?.ConnectionDetails?.[0]) {
-      data.ConnectionDetails[0].water = true;
-      data.ConnectionDetails[0].sewerage = false;
-      data.ConnectionDetails[0].service = "Water";
+      const srv = data.ConnectionDetails[0].serviceType;
+      const srvCode = (typeof srv === "object" ? srv?.code : srv) || "WATER";
+      const srvUpper = srvCode?.toUpperCase() || "";
+      data.ConnectionDetails[0].water = srvUpper.includes("WATER") || srvUpper === "BOTH";
+      data.ConnectionDetails[0].sewerage = srvUpper.includes("SEWERAGE") || srvUpper === "BOTH";
+      data.ConnectionDetails[0].service = srvUpper.includes("WATER") && srvUpper.includes("SEWERAGE") ? "Water And Sewerage" : srvUpper.includes("SEWERAGE") ? "Sewerage" : "Water";
+      if (typeof srv !== "object") {
+        data.ConnectionDetails[0].serviceType = { code: srvCode };
+      }
+    } else {
+      data.ConnectionDetails = [
+        {
+          serviceType: { code: "WATER" },
+          water: true,
+          sewerage: false,
+          service: "Water",
+        },
+      ];
     }
+
+    const connDetail = data?.ConnectionDetails?.[0] || {};
+    if (data?.useDetails) {
+      data.useDetails = { ...connDetail, ...data.useDetails };
+    }
+
+    if (data?.DocumentsRequired?.documents) {
+      const docs = data.DocumentsRequired.documents;
+      const identityDoc = docs.find((d) => d?.documentType?.includes("IDENTITYPROOF"));
+      const ownershipDoc = docs.find((d) => d?.documentType?.includes("ADDRESSPROOF") || d?.documentType?.includes("OWNERSHIPPROOF"));
+      const otherDoc = docs.find((d) => !d?.documentType?.includes("IDENTITYPROOF") && !d?.documentType?.includes("ADDRESSPROOF"));
+
+      data.documents = {
+        documents: docs,
+        identityProofNumber: identityDoc?.documentUid || "",
+        ownershipDocumentNumber: ownershipDoc?.documentUid || "",
+        otherDocumentNumber: otherDoc?.documentUid || "",
+      };
+    }
+
+    if (data?.propertyAddress) {
+      data.propertyAddress = {
+        ...data.propertyAddress,
+        pinCode: data.propertyAddress.pincode || data.propertyAddress.pinCode,
+        street: data.propertyAddress.streetName || data.propertyAddress.street,
+        Latitude: data.propertyAddress.latitude || data.propertyAddress.Latitude,
+        Longitude: data.propertyAddress.longitude || data.propertyAddress.Longitude,
+        address: data.propertyAddress.addressLine1 || data.propertyAddress.address,
+        Assembly: data.propertyAddress.assembly || data.propertyAddress.Assembly,
+      };
+      if (!data.zro && data.propertyAddress.zro) {
+        data.zro = data.propertyAddress.zro;
+      }
+    }
+
+    if (data?.bankDetails) {
+      data.bankDetails = {
+        ...data.bankDetails,
+        branchName: data.bankDetails.branchName || data.bankDetails.bankBranchName,
+        bankBranchName: data.bankDetails.bankBranchName || data.bankDetails.branchName,
+        bankAccountNumber: data.bankDetails.bankAccountNumber || data.bankDetails.accountNumber,
+        accountNumber: data.bankDetails.accountNumber || data.bankDetails.bankAccountNumber,
+      };
+    }
+
+    if (data?.declarationData) {
+      const declarations = data.declarationData?.agree ? true : false;
+      data.declaration = {
+        ...data.declarationData,
+        submittedBy: typeof data.declarationData?.submittedBy === "object" ? data.declarationData?.submittedBy?.code : data.declarationData?.submittedBy,
+        agree: declarations,
+        declarations: data.declarationData?.declarations || Array(9).fill(declarations),
+      };
+      data.declarationData.submittedBy = data.declaration.submittedBy;
+      data.declarationData.agree = data.declaration.agree;
+      data.declarationData.declarations = data.declaration.declarations;
+    }
+
+    // Ensure cpt details are set before payload creation
+    if (!data?.cpt?.details) {
+      data.cpt = {
+        details: propertyDetails?.Properties?.[0],
+      };
+    }
+    data.channel = "CITIZEN";
+
+    // Ensure applicationSelection is set for createPayloadOfWS compatibility
+    data.applicationSelection = {
+      serviceType: connDetail?.serviceType || { code: "WATER" },
+      connectionType: connDetail?.connectionType || { code: "Metered" },
+      applicantType: connDetail?.applicantType || { code: "NONPTPRESSURE" },
+      categoryType: connDetail?.categoryType || {
+        code:
+          data?.ConnectionHolderDetails?.[0]?.ownerType?.code ||
+          data?.ConnectionHolderDetails?.[0]?.ownerType ||
+          propertyDetails?.Properties?.[0]?.owners?.[0]?.ownerType ||
+          "NONE",
+      },
+      domesticType: connDetail?.domesticType,
+      departmentType: connDetail?.departmentType,
+      temporaryConnection: connDetail?.temporaryType,
+      waterDemandType: connDetail?.waterDemandType,
+      ownerContactNumber: data?.ConnectionHolderDetails?.[0]?.mobileNumber || data?.cpt?.details?.owners?.[0]?.mobileNumber,
+    };
 
     const allDetails = cloneDeep(data);
     const payload = await createPayloadOfWS(data);
 
     // DEBUG: Log payload to confirm water/sewerage fields are present
-    console.log("[WS] createPayloadOfWS result:", payload);
 
     // FIX 5: Guard against empty payload — show a meaningful error instead of silent no-op
     if (!payload?.water && !payload?.sewerage) {
@@ -250,8 +423,75 @@ const OLDApplication = () => {
       sessionStorage.setItem("setWaterAndSewerageBoth", JSON.stringify(false));
     }
 
-    // --- WATER APPLICATION FLOW ---
-    if (payload?.water) {
+    // Case 1: Both Water and Sewerage
+    if (payload?.water && payload?.sewerage) {
+      if (waterMutation && sewerageMutation) {
+        setIsEnableLoader(true);
+        await waterMutation(waterConnection, {
+          onError: (error) => {
+            setIsEnableLoader(false);
+            setShowToast({
+              key: "error",
+              message: error?.response?.data?.Errors?.[0]?.message || error?.message || "ERR_UNKNOWN",
+            });
+            setTimeout(closeToastOfError, 5000);
+          },
+          onSuccess: async (waterData) => {
+            let response = await updatePayloadOfWS(waterData?.WaterConnection?.[0], "WATER");
+            let waterConnectionUpdate = { WaterConnection: response, disconnectRequest: false, reconnectRequest: false };
+
+            waterUpdateMutation(waterConnectionUpdate, {
+              onError: (error) => {
+                setIsEnableLoader(false);
+                setShowToast({
+                  key: "error",
+                  message: error?.response?.data?.Errors?.[0]?.message || error?.message || "ERR_UNKNOWN",
+                });
+                setTimeout(closeToastOfError, 5000);
+              },
+              onSuccess: async (waterUpdateData) => {
+                setAppDetails((prev) => ({ ...prev, waterConnection: waterUpdateData?.WaterConnection?.[0] }));
+
+                await sewerageMutation(sewerageConnection, {
+                  onError: (error) => {
+                    setIsEnableLoader(false);
+                    setShowToast({
+                      key: "error",
+                      message: error?.response?.data?.Errors?.[0]?.message || error?.message || "ERR_UNKNOWN",
+                    });
+                    setTimeout(closeToastOfError, 5000);
+                  },
+                  onSuccess: async (sewerageData) => {
+                    let response = await updatePayloadOfWS(sewerageData?.SewerageConnections?.[0], "SEWERAGE");
+                    let sewerageConnectionUpdate = { SewerageConnection: response, disconnectRequest: false, reconnectRequest: false };
+
+                    await sewerageUpdateMutation(sewerageConnectionUpdate, {
+                      onError: (error) => {
+                        setIsEnableLoader(false);
+                        setShowToast({
+                          key: "error",
+                          message: error?.response?.data?.Errors?.[0]?.message || error?.message || "ERR_UNKNOWN",
+                        });
+                        setTimeout(closeToastOfError, 5000);
+                      },
+                      onSuccess: async (sewerageUpdateData) => {
+                        setAppDetails((prev) => ({ ...prev, sewerageConnection: sewerageUpdateData?.SewerageConnections?.[0] }));
+                        clearSessionFormData();
+                        history.push(
+                          `/digit-ui/employee/ws/ws-response?applicationNumber=${waterUpdateData?.WaterConnection?.[0]?.applicationNo}&applicationNumber1=${sewerageUpdateData?.SewerageConnections?.[0]?.applicationNo}`
+                        );
+                      },
+                    });
+                  },
+                });
+              },
+            });
+          },
+        });
+      }
+    }
+    // Case 2: Only Water
+    else if (payload?.water && !payload?.sewerage) {
       if (waterMutation) {
         setIsEnableLoader(true);
         await waterMutation(waterConnection, {
@@ -265,7 +505,6 @@ const OLDApplication = () => {
             setTimeout(closeToastOfError, 5000);
           },
           onSuccess: async (data) => {
-            console.log("[WS] waterMutation success", data);
             let response = await updatePayloadOfWS(data?.WaterConnection?.[0], "WATER");
             let waterConnectionUpdate = { WaterConnection: response };
 
@@ -280,10 +519,47 @@ const OLDApplication = () => {
                 setTimeout(closeToastOfError, 5000);
               },
               onSuccess: (data) => {
-                console.log("[WS] waterUpdateMutation success", data);
                 setAppDetails((prev) => ({ ...prev, waterConnection: data?.WaterConnection?.[0] }));
                 clearSessionFormData();
                 history.push(`/digit-ui/employee/ws/ws-response?applicationNumber=${data?.WaterConnection?.[0]?.applicationNo}`);
+              },
+            });
+          },
+        });
+      }
+    }
+    // Case 3: Only Sewerage
+    else if (payload?.sewerage && !payload?.water) {
+      if (sewerageMutation) {
+        setIsEnableLoader(true);
+        await sewerageMutation(sewerageConnection, {
+          onError: (error) => {
+            setIsEnableLoader(false);
+            console.error("[WS] sewerageMutation error", error);
+            setShowToast({
+              key: "error",
+              message: error?.response?.data?.Errors?.[0]?.message || error?.message || "ERR_UNKNOWN",
+            });
+            setTimeout(closeToastOfError, 5000);
+          },
+          onSuccess: async (data) => {
+            let response = await updatePayloadOfWS(data?.SewerageConnections?.[0], "SEWERAGE");
+            let sewerageConnectionUpdate = { SewerageConnection: response };
+
+            await sewerageUpdateMutation(sewerageConnectionUpdate, {
+              onError: (error) => {
+                setIsEnableLoader(false);
+                console.error("[WS] sewerageUpdateMutation error", error);
+                setShowToast({
+                  key: "error",
+                  message: error?.response?.data?.Errors?.[0]?.message || error?.message || "ERR_UNKNOWN",
+                });
+                setTimeout(closeToastOfError, 5000);
+              },
+              onSuccess: (data) => {
+                setAppDetails((prev) => ({ ...prev, sewerageConnection: data?.SewerageConnections?.[0] }));
+                clearSessionFormData();
+                history.push(`/digit-ui/employee/ws/ws-response?applicationNumber1=${data?.SewerageConnections?.[0]?.applicationNo}`);
               },
             });
           },
@@ -302,28 +578,37 @@ const OLDApplication = () => {
 
   return (
     <React.Fragment>
-      <div style={{ marginLeft: "15px" }}>
-        <Header>{t(config.head)}</Header>
-      </div>
-      <FormComposer
-        config={config.body}
-        userType={"employee"}
-        onFormValueChange={onFormValueChange}
-        label={creatingWaterApplicationLoading || creatingSewerageApplicationLoading || updatingWaterApplicationLoading || updatingSewerageApplicationLoading ? t("CS_COMMON_SUBMITTING") : t("CS_COMMON_SUBMIT")}
-        onSubmit={onSubmit}
-        defaultValues={sessionFormData}
-        cardFormWrapperClassName="new-application-card"
-      />
-      {showToast && (
-        <Toast
-          isDleteBtn={true}
-          error={showToast?.key === "error" ? true : false}
-          warning={showToast?.warning}
-          label={t(showToast?.message)}
-          onClose={closeToast}
-          isWarning={showToast?.isWarning}
+      <div className="employee-form-section-wrapper">
+        <VerticalTimeline config={timelineConfig} currentActiveIndex={currentStep - 1} showFinalStep={false} />
+        <FormComposer
+          config={config.body}
+          userType={"employee"}
+          onFormValueChange={onFormValueChange}
+          label={
+            creatingWaterApplicationLoading ||
+              creatingSewerageApplicationLoading ||
+              updatingWaterApplicationLoading ||
+              updatingSewerageApplicationLoading
+              ? t("CS_COMMON_SUBMITTING")
+              : t("CS_COMMON_SUBMIT")
+          }
+          onSubmit={onSubmit}
+          defaultValues={sessionFormData}
+          noCard={true}
+          noBreakLine={true}
+          cardFormWrapperClassName="new-application-card"
         />
-      )}
+        {showToast && (
+          <Toast
+            isDleteBtn={true}
+            error={showToast?.key === "error" ? true : false}
+            warning={showToast?.warning}
+            label={t(showToast?.message)}
+            onClose={closeToast}
+            isWarning={showToast?.isWarning}
+          />
+        )}
+      </div>
     </React.Fragment>
   );
 };

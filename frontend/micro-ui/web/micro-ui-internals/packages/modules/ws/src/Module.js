@@ -35,6 +35,9 @@ import WSDisconnectionDocumentsForm from "./pageComponents/WSDisconnectionDocume
 import WSDisconnectAcknowledgement from "./pageComponents/WSDisconnectAcknowledgement";
 import WSRestorationAcknowledgement from "./pageComponents/WSRestorationAcknowledgement";
 import WSDisconnectionAppDetails from "./pageComponents/WSDisconnectionAppDetails";
+import WSBankDetails from "./pageComponents/WSBankDetails";
+import WSDeclaration from "./pageComponents/WSDeclaration";
+import WSDjbEmployee from "./pageComponents/WSDjbEmployee";
 
 //Components
 import WSInbox from "./components/WSInbox";
@@ -109,6 +112,8 @@ export const WSModule = ({ stateCode, userType, tenants }) => {
 
   Digit.SessionStorage.set("WS_TENANTS", tenants);
   Digit.SessionStorage.set("PT_TENANTS", tenants);
+
+  initWSComponents();
 
   if (isLoading) {
     return <Loader />;
@@ -196,6 +201,9 @@ const componentsToRegister = {
   WSDisconnectAcknowledgement,
   WSRestorationAcknowledgement,
   WSDisconnectionAppDetails,
+  WSBankDetails,
+  WSDeclaration,
+  WSDjbEmployee,
 
   //Components
   WSInbox,
