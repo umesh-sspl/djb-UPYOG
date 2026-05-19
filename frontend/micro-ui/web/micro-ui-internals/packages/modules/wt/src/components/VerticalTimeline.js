@@ -34,7 +34,7 @@ const VerticalTimeline = ({ config, onSelect, showFinalStep, ...props }) => {
     steps.push({
       key: "final-submit",
       label: "Review & Submit",
-      routes: ["check", "wt-acknowledgement", "mt-acknowledgement", "tp-acknowledgement"],
+      routes: ["check", "wt-acknowledgement", "mt-acknowledgement", "tp-acknowledgement", "fp-check", "fp-wt-acknowledgement"],
       stepNumber: steps.length + 1,
     });
   }

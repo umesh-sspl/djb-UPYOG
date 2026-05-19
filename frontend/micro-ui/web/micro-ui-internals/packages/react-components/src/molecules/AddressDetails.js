@@ -437,7 +437,13 @@ const AddressDetails = ({ t, config, onSelect, formData, isEdit, userDetails, di
     };
 
     if (config?.key) {
-      if (JSON.stringify(lastSentValue.current) !== JSON.stringify(addressStep)) {
+      let isDifferent = true;
+      try {
+        isDifferent = JSON.stringify(lastSentValue.current) !== JSON.stringify(addressStep);
+      } catch (e) {
+        isDifferent = Object.keys(addressStep).some(k => lastSentValue.current?.[k] !== addressStep[k]);
+      }
+      if (isDifferent) {
         lastSentValue.current = addressStep;
         onSelect(config.key, { ...addressStep, silent: true }, false);
       }
