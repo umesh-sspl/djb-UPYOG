@@ -13,6 +13,7 @@ import PropertyInfo from "./components/PropertyInfo";
 import MeterDetails from "./components/MeterDetails";
 import AadhaarVerification from "./components/AadhaarVerification";
 import AddressDetails from "./components/AddressDetails";
+import CeoDashboard from "./components/CeoDashboard";
 export const EkycModule = ({ stateCode, userType, tenants }) => {
 
   const { path, url } = useRouteMatch();
@@ -69,6 +70,8 @@ const componentsToRegister = {
   AddressDetails,
   PropertyInfo,
   MeterDetails,
+  CeoDashboard,
+  
 };
 
 export const initEkycComponents = () => {

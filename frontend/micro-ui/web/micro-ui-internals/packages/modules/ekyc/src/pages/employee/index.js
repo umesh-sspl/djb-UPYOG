@@ -16,6 +16,8 @@ const EmployeeApp = ({ path }) => {
 
   sessionStorage.removeItem("revalidateddone");
 
+  const CeoDashboard = Digit.ComponentRegistryService.getComponent("CeoDashboard");
+
   const getBreadcrumbLabel = () => {
     const pathname = location.pathname;
     if (pathname.includes("/dashboard")) return "ES_COMMON_INBOX";
@@ -99,6 +101,15 @@ const EmployeeApp = ({ path }) => {
                 component={() => (
                   <LayoutWrapper layoutClass="normal">
                     <Review />
+                  </LayoutWrapper>
+                )}
+              />
+
+              <PrivateRoute
+                path={`${path}/ceo-dashboard`}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <CeoDashboard />
                   </LayoutWrapper>
                 )}
               />

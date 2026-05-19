@@ -1,4 +1,5 @@
 import React from "react";
+import { useHistory } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 
 // search connection
@@ -154,4 +155,26 @@ export const useEkycDashboardConfigs = (roleType = "CEO") => {
     tenantId,
     userRoles
   };
+};
+
+export const useInboxRouting = () => {
+  const history = useHistory();
+
+  const routeToInbox = (targetRoute, filters) => {
+    if (!targetRoute) return;
+
+    const queryParams = new URLSearchParams();
+    if (filters) {
+      Object.keys(filters).forEach(key => {
+        if (filters[key] !== "ALL" && filters[key] !== undefined && filters[key] !== null) {
+          queryParams.append(key, filters[key]);
+        }
+      });
+    }
+
+    const queryString = queryParams.toString();
+    history.push(`${targetRoute}${queryString ? `?${queryString}` : ''}`);
+  };
+
+  return { routeToInbox };
 };
