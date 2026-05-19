@@ -2,10 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import "./analytics/styles/Dashboard.css";
 
-
-// Hooks
-import useInboxRouting from "./analytics/hooks/useInboxRouting";
-
 // Components
 import DashboardLayout from "./analytics/components/DashboardLayout";
 import FilterBar from "./analytics/components/FilterBar";
@@ -22,7 +18,7 @@ import EmptyState from "./analytics/components/EmptyState";
 
 const CeoDashboard = () => {
   const { t } = useTranslation();
-  const { routeToInbox } = useInboxRouting();
+  const { routeToInbox } = Digit.Hooks.ekyc.useInboxRouting();
 
   // 1. Dashboard State
   const [activeRole, setActiveRole] = useState("CEO");
