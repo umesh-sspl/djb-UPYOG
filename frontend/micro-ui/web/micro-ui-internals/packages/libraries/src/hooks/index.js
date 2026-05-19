@@ -92,13 +92,13 @@ import useDriverUpdate from "./fsm/useDriverUpdate";
 import useDriverDetails from "./fsm/useDriverDetails";
 import useVendorSearch from "./fsm/useVendorSearch";
 import useAdvanceBalanceCalulation from "./fsm/useAdvanceBalanceCalculation";
-// import useSupervisorDetails from "./fsm/useSupervisorDetails";
-// import useSurveyorDetails from "./fsm/useSurveyorDetails";
+import useSupervisorSearch from "./fsm/useSupervisorSearch";
+import useSurveyorSearch from "./fsm/useSurveyorSearch";
 import useWorkerSearch from "./fsm/useWorkerSearch";
 import useSupervisorCreate from "./fsm/useSupervisorCreate";
-// import useSupervisorUpdate from "./fsm/useSupervisorUpdate";
+import useSupervisorUpdate from "./fsm/useSupervisorUpdate";
 import useSurveyorCreate from "./fsm/useSurveyorCreate";
-// import useSurveyorUpdate from "./fsm/useSurveyorUpdate";
+import useSurveyorUpdate from "./fsm/useSurveyorUpdate";
 
 import useEmployeeSearch from "./useEmployeeSearch";
 
@@ -459,13 +459,13 @@ const fsm = {
   useVehicleTripCreate,
   useVendorSearch,
   useAdvanceBalanceCalulation,
-//  useSupervisorDetails,
-//  useSurveyorDetails,
+  useSupervisorSearch,
+  useSurveyorSearch,
   useWorkerSearch,
   useSupervisorCreate,
-  //  useSupervisorUpdate,
-    useSurveyorCreate,
-  //  useSurveyorUpdate,
+  useSupervisorUpdate,
+  useSurveyorCreate,
+  useSurveyorUpdate,
 };
 const ptr = {
   usePetMDMS,

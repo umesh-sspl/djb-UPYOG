@@ -48,9 +48,9 @@ const SearchVendor = () => {
           config: { enabled: false },
         })
       : tab === "SUPERVISOR"
-      ? Digit.Hooks.fsm.useSupervisorDetails(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
+      ? Digit.Hooks.fsm.useSupervisorSearch(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
       : tab === "SURVEYOR"
-      ? Digit.Hooks.fsm.useSurveyorDetails(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
+      ? Digit.Hooks.fsm.useSurveyorSearch(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
       : Digit.Hooks.fsm.useVendorSearch({
           tenantId,
           filters: {
@@ -138,52 +138,10 @@ const SearchVendor = () => {
       setTableData(tableData);
     }
     if (tab === "SUPERVISOR") {
-      const staticSupervisors = [
-        {
-          id: "SUP1",
-          name: "Amit Kumar",
-          employeeId: "EMP001",
-          status: "ACTIVE",
-          owner: { mobileNumber: "9876543210", userName: "9876543210" },
-          auditDetails: { createdTime: new Date().getTime() },
-          vendorData: { name: "Clean City Agency" },
-        },
-        {
-          id: "SUP2",
-          name: "Rajesh Singh",
-          employeeId: "EMP002",
-          status: "ACTIVE",
-          owner: { mobileNumber: "9876543211", userName: "9876543211" },
-          auditDetails: { createdTime: new Date().getTime() },
-          vendorData: { name: "Green Environment" },
-        },
-      ];
-      setTableData(dsoData?.supervisor || staticSupervisors);
+      setTableData(dsoData?.supervisors || dsoData?.supervisor || []);
     }
     if (tab === "SURVEYOR") {
-      const staticSurveyors = [
-        {
-          id: "SUR1",
-          name: "Suresh Raina",
-          employeeId: "EMP101",
-          status: "ACTIVE",
-          owner: { mobileNumber: "9123456780", userName: "9123456780" },
-          auditDetails: { createdTime: new Date().getTime() },
-          vendorData: { name: "Clean City Agency" },
-          reportingManager: { name: "Amit Kumar" }
-        },
-        {
-          id: "SUR2",
-          name: "Mahesh Babu",
-          employeeId: "EMP102",
-          status: "ACTIVE",
-          owner: { mobileNumber: "9123456781", userName: "9123456781" },
-          auditDetails: { createdTime: new Date().getTime() },
-          vendorData: { name: "Green Environment" },
-          reportingManager: { name: "Rajesh Singh" }
-        }
-      ];
-      setTableData(dsoData?.surveyor || staticSurveyors);
+      setTableData(dsoData?.surveyors || dsoData?.surveyor || []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dsoData, tab]);

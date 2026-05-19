@@ -51,10 +51,39 @@ const SurveyorDetails = (props) => {
   const [showToast, setShowToast] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [selectedOption, setSelectedOption] = useState({});
-
-  const { data: surveyorData, isLoading, refetch } = Digit.Hooks.fsm.useSurveyorDetails(tenantId, { ids: surveyorId }, { staleTime: Infinity });
-
   const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, {});
+  const { data: surveyorSearchResponse, isLoading, refetch } = Digit.Hooks.fsm.useSurveyorSearch(tenantId, { ids: surveyorId }, { staleTime: Infinity });
+
+  const surveyorData = React.useMemo(() => {
+    if (!surveyorSearchResponse?.surveyors?.length) return [];
+    
+    return surveyorSearchResponse.surveyors.map((data) => {
+      const mappedVendor = vendorData?.find(v => v.dsoDetails?.id === data.vendorId || v.dsoDetails?.vendorId === data.vendorId);
+      const vendorName = mappedVendor?.dsoDetails?.name || data.vendorId || "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR";
+
+      return {
+        surveyorData: data,
+        vendorDetails: { vendor: mappedVendor ? [mappedVendor.dsoDetails] : [] },
+        employeeResponse: [
+          {
+            title: "ES_VENDOR_SURVEYOR_BASIC_DETAILS",
+            values: [
+              { title: "ES_VENDOR_SURVEYOR_FULL_NAME", value: data?.name },
+              { title: "ES_VENDOR_SURVEYOR_MOBILE_NUMBER", value: data?.owner?.mobileNumber || data?.mobileNo },
+              { title: "ES_VENDOR_SURVEYOR_EMAIL_ID", value: data?.owner?.emailId },
+              { title: "ES_VENDOR_SURVEYOR_STAFF_CODE", value: data?.employeeId || "N/A" },
+              { title: "ES_VENDOR_SURVEYOR_GENDER", value: data?.owner?.gender },
+              {
+                title: "ES_VENDOR_SURVEYOR_AGENCY_NAME",
+                value: vendorName,
+                type: "custom",
+              },
+            ],
+          }
+        ]
+      };
+    });
+  }, [surveyorSearchResponse, vendorData]);
 
   const { mutate: mutateSurveyor } = Digit.Hooks.fsm.useSurveyorUpdate(tenantId);
   const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate(tenantId);

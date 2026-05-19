@@ -62,6 +62,8 @@ const Urls = {
     vehicleTripCreate: "/vehicle/trip/v1/_create",
     advanceBalanceCalculate: "/fsm-calculator/v1/_advancebalancecalculate",
     createSupervisor: "/vendor/supervisor/v1/_create",
+    updateSupervisor: "/vendor/supervisor/v1/_update",
+    supervisorSearch: "/vendor/supervisor/v1/_search",
     createSurveyor: "/vendor/surveyor/v1/_create",
     updateSurveyor: "/vendor/surveyor/v1/_update",
     surveyorSearch: "/vendor/surveyor/v1/_search",
