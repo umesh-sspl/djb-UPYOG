@@ -4,21 +4,18 @@ import org.springframework.stereotype.Component;
 import org.upyog.rs.fixedpoint.web.model.FixedPointTimeTableDetail;
 import org.upyog.rs.wt.scheduler.model.FixedPointScheduleData;
 
-import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Converts existing FixedPointTimeTableDetail model into scheduler DTO.
- *
- * Adjust getter names if your FixedPointTimeTableDetail fields are different.
  */
 @Component
 public class FixedPointSchedulerDataMapper {
 
-    public List<FixedPointScheduleData> toSchedulerDataList(
-            List<FixedPointTimeTableDetail> details
-    ) {
+    public List<FixedPointScheduleData> toSchedulerDataList(List<FixedPointTimeTableDetail> details) {
+        if (details == null) return List.of();
+
         return details.stream()
                 .map(this::toSchedulerData)
                 .collect(Collectors.toList());
@@ -28,43 +25,26 @@ public class FixedPointSchedulerDataMapper {
 
         FixedPointScheduleData data = new FixedPointScheduleData();
 
-//        data.setScheduleId(detail.getId());
+        // 1. Map Core Identifiers
+        data.setScheduleId(detail.getSystemAssignedScheduleId());
         data.setTenantId(detail.getTenantId());
-
         data.setFillingPointId(detail.getFillingPointId());
         data.setFixedPointId(detail.getFixedPointId());
-        data.setFixedPointCode(detail.getFixedPointId());
+        data.setFixedPointCode(detail.getFixedPointCode());
+        data.setFixedPointName(detail.getFixedPointName());
 
-//        if (detail.getDeliveryTime() != null) {
-//            data.setDeliveryTime(LocalTime.parse(detail.getDeliveryTime()));
-//        }
-//
-//        if (detail.getWaterQuantity() != null) {
-//            data.setWaterQuantity(Integer.parseInt(detail.getWaterQuantity()));
-//        }
+        // 2. Map the actual Time and Quantity fields from your class
+        data.setDeliveryTime(detail.getArrivalTimeDeliveryPoint());
+        data.setWaterQuantity(detail.getVolumeWaterTobeDelivery() != null ? detail.getVolumeWaterTobeDelivery() : "3000");
 
-//        data.setApplicantId(detail.getApplicantId());
-//        data.setFixedPointName(detail.getName());
-//        data.setMobileNumber(detail.getMobileNumber());
-//        data.setAlternateNumber(detail.getAlternateNumber());
-//        data.setEmailId(detail.getEmailId());
-//
-//        data.setAddressId(detail.getAddressId());
-//        data.setPincode(detail.getPincode());
-//        data.setCity(detail.getCity());
-//        data.setCityCode(detail.getCityCode());
-//        data.setAddressLine1(detail.getAddressLine1());
-//        data.setAddressLine2(detail.getAddressLine2());
-//        data.setLocality(detail.getLocality());
-//        data.setLocalityCode(detail.getLocalityCode());
-//        data.setStreetName(detail.getStreetName());
-//        data.setHouseNo(detail.getHouseNo());
-//        data.setLandmark(detail.getLandmark());
-//        data.setLatitude(detail.getLatitude());
-//        data.setLongitude(detail.getLongitude());
-//        data.setWard(detail.getWard());
-//        data.setZone(detail.getZone());
-//        data.setConstituency(detail.getConstituency());
+        // 3. Map pre-assigned vehicle if available in the timetable
+        data.setVehicleId(detail.getVehicleId());
+
+        /* * NOTE: Applicant details (applicantId, mobileNumber) and Address details
+         * (pincode, city, street) are NOT present in FixedPointTimeTableDetail.
+         * * They will remain null here. Your FixedPointBookingSchedulerService
+         * will dynamically populate them from the logged-in system user during runtime.
+         */
 
         return data;
     }

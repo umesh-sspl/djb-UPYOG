@@ -186,9 +186,9 @@ public class FixedPointTimeTableQueryBuilder {
         query.append("""
         SELECT
             *
-            FROM wt_fixed_point_schedule
+            FROM eg_fixed_point_time_table
             WHERE tenant_id = ?
-                AND day_of_week = ?
+                AND day = ?
                 AND active = true
         """);
 
@@ -200,7 +200,7 @@ public class FixedPointTimeTableQueryBuilder {
             preparedStmtList.add(fillingPointId);
         }
 
-        query.append(" ORDER BY filling_point_id, fixed_point_id, delivery_time ");
+        query.append(" ORDER BY filling_point_id, fixed_point_code, departure_time_delivery_point ");
 
         return query.toString();
     }

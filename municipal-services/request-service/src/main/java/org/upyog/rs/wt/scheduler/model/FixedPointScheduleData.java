@@ -48,4 +48,5 @@ public class FixedPointScheduleData {
     private String driverId;
     private String vehicleType;
     private String vehicleCapacity;
+    private String fillingPointCode;
 }

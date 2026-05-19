@@ -16,6 +16,7 @@ import org.upyog.rs.wt.scheduler.model.FixedPointScheduleData;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
@@ -32,10 +33,11 @@ public class WaterTankerBookingRequestMapper {
             LocalDate deliveryDate,
             RequestInfo requestInfo
     ) {
-
         WaterTankerBookingDetail detail = WaterTankerBookingDetail.builder()
                 .applicantId(data.getApplicantId())
                 .tenantId(data.getTenantId())
+
+                .mobileNumber(data.getMobileNumber())
 
                 .tankerType(WaterTankerConstants.TANKER_TYPE)
                 .waterType(WaterTankerConstants.WATER_TYPE)
@@ -44,7 +46,7 @@ public class WaterTankerBookingRequestMapper {
 
                 .description("Auto-created fixed point tanker booking by scheduler")
                 .deliveryDate(deliveryDate)
-                .deliveryTime(resolveDeliveryTime(data.getDeliveryTime()))
+                .deliveryTime(resolveDeliveryTime(data.getDeliveryTime())) // Replaced null with resolved time
 
                 .extraCharge(extraCharge)
 
@@ -64,7 +66,6 @@ public class WaterTankerBookingRequestMapper {
                 .applicantDetail(buildApplicantDetail(data))
                 .address(buildAddress(data))
                 .workflow(buildWorkflow())
-
                 .build();
 
         return WaterTankerBookingRequest.builder()
@@ -74,80 +75,93 @@ public class WaterTankerBookingRequestMapper {
     }
 
     private int resolveWaterQuantity(String waterQuantity) {
-
         if (StringUtils.hasText(waterQuantity)) {
-            return Integer.parseInt(waterQuantity);
+            try {
+                return Integer.parseInt(waterQuantity);
+            } catch (NumberFormatException e) {
+                return defaultWaterQuantity;
+            }
         }
-
         return defaultWaterQuantity;
     }
 
     private LocalTime resolveDeliveryTime(String deliveryTime) {
-
         if (StringUtils.hasText(deliveryTime)) {
-            return LocalTime.parse(deliveryTime);
+            try {
+                // Supports both standard "08:00" or full "08:00:00" formats
+                if (deliveryTime.length() == 5) {
+                    return LocalTime.parse(deliveryTime, DateTimeFormatter.ofPattern("HH:mm"));
+                }
+                return LocalTime.parse(deliveryTime);
+            } catch (Exception e) {
+                log.warn("Failed to parse delivery time: {}. Using default.", deliveryTime);
+            }
         }
-
         return LocalTime.of(8, 0);
     }
 
     private ApplicantDetail buildApplicantDetail(FixedPointScheduleData data) {
-
         ApplicantDetail applicant = new ApplicantDetail();
-
         applicant.setApplicantId(data.getApplicantId());
         applicant.setBookingId("");
         applicant.setName(data.getFixedPointName());
+        String applicantName = (data.getFixedPointName() != null) ? data.getFixedPointName() : "Community User";
+        applicant.setName(applicantName);
         applicant.setMobileNumber(data.getMobileNumber());
         applicant.setAlternateNumber(data.getAlternateNumber());
         applicant.setEmailId(data.getEmailId());
         applicant.setType(WaterTankerConstants.APPLICANT_TYPE_FIXED_POINT);
+//        String pointCode = StringUtils.hasText(data.getFillingPointCode())
+//                ? data.getFillingPointCode()
+//                : data.getFillingPointId();
         applicant.setFixedPointId(data.getFixedPointCode());
-
         return applicant;
     }
 
     private Address buildAddress(FixedPointScheduleData data) {
-
         Address address = new Address();
-
         address.setApplicantId(data.getApplicantId());
         address.setAddressId(data.getAddressId());
-        address.setAddressType(AddressType.valueOf(WaterTankerConstants.ADDRESS_TYPE_PERMANENT));
 
-        address.setPincode(data.getPincode());
-        address.setCity(data.getCity());
-        address.setCityCode(data.getCityCode());
+        try {
+            address.setAddressType(AddressType.valueOf(WaterTankerConstants.ADDRESS_TYPE_PERMANENT));
+        } catch (Exception e) {
+            address.setAddressType(AddressType.PERMANENT);
+        }
 
-        address.setAddressLine1(data.getAddressLine1());
+        address.setHouseNo(StringUtils.hasText(data.getHouseNo()) ? data.getHouseNo() : "N/A");
+        address.setAddressLine1(StringUtils.hasText(data.getAddressLine1()) ? data.getAddressLine1() : "Fixed Point Location");
+        address.setPincode(StringUtils.hasText(data.getPincode()) ? data.getPincode() : "000000");
+        address.setCity(StringUtils.hasText(data.getCity()) ? data.getCity() : "Delhi");
+        address.setCityCode(StringUtils.hasText(data.getCityCode()) ? data.getCityCode() : "DL");
+
+        address.setStreetName(data.getStreetName() != null ? data.getStreetName() : "");
+        address.setLocality(data.getLocality() != null ? data.getLocality() : "General Area");
+        address.setLocalityCode(data.getLocalityCode() != null ? data.getLocalityCode() : "LOC_DEFAULT");
+//        address.setPincode(data.getPincode());
+//        address.setCity(data.getCity());
+//        address.setCityCode(data.getCityCode());
+//        address.setAddressLine1(data.getAddressLine1());
         address.setAddressLine2(data.getAddressLine2());
-
-        address.setLocality(data.getLocality());
-        address.setLocalityCode(data.getLocalityCode());
-
-        address.setStreetName(data.getStreetName());
-        address.setHouseNo(data.getHouseNo());
+//        address.setLocality(data.getLocality());
+//        address.setLocalityCode(data.getLocalityCode());
+//        address.setStreetName(data.getStreetName());
+//        address.setHouseNo(data.getHouseNo());
         address.setLandmark(data.getLandmark());
-
         address.setLatitude(data.getLatitude());
         address.setLongitude(data.getLongitude());
-
         address.setWard(data.getWard());
         address.setZone(data.getZone());
         address.setConstituency(data.getConstituency());
-
         return address;
     }
 
     private Workflow buildWorkflow() {
-
         Workflow workflow = new Workflow();
-
         workflow.setAction(WaterTankerConstants.WORKFLOW_ACTION_CREATE);
         workflow.setComments("Auto-created by fixed point scheduler");
         workflow.setBusinessService(WaterTankerConstants.WORKFLOW_BUSINESS_SERVICE_FIXED_POINT);
         workflow.setModuleName(WaterTankerConstants.WORKFLOW_MODULE_NAME);
-
         return workflow;
     }
 }

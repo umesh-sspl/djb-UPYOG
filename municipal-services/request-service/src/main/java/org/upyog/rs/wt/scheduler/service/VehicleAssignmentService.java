@@ -2,8 +2,10 @@ package org.upyog.rs.wt.scheduler.service;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.upyog.rs.repository.FillingPointRepository;
 import org.upyog.rs.wt.scheduler.model.FixedPointScheduleData;
 import org.upyog.rs.wt.scheduler.model.VehicleDriverAssignmentData;
 
@@ -28,16 +30,33 @@ public class VehicleAssignmentService {
     @Value("${wt.vehicle.max-trip-limit:8}")
     private int maxTripLimit;
 
+    @Autowired
+    private FillingPointRepository fillingPointDetailsRepository;
+
     public List<FixedPointScheduleData> assignVehicles(
             String fillingPointId,
             List<FixedPointScheduleData> schedules,
             List<VehicleDriverAssignmentData> vehicles
     ) {
+
+        String systemFillingPointId = fillingPointDetailsRepository.getFillingPointUuidByCode(fillingPointId);
+
+        if (systemFillingPointId == null) {
+            throw new IllegalStateException("Invalid Filling Point Code: " + fillingPointId);
+        }
+
         if (schedules == null || schedules.isEmpty()) {
             return schedules;
         }
 
-        if (vehicles == null || vehicles.isEmpty()) {
+        List<VehicleDriverAssignmentData> eligibleVehicles = new ArrayList<>();
+        for (VehicleDriverAssignmentData vehicle : vehicles) {
+            if (systemFillingPointId.equals(vehicle.getFillingPointId())) {
+                eligibleVehicles.add(vehicle);
+            }
+        }
+
+        if (eligibleVehicles.isEmpty()) {
             throw new IllegalStateException("No active vehicle with mapped driver found for fillingPointId=" + fillingPointId);
         }
 
