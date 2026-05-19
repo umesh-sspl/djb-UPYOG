@@ -1,4 +1,4 @@
-import { CardLabel, LabelFieldPair, LinkButton, Loader, TextInput } from "@djb25/digit-ui-react-components";
+import { CardLabel, Dropdown, LabelFieldPair, LinkButton, Loader, TextInput } from "@djb25/digit-ui-react-components";
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -51,18 +51,18 @@ const WSPropertyDetails = ({ t, config, onSelect, userType, formData, setError, 
           </button>
         </div>
       </LabelFieldPair>
-      <Link to={`/digit-ui/${userType}/commonpt/search?redirectToUrl=${redirectBackUrl}`}>
+      <Link to={`/digit-ui/${userType}/commonpt/search`}>
         <LinkButton label={t("CPT_SEARCH_PROPERTY")} style={{ color: "#a82227", display: "inline-block" }} />
       </Link>
       &nbsp; | &nbsp;
-      <Link to={`/digit-ui/${userType}/commonpt/new-application?redirectToUrl=${redirectBackUrl}`}>
+      <Link to={`/digit-ui/${userType}/commonpt/new-application`}>
         <LinkButton label={t("CPT_CREATE_PROPERTY")} style={{ color: "#a82227", display: "inline-block" }} />
       </Link>
       {propertyDetails && propertyDetails?.Properties.length && (
         <React.Fragment>
-          <header className="card-section-header" style={{ marginBottom: 0, marginTop: "20px" }}>
+          {/* <header className="card-section-header" style={{ marginBottom: 0, marginTop: "20px" }}>
             {t("PT_DETAILS")}
-          </header>
+          </header> */}
           <LabelFieldPair>
             <CardLabel className="card-label-smaller">{`${t(`PROPERTY_ID`)}`}</CardLabel>
             <div className="field">

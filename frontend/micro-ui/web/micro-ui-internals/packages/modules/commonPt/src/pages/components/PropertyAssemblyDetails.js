@@ -28,7 +28,7 @@ const PropertyAssemblyDetails = ({ t, config, onSelect, userType, formData, form
         : formData?.usageCategoryMajor,
   });
   const [focusField, setFocusField] = React.useState("");
-  let tenantId = "dl.djb";
+  let tenantId = Digit.ULBService.getCurrentTenantId();
 
   const [isErrors, setIsErrors] = useState(false);
   const isMobile = window.Digit.Utils.browser.isMobile();
@@ -38,56 +38,36 @@ const PropertyAssemblyDetails = ({ t, config, onSelect, userType, formData, form
   console.log("Calling usePropertyMDMS with tenantId:", tenantId);
 
   const { data: Menu = [], isLoading } = Digit.Hooks.pt.usePropertyMDMS(tenantId, "PropertyTax", "PTPropertyType") || {};
-  console.log("PropertyType Menu Data (transformed):", Menu);
   proptype = Menu?.PropertyTax?.PropertyType || (Array.isArray(Menu) ? Menu : []);
 
   const { data: Menu1 = [], isLoading: menuLoading } = Digit.Hooks.pt.usePropertyMDMS(tenantId, "PropertyTax", "UsageCategory") || {};
   console.log("UsageCategory Menu Data (transformed):", Menu1);
   let usagecat = Menu1?.PropertyTax?.UsageCategory || (Array.isArray(Menu1) ? Menu1 : []);
 
-
   function getPropertyTypeMenu(proptype) {
-    if (userType === "employee") {
-      return proptype
-        ?.filter((e) => e.code === "VACANT" || e.code.split(".").length > 1)
-        ?.map((item) => ({ i18nKey: "COMMON_PROPTYPE_" + stringReplaceAll(item?.code, ".", "_"), code: item?.code }))
-        ?.sort((a, b) => a.i18nKey.split("_").pop().localeCompare(b.i18nKey.split("_").pop()));
-    } else {
-      let menu = [];
-      if (Array.isArray(proptype) && proptype.length > 0) {
-        for (let i = 0; i < proptype.length; i++) {
-          if (i != 1 && i != 4) menu.push({ i18nKey: "COMMON_PROPTYPE_" + stringReplaceAll(proptype[i].code, ".", "_"), code: proptype[i].code });
-        }
+    let menu = [];
+    if (Array.isArray(proptype) && proptype.length > 0) {
+      for (let i = 0; i < proptype.length; i++) {
+        if (i != 1 && i != 4) menu.push({ i18nKey: "COMMON_PROPTYPE_" + stringReplaceAll(proptype[i].code, ".", "_"), code: proptype[i].code });
       }
-      menu.sort((a, b) => a.i18nKey.split("_").pop().localeCompare(b.i18nKey.split("_").pop()));
-      return menu;
     }
+    menu.sort((a, b) => a.i18nKey.split("_").pop().localeCompare(b.i18nKey.split("_").pop()));
+    return menu;
   }
 
   function usageCategoryMajorMenu(usagecat) {
-    if (userType === "employee") {
-      const catMenu = usagecat
-        ?.filter((e) => e?.code.split(".").length <= 2 && e.code !== "NONRESIDENTIAL")
-        ?.map((item) => {
-          const arr = item?.code.split(".");
-          if (arr.length == 2) return { i18nKey: "PROPERTYTAX_BILLING_SLAB_" + arr[1], code: item?.code };
-          else return { i18nKey: "PROPERTYTAX_BILLING_SLAB_" + item?.code, code: item?.code };
-        });
-      return catMenu;
-    } else {
-      let menu = [];
-      for (let i = 0; i < usagecat.length; i++) {
-        if (
-          Array.isArray(usagecat) &&
-          usagecat.length > 0 &&
-          usagecat[i]?.code?.split?.(".")[0] == "NONRESIDENTIAL" &&
-          usagecat[i]?.code?.split?.(".").length == 2
-        ) {
-          menu.push({ i18nKey: "PROPERTYTAX_BILLING_SLAB_" + usagecat[i].code.split(".")[1], code: usagecat[i].code });
-        }
+    let menu = [];
+    for (let i = 0; i < usagecat.length; i++) {
+      if (
+        Array.isArray(usagecat) &&
+        usagecat.length > 0 &&
+        usagecat[i]?.code?.split?.(".")[0] == "NONRESIDENTIAL" &&
+        usagecat[i]?.code?.split?.(".").length == 2
+      ) {
+        menu.push({ i18nKey: "PROPERTYTAX_BILLING_SLAB_" + usagecat[i].code.split(".")[1], code: usagecat[i].code });
       }
-      return menu;
     }
+    return menu;
   }
 
   const {

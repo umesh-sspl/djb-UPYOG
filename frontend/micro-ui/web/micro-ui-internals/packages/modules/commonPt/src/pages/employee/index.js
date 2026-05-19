@@ -1,4 +1,4 @@
-import { BreadCrumb, PrivateRoute } from "@djb25/digit-ui-react-components";
+import { BreadCrumb, LayoutWrapper, PrivateRoute } from "@djb25/digit-ui-react-components";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Switch, useLocation } from "react-router-dom";
@@ -70,25 +70,21 @@ const EmployeeApp = ({ path, url, userType }) => {
   const locationCheck = window.location.href.includes("/employee/commonpt/new-application");
 
   return (
-    <Switch>
-      <React.Fragment>
-        <div className="ground-container">
-          {/* <p className="breadcrumb" style={{ marginLeft: mobileView ? "2vw" : "12px" }}>
-            <Link to="/digit-ui/employee" style={{ cursor: "pointer", color: "#666" }}>
-              {t("ES_COMMON_HOME")}
-            </Link>{" "}
-            / <span>{getBreadCrumb()}</span>
-          </p> */}
-          <div style={locationCheck ? { marginLeft: "12px" } : {}}>
-            <BreadCrumb crumbs={crumbs} />
-          </div>
-          <PrivateRoute exact path={`${path}/`} component={() => <CommonPTLinks matchPath={path} userType={userType} />} />
-          <PrivateRoute path={`${path}/new-application`} component={() => <NewApplication parentUrl={url} />} />
-          <PrivateRoute path={`${path}/search`} component={() => <Search />} />
-          <PrivateRoute path={`${path}/view-property`} component={() => <ViewProperty />} />
-        </div>
-      </React.Fragment>
-    </Switch>
+    <div className="ground-container">
+      <div style={locationCheck ? { marginLeft: "12px" } : {}}>
+        <BreadCrumb crumbs={crumbs} />
+      </div>
+      <Switch>
+        <PrivateRoute exact path={`${path}/`} component={() => <CommonPTLinks matchPath={path} userType={userType} />} />
+        <PrivateRoute path={`${path}/new-application`} component={() => (
+          <LayoutWrapper layoutClass="action">
+            <NewApplication path={path} />
+          </LayoutWrapper>
+        )} />
+        <PrivateRoute path={`${path}/search`} component={Search} />
+        <PrivateRoute path={`${path}/view-property`} component={ViewProperty} />
+      </Switch>
+    </div>
   );
 };
 

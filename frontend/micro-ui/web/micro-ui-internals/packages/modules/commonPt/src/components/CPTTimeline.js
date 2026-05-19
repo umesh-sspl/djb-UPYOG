@@ -9,7 +9,7 @@ const getAction = (flow) => {
     case "STAKEHOLDER": actions = []
       break;
     case "WS" : actions = [
-      'WS_COMMON_PROPERTY_DETAILS',
+      // 'WS_COMMON_PROPERTY_DETAILS',
       'WS_COMMON_CONNECTION_DETAIL',
       'WS_COMMON_DOCUMENT_DETAILS',
       'WS_COMMON_SUMMARY',

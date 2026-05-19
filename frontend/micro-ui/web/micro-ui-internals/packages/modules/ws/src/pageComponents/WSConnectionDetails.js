@@ -1,4 +1,17 @@
-import { CardLabel, Dropdown, LabelFieldPair, Loader, TextInput, CardLabelError, CheckBox } from "@djb25/digit-ui-react-components";
+import {
+  CardLabel,
+  Dropdown,
+  LabelFieldPair,
+  Loader,
+  TextInput,
+  CardLabelError,
+  CheckBox,
+  RadioButtons,
+  UploadFile,
+  CollapsibleCardPage,
+  Modal,
+  ViewsIcon,
+} from "@djb25/digit-ui-react-components";
 import React, { useEffect, useState } from "react";
 import { getPattern } from "../utils";
 import { useForm, Controller } from "react-hook-form";
@@ -16,6 +29,18 @@ const createConnectionDetails = () => ({
 
   proposedToilets: "",
   proposedWaterClosets: "",
+
+  serviceType: { code: "WATER", i18nKey: "WS_APPLICATION_TYPE_WATER" },
+  categoryType: { code: "DOMESTIC", i18nKey: "WS_CATEGORY_DOMESTIC" },
+  connectionType: { code: "Permanent", i18nKey: "WS_CONNECTION_Permanent" },
+  temporaryType: { code: "Exhibition", i18nKey: "Exhibition" },
+  waterDemandType: { code: "BULK", i18nKey: "WS_WATER_DEMAND_BULK" },
+  applicantType: { code: "OWNER", i18nKey: "WS_APPLICANT_OWNER" },
+  domesticType: { i18nKey: "WS_DOMESTIC_TYPE_DOMESTIC", code: "INDIVIDUAL" },
+  departmentType: { i18nKey: "WS_DEPARTMENT_TYPE_GOVERNMENT", code: "GOVERNMENT" },
+  institutionName: "",
+  natureOfWork: "",
+  orgDeptDocument: "",
 });
 
 const WSConnectionDetails = ({ config, onSelect, userType, formData, setError, formState, clearErrors }) => {
@@ -30,11 +55,24 @@ const WSConnectionDetails = ({ config, onSelect, userType, formData, setError, f
   const [isErrors, setIsErrors] = useState(false);
   const [waterSewarageSelection, setWaterSewarageSelection] = useState({ water: true, sewerage: false });
 
-  const [pipeSizeList, setPipesizeList] = useState([]);
+  const [applicationTypeList, setApplicationTypeList] = useState([]);
+  const [categoryTypeList, setCategoryTypeList] = useState([]);
+  const [connectionTypeList, setConnectionTypeList] = useState([]);
+  const [waterDemandTypeList, setWaterDemandTypeList] = useState([]);
+  const [applicantTypeList, setApplicantTypeList] = useState([]);
+  const [temporaryTypeList, setTemporaryTypeList] = useState([]);
+  const [institutionTypeList, setInstitutionTypeList] = useState([]);
 
-  const { isWSServicesCalculationLoading, data: wsServicesCalculationData } = Digit.Hooks.ws.useMDMS(tenantId, "ws-services-calculation", [
-    "PipeSize",
+  const { isWSServicesMastersLoading, data: wsServicesMastersData } = Digit.Hooks.ws.useMDMS(tenantId, "ws-services-masters", [
+    "ApplicationType",
+    "WsCategoryType",
+    "connectionCategory",
+    "WSWaterDemandType",
+    "ApplicantType",
+    "TemporaryConnectionType",
   ]);
+
+  const { data: commonMastersData } = Digit.Hooks.ws.useMDMS(tenantId, "common-masters", ["InstitutionType"]);
 
   useEffect(() => {
     const data = connectionDetails.map((e) => {
@@ -44,10 +82,39 @@ const WSConnectionDetails = ({ config, onSelect, userType, formData, setError, f
   }, [connectionDetails]);
 
   useEffect(() => {
-    const list = wsServicesCalculationData?.["ws-services-calculation"]?.PipeSize || [];
-    list?.forEach((data) => (data.i18nKey = data.size));
-    setPipesizeList(list);
-  }, [wsServicesCalculationData]);
+    let list = wsServicesMastersData?.["ws-services-masters"]?.ApplicationType || [];
+    // Only filtering the ones that are NOT explicitly false, just in case `active` is missing.
+    list = list.filter((data) => data?.active !== false && data?.active !== "false");
+    list?.forEach((data) => (data.i18nKey = `WS_APPLICATION_TYPE_${data.code}`));
+    setApplicationTypeList(list);
+
+    // Fallback logic for the others since they are not coming from MDMS
+    const categories = wsServicesMastersData?.["ws-services-masters"]?.WsCategoryType || [];
+    categories.forEach((data) => (data.i18nKey = data.i18nKey || `WS_CATEGORY_${data.code}`));
+    setCategoryTypeList(categories);
+
+    const connections = wsServicesMastersData?.["ws-services-masters"]?.connectionCategory || [];
+    connections.forEach((data) => (data.i18nKey = data.i18nKey || `WS_CONNECTION_${data.code}`));
+    setConnectionTypeList(connections);
+
+    const demands = wsServicesMastersData?.["ws-services-masters"]?.WSWaterDemandType || [];
+    demands.forEach((data) => (data.i18nKey = data.i18nKey || `WS_WATER_DEMAND_${data.code}`));
+    setWaterDemandTypeList(demands);
+
+    const applicants = wsServicesMastersData?.["ws-services-masters"]?.ApplicantType || [];
+    applicants.forEach((data) => (data.i18nKey = data.i18nKey || `WS_APPLICANT_${data.code}`));
+    setApplicantTypeList(applicants);
+
+    const tempTypes = wsServicesMastersData?.["ws-services-masters"]?.TemporaryConnectionType || [];
+    tempTypes.forEach((data) => (data.i18nKey = data.name || data.code));
+    setTemporaryTypeList(tempTypes);
+  }, [wsServicesMastersData]);
+
+  useEffect(() => {
+    const instTypes = commonMastersData?.["common-masters"]?.InstitutionType || [];
+    instTypes.forEach((data) => (data.i18nKey = `COMMON_MASTERS_INSTITUTION_${data.code}`));
+    setInstitutionTypeList(instTypes);
+  }, [commonMastersData]);
 
   useEffect(() => {
     if (userType === "employee") {
@@ -64,8 +131,6 @@ const WSConnectionDetails = ({ config, onSelect, userType, formData, setError, f
     }
   }, [formData?.ConnectionDetails]);
 
-  if (isWSServicesCalculationLoading) return <Loader />;
-
   const commonProps = {
     focusIndex,
     connectionDetails,
@@ -79,9 +144,14 @@ const WSConnectionDetails = ({ config, onSelect, userType, formData, setError, f
     setConnectionDetails,
     setIsErrors,
     isErrors,
-    pipeSizeList,
-    wsServicesCalculationData,
     waterSewarageSelection,
+    applicationTypeList,
+    categoryTypeList,
+    connectionTypeList,
+    waterDemandTypeList,
+    applicantTypeList,
+    temporaryTypeList,
+    institutionTypeList,
     formData,
   };
 
@@ -111,25 +181,99 @@ const ConnectionDetails = (_props) => {
     isErrors,
     connectionTypeList,
     setConnectionDetails,
-    wsServicesCalculationData,
-    pipeSizeList,
     connectionDetails,
     waterSewarageSelection,
+    applicationTypeList,
+    categoryTypeList,
+    waterDemandTypeList,
+    applicantTypeList,
+    temporaryTypeList,
+    institutionTypeList,
     formData,
   } = _props;
 
-  const {
-    control,
-    formState: localFormState,
-    watch,
-    setError: setLocalError,
-    clearErrors: clearLocalErrors,
-    setValue,
-    trigger,
-    getValues,
-  } = useForm();
+  const { control, formState: localFormState, watch, setError: setLocalError, clearErrors: clearLocalErrors, setValue, trigger, getValues } = useForm(
+    {
+      defaultValues: {
+        serviceType: connectionDetail?.serviceType || { code: "WATER", i18nKey: "WS_APPLICATION_TYPE_WATER" },
+        categoryType: connectionDetail?.categoryType || { code: "DOMESTIC", i18nKey: "WS_CATEGORY_DOMESTIC" },
+        connectionType: connectionDetail?.connectionType || { code: "Permanent", i18nKey: "WS_CONNECTION_Permanent" },
+        temporaryType: connectionDetail?.temporaryType || { code: "Exhibition", i18nKey: "Exhibition" },
+        waterDemandType: connectionDetail?.waterDemandType || { code: "BULK", i18nKey: "WS_WATER_DEMAND_BULK" },
+        applicantType: connectionDetail?.applicantType || { code: "OWNER", i18nKey: "WS_APPLICANT_OWNER" },
+        domesticType: connectionDetail?.domesticType || { i18nKey: "WS_DOMESTIC_TYPE_DOMESTIC", code: "INDIVIDUAL" },
+        departmentType: connectionDetail?.departmentType || { i18nKey: "WS_DEPARTMENT_TYPE_GOVERNMENT", code: "GOVERNMENT" },
+        institutionName: connectionDetail?.institutionName || "",
+        natureOfWork: connectionDetail?.natureOfWork || "",
+        orgDeptDocument: connectionDetail?.orgDeptDocument || "",
+      },
+    }
+  );
   const formValue = watch();
   const { errors } = localFormState;
+
+  const [uploadedFile, setUploadedFile] = useState(connectionDetail?.orgDeptDocument || null);
+  const [file, setFile] = useState(null);
+  const [fileUploadError, setFileUploadError] = useState(null);
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [docFileUrl, setDocFileUrl] = useState("");
+  const [docFileType, setDocFileType] = useState("");
+
+  const handleSelectFile = (e) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size >= 5242880) {
+        setFileUploadError(t("CS_MAXIMUM_UPLOAD_SIZE_EXCEEDED") || "Maximum file size exceeded (5MB)");
+      } else {
+        setFile(selectedFile);
+        setFileUploadError(null);
+      }
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (file) {
+        try {
+          const response = await Digit.UploadServices.Filestorage("WS", file, Digit.ULBService.getStateId());
+          if (response?.data?.files?.length > 0) {
+            const fsId = response?.data?.files[0]?.fileStoreId;
+            setUploadedFile(fsId);
+            setValue("orgDeptDocument", fsId);
+          } else {
+            setFileUploadError(t("CS_FILE_UPLOAD_ERROR") || "File Upload Error");
+          }
+        } catch (err) {
+          setFileUploadError(t("CS_FILE_UPLOAD_ERROR") || "File Upload Error");
+        }
+      }
+    })();
+  }, [file]);
+
+  const viewDocument = async () => {
+    if (uploadedFile) {
+      try {
+        const res = await Digit.UploadServices.FileFetchbyid(uploadedFile, Digit.ULBService.getStateId());
+        if (res?.data) {
+          const blob =
+            res.data instanceof Blob
+              ? res.data
+              : new Blob([res.data], { type: res.headers["content-type"] || res.headers["Content-Type"] || "image/jpeg" });
+          const fileURL = URL.createObjectURL(blob);
+          setDocFileUrl(fileURL);
+          const contentType = res.headers["content-type"] || res.headers["Content-Type"] || "";
+          if (contentType.toLowerCase().includes("pdf")) {
+            setDocFileType("pdf");
+          } else {
+            setDocFileType("image");
+          }
+          setShowDocModal(true);
+        }
+      } catch (err) {
+        console.error("Failed to fetch file URL via FileFetchbyid", err);
+      }
+    }
+  };
 
   useEffect(() => {
     trigger();
@@ -149,7 +293,7 @@ const ConnectionDetails = (_props) => {
           }
         });
         if (isErrorsFound) setIsErrors(true);
-        let ob = [{ ...formValue }];
+        let ob = [{ ...connectionDetail, ...formValue }];
         setConnectionDetails(ob);
         trigger();
       }
@@ -186,122 +330,102 @@ const ConnectionDetails = (_props) => {
     }
   }, [errors]);
 
-  const errorStyle = { width: "70%", marginLeft: "30%", fontSize: "12px", marginTop: "-21px" };
   const isMobile = window.Digit.Utils.browser.isMobile();
   const isEmployee = window.location.href.includes("/employee");
-  const titleStyle = isMobile
-    ? { marginBottom: "40px", color: "#505A5F", fontWeight: "700", fontSize: "16px" }
-    : { marginTop: "-40px", marginBottom: "40px", color: "#505A5F", fontWeight: "700", fontSize: "16px" };
   return (
-    <div style={{ marginBottom: "16px" }} className="formcomposer-section-grid">
-      <div>
-        <CardLabel style={{ fontWeight: "700" }}>{`${t("WS_APPLY_FOR")}*`}</CardLabel>
-        <div style={{ display: "flex", gap: "0 3rem" }}>
+    <CollapsibleCardPage title={t("WS_CONNECTION_DETAILS")} defaultOpen={true}>
+      <div className="formcomposer-section-grid">
+        <LabelFieldPair>
+          <CardLabel>{`${t("WS_SERVICE_TYPE")}*`}</CardLabel>
           <Controller
             control={control}
-            name="water"
-            defaultValue={connectionDetail?.water}
+            name={"serviceType"}
+            defaultValue={connectionDetail?.serviceType || ""}
+            rules={{ required: t("REQUIRED_FIELD") }}
             isMandatory={true}
             render={(props) => (
-              <CheckBox
-                label={t("WATER_CONNECTION")}
-                name={"water"}
-                autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "water"}
-                errorStyle={localFormState.touched.water && errors?.water?.message ? true : false}
-                onChange={(e) => {
-                  if (e.target.checked || connectionDetail?.sewerage) {
-                    props.onChange(e.target.checked);
-                    setFocusIndex({ index: connectionDetail?.key, type: "water" });
-                  }
+              <Dropdown
+                className="form-field"
+                selected={getValues("serviceType")}
+                disable={false}
+                option={applicationTypeList}
+                errorStyle={localFormState.touched.serviceType && errors?.serviceType?.message ? true : false}
+                select={(e) => {
+                  props.onChange(e);
                 }}
-                checked={connectionDetail?.water}
-                style={{ paddingBottom: "10px", paddingTop: "3px" }}
+                optionKey="i18nKey"
                 onBlur={props.onBlur}
+                t={t}
               />
             )}
           />
+        </LabelFieldPair>
+        <LabelFieldPair>
+          <CardLabel>{`${t("WS_CATEGORY_TYPE")}*`}</CardLabel>
           <Controller
             control={control}
-            name="sewerage"
-            defaultValue={connectionDetail?.sewerage}
-            type="number"
+            name={"categoryType"}
+            defaultValue={connectionDetail?.categoryType || ""}
+            rules={{ required: t("REQUIRED_FIELD") }}
             isMandatory={true}
             render={(props) => (
-              <CheckBox
-                label={t("SEWERAGE_CONNECTION")}
-                name={"sewerage"}
-                autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "sewerage"}
-                errorStyle={localFormState.touched.sewerage && errors?.sewerage?.message ? true : false}
-                onChange={(e) => {
-                  if (e.target.checked || connectionDetail?.water) {
-                    props.onChange(e.target.checked);
-                    setFocusIndex({ index: connectionDetail?.key, type: "sewerage" });
-                  }
+              <Dropdown
+                className="form-field"
+                selected={getValues("categoryType")}
+                disable={false}
+                option={categoryTypeList}
+                errorStyle={localFormState.touched.categoryType && errors?.categoryType?.message ? true : false}
+                select={(e) => {
+                  props.onChange(e);
                 }}
-                checked={connectionDetail?.sewerage}
-                style={{ paddingBottom: "10px", paddingTop: "3px" }}
+                optionKey="i18nKey"
                 onBlur={props.onBlur}
+                t={t}
               />
             )}
           />
-        </div>
-      </div>
-      {connectionDetail?.water && (
-        <React.Fragment>
-          <LabelFieldPair>
-            <CardLabel
-              style={isMobile && isEmployee ? { fontWeight: "700", width: "100%" } : { fontWeight: "700" }}
-              className="card-label-smaller"
-            >{`${t("WS_NO_OF_PROPOSED_TAPS_LABEL")}*`}</CardLabel>
-            <div className="field">
-              <Controller
-                control={control}
-                name="proposedTaps"
-                defaultValue={connectionDetail?.proposedTaps}
-                rules={{
-                  validate: (e) => ((parseInt(e) > 0 && e && getPattern("WSOnlyNumbers").test(e)) || !e ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG")),
-                  required: t("REQUIRED_FIELD"),
+        </LabelFieldPair>
+        <LabelFieldPair>
+          <CardLabel>{`${t("WS_CONNECTION_TYPE")}*`}</CardLabel>
+          <Controller
+            control={control}
+            name={"connectionType"}
+            defaultValue={connectionDetail?.connectionType || ""}
+            rules={{ required: t("REQUIRED_FIELD") }}
+            isMandatory={true}
+            render={(props) => (
+              <Dropdown
+                className="form-field"
+                selected={getValues("connectionType")}
+                disable={false}
+                option={connectionTypeList}
+                errorStyle={localFormState.touched.connectionType && errors?.connectionType?.message ? true : false}
+                select={(e) => {
+                  props.onChange(e);
                 }}
-                type="number"
-                isMandatory={true}
-                render={(props) => (
-                  <TextInput
-                    type="number"
-                    value={props.value}
-                    autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "proposedTaps"}
-                    errorStyle={localFormState.touched.proposedTaps && errors?.proposedTaps?.message ? true : false}
-                    onChange={(e) => {
-                      props.onChange(e.target.value);
-                      setFocusIndex({ index: connectionDetail?.key, type: "proposedTaps" });
-                    }}
-                    labelStyle={{ marginTop: "unset" }}
-                    onBlur={props.onBlur}
-                  />
-                )}
+                optionKey="i18nKey"
+                onBlur={props.onBlur}
+                t={t}
               />
-            </div>
-          </LabelFieldPair>
-          {localFormState.touched.proposedTaps && errors?.proposedTaps?.message ? (
-            <CardLabelError style={errorStyle}>{localFormState.touched.proposedTaps ? errors?.proposedTaps?.message : ""}</CardLabelError>
-          ) : null}
+            )}
+          />
+        </LabelFieldPair>
+        {formValue?.connectionType?.code === "Temporary" && (
           <LabelFieldPair>
-            <CardLabel
-              style={isMobile && isEmployee ? { fontWeight: "700", width: "100%", paddingTop: "10px" } : { fontWeight: "700" }}
-              className="card-label-smaller"
-            >{`${t("WS_PROPOSED_PIPE_SIZE_IN_INCHES_LABEL")}*`}</CardLabel>
+            <CardLabel>{`${t("WS_TEMPORARY_TYPE")}*`}</CardLabel>
             <Controller
               control={control}
-              name={"proposedPipeSize"}
-              defaultValue={connectionDetail?.proposedPipeSize}
+              name={"temporaryType"}
+              defaultValue={connectionDetail?.temporaryType || ""}
               rules={{ required: t("REQUIRED_FIELD") }}
               isMandatory={true}
               render={(props) => (
                 <Dropdown
                   className="form-field"
-                  selected={getValues("proposedPipeSize")}
+                  selected={getValues("temporaryType")}
                   disable={false}
-                  option={pipeSizeList}
-                  errorStyle={localFormState.touched.proposedPipeSize && errors?.proposedPipeSize?.message ? true : false}
+                  option={temporaryTypeList}
+                  errorStyle={localFormState.touched.temporaryType && errors?.temporaryType?.message ? true : false}
                   select={(e) => {
                     props.onChange(e);
                   }}
@@ -312,86 +436,241 @@ const ConnectionDetails = (_props) => {
               )}
             />
           </LabelFieldPair>
-          {localFormState.touched.proposedPipeSize && errors?.proposedPipeSize?.message ? (
-            <CardLabelError style={errorStyle}>{localFormState.touched.proposedPipeSize ? errors?.proposedPipeSize?.message : ""}</CardLabelError>
-          ) : null}
-        </React.Fragment>
-      )}
-      {connectionDetail?.sewerage && (
-        <div>
-          <LabelFieldPair>
-            <CardLabel
-              style={isMobile && isEmployee ? { fontWeight: "700", width: "100%" } : { fontWeight: "700" }}
-              className="card-label-smaller"
-            >{`${t("WS_PROPOSED_WATER_CLOSETS_LABEL")}*`}</CardLabel>
-            <div className="field">
-              <Controller
-                control={control}
-                name="proposedWaterClosets"
-                defaultValue={connectionDetail?.proposedWaterClosets}
-                rules={{
-                  validate: (e) => ((parseInt(e) > 0 && e && getPattern("WSOnlyNumbers").test(e)) || !e ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG")),
-                  required: t("REQUIRED_FIELD"),
+        )}
+        <LabelFieldPair>
+          <CardLabel>{`${t("WS_WATER_DEMAND_TYPE")}*`}</CardLabel>
+          <Controller
+            control={control}
+            name={"waterDemandType"}
+            defaultValue={connectionDetail?.waterDemandType || ""}
+            rules={{ required: t("REQUIRED_FIELD") }}
+            isMandatory={true}
+            render={(props) => (
+              <Dropdown
+                className="form-field"
+                selected={getValues("waterDemandType")}
+                disable={false}
+                option={waterDemandTypeList}
+                errorStyle={localFormState.touched.waterDemandType && errors?.waterDemandType?.message ? true : false}
+                select={(e) => {
+                  props.onChange(e);
                 }}
-                type="number"
-                isMandatory={true}
-                render={(props) => (
-                  <TextInput
-                    type="number"
-                    value={props.value}
-                    autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "proposedWaterClosets"}
-                    errorStyle={localFormState.touched.proposedWaterClosets && errors?.proposedWaterClosets?.message ? true : false}
-                    onChange={(e) => {
-                      props.onChange(e.target.value);
-                      setFocusIndex({ index: connectionDetail?.key, type: "proposedWaterClosets" });
-                    }}
-                    labelStyle={{ marginTop: "unset" }}
-                    onBlur={props.onBlur}
-                  />
-                )}
+                optionKey="i18nKey"
+                onBlur={props.onBlur}
+                t={t}
               />
-            </div>
-          </LabelFieldPair>
-          <CardLabelError style={errorStyle}>
-            {localFormState.touched.proposedWaterClosets ? errors?.proposedWaterClosets?.message : ""}
-          </CardLabelError>
-          <LabelFieldPair>
-            <CardLabel
-              style={isMobile && isEmployee ? { fontWeight: "700", width: "100%" } : { fontWeight: "700" }}
-              className="card-label-smaller"
-            >{`${t("WS_PROPOSED_WATER_TOILETS_LABEL")}*`}</CardLabel>
-            <div className="field">
-              <Controller
-                control={control}
-                name="proposedToilets"
-                defaultValue={connectionDetail?.proposedToilets}
-                rules={{
-                  validate: (e) => ((parseInt(e) > 0 && e && getPattern("WSOnlyNumbers").test(e)) || !e ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG")),
-                  required: t("REQUIRED_FIELD"),
+            )}
+          />
+        </LabelFieldPair>
+        <LabelFieldPair>
+          <CardLabel>{`${t("WS_APPLICANT_TYPE")}*`}</CardLabel>
+          <Controller
+            control={control}
+            name={"applicantType"}
+            defaultValue={connectionDetail?.applicantType || ""}
+            rules={{ required: t("REQUIRED_FIELD") }}
+            isMandatory={true}
+            render={(props) => (
+              <Dropdown
+                className="form-field"
+                selected={getValues("applicantType")}
+                disable={false}
+                option={applicantTypeList}
+                errorStyle={localFormState.touched.applicantType && errors?.applicantType?.message ? true : false}
+                select={(e) => {
+                  props.onChange(e);
                 }}
-                type="number"
-                isMandatory={true}
-                render={(props) => (
-                  <TextInput
-                    type="number"
-                    value={props.value}
-                    autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "proposedToilets"}
-                    errorStyle={localFormState.touched.proposedToilets && errors?.proposedToilets?.message ? true : false}
-                    onChange={(e) => {
-                      props.onChange(e.target.value);
-                      setFocusIndex({ index: connectionDetail?.key, type: "proposedToilets" });
-                    }}
-                    labelStyle={{ marginTop: "unset" }}
-                    onBlur={props.onBlur}
-                  />
-                )}
+                optionKey="i18nKey"
+                onBlur={props.onBlur}
+                t={t}
               />
+            )}
+          />
+        </LabelFieldPair>
+        <LabelFieldPair>
+          <CardLabel>{`${
+            formValue?.categoryType?.code === "NON_DOMESTIC" || formValue?.categoryType?.name === "Non-Domestic"
+              ? t("WS_NON_DOMESTIC_TYPE")
+              : t("WS_DOMESTIC_TYPE")
+          }*`}</CardLabel>
+          <div className="field">
+            <Controller
+              control={control}
+              name={"domesticType"}
+              defaultValue={connectionDetail?.domesticType || ""}
+              rules={{ required: t("REQUIRED_FIELD") }}
+              isMandatory={true}
+              render={(props) => (
+                <RadioButtons
+                  className="form-field"
+                  style={{ display: "flex", gap: "2rem", alignItems: "center" }}
+                  options={[
+                    { i18nKey: "WS_DOMESTIC_TYPE_DOMESTIC", code: "INDIVIDUAL" },
+                    { i18nKey: "WS_DOMESTIC_TYPE_NON_DOMESTIC", code: "ORGANIZATION" },
+                  ]}
+                  optionsKey="i18nKey"
+                  selectedOption={getValues("domesticType")}
+                  onSelect={(e) => {
+                    props.onChange(e);
+                  }}
+                  t={t}
+                  isDependent={true}
+                />
+              )}
+            />
+          </div>
+        </LabelFieldPair>
+        {formValue?.domesticType?.code === "ORGANIZATION" && (
+          <React.Fragment>
+            <LabelFieldPair>
+              <CardLabel>{`${t("WS_DEPARTMENT_TYPE")}*`}</CardLabel>
+              <div className="field">
+                <Controller
+                  control={control}
+                  name={"departmentType"}
+                  defaultValue={connectionDetail?.departmentType || { i18nKey: "WS_DEPARTMENT_TYPE_GOVERNMENT", code: "GOVERNMENT" }}
+                  rules={{ required: t("REQUIRED_FIELD") }}
+                  isMandatory={true}
+                  render={(props) => (
+                    <RadioButtons
+                      className="form-field"
+                      style={{ display: "flex", gap: "2rem", alignItems: "center" }}
+                      options={[
+                        { i18nKey: "WS_DEPARTMENT_TYPE_GOVERNMENT", code: "GOVERNMENT" },
+                        { i18nKey: "WS_DEPARTMENT_TYPE_NON_GOVERNMENT", code: "NON_GOVERNMENT" },
+                      ]}
+                      optionsKey="i18nKey"
+                      selectedOption={getValues("departmentType")}
+                      onSelect={(e) => {
+                        props.onChange(e);
+                      }}
+                      t={t}
+                      isDependent={true}
+                    />
+                  )}
+                />
+              </div>
+            </LabelFieldPair>
+            <div style={{ color: "#3257F2", fontWeight: "700", fontSize: "1.5rem", gridColumn: "span 2" }}>
+              {t("WS_DEPARTMENT_ORGANIZATION_DETAILS")}
             </div>
-          </LabelFieldPair>
-          <CardLabelError style={errorStyle}>{localFormState.touched.proposedToilets ? errors?.proposedToilets?.message : ""}</CardLabelError>
-        </div>
+            <LabelFieldPair>
+              <CardLabel>{`${t("WS_ORGANIZATION_DEPARTMENT_NAME")}*`}</CardLabel>
+              <div className="field">
+                <Controller
+                  control={control}
+                  name="institutionName"
+                  defaultValue={connectionDetail?.institutionName || ""}
+                  rules={{ required: t("REQUIRED_FIELD") }}
+                  isMandatory={true}
+                  render={(props) => (
+                    <TextInput
+                      value={props.value}
+                      placeholder={t("WS_ORGANIZATION_DEPARTMENT_NAME_PLACEHOLDER")}
+                      autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "institutionName"}
+                      errorStyle={localFormState.touched.institutionName && errors?.institutionName?.message ? true : false}
+                      onChange={(e) => {
+                        props.onChange(e.target.value);
+                        setFocusIndex({ index: connectionDetail?.key, type: "institutionName" });
+                      }}
+                      onBlur={props.onBlur}
+                    />
+                  )}
+                />
+              </div>
+            </LabelFieldPair>
+            <LabelFieldPair>
+              <CardLabel>{`${t("WS_NATURE_OF_WORK")}*`}</CardLabel>
+              <div className="field">
+                <Controller
+                  control={control}
+                  name="natureOfWork"
+                  defaultValue={connectionDetail?.natureOfWork || ""}
+                  rules={{ required: t("REQUIRED_FIELD") }}
+                  isMandatory={true}
+                  render={(props) => (
+                    <TextInput
+                      value={props.value}
+                      placeholder={t("WS_NATURE_OF_WORK_PLACEHOLDER")}
+                      autoFocus={focusIndex.index === connectionDetail?.key && focusIndex.type === "natureOfWork"}
+                      errorStyle={localFormState.touched.natureOfWork && errors?.natureOfWork?.message ? true : false}
+                      onChange={(e) => {
+                        props.onChange(e.target.value);
+                        setFocusIndex({ index: connectionDetail?.key, type: "natureOfWork" });
+                      }}
+                      onBlur={props.onBlur}
+                    />
+                  )}
+                />
+              </div>
+            </LabelFieldPair>
+            <LabelFieldPair>
+              <CardLabel>{`${t("WS_ORG_DEPT_DOCUMENT")}*`}</CardLabel>
+              <div className="field" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <div style={{ flex: 1 }}>
+                  <Controller
+                    control={control}
+                    name="orgDeptDocument"
+                    defaultValue={connectionDetail?.orgDeptDocument || ""}
+                    rules={{ required: t("REQUIRED_FIELD") }}
+                    isMandatory={true}
+                    render={(props) => (
+                      <UploadFile
+                        id={"orgDeptDocument"}
+                        onUpload={handleSelectFile}
+                        onDelete={() => {
+                          setUploadedFile(null);
+                          setFile(null);
+                          props.onChange(null);
+                        }}
+                        message={uploadedFile ? `1 ${t("WS_ACTION_FILEUPLOADED")}` : t("WS_ACTION_NO_FILEUPLOADED")}
+                        accept="image/*, .pdf"
+                      />
+                    )}
+                  />
+                </div>
+                {uploadedFile && (
+                  <div onClick={viewDocument} style={{ cursor: "pointer" }}>
+                    <ViewsIcon />
+                  </div>
+                )}
+              </div>
+            </LabelFieldPair>
+            {fileUploadError && <div style={{ color: "red", fontSize: "12px", marginTop: "4px" }}>{fileUploadError}</div>}
+          </React.Fragment>
+        )}
+      </div>
+      {showDocModal && (
+        <Modal
+          open={showDocModal}
+          headerBarMain={t("WS_VIEW_DOCUMENT") || "View Document"}
+          headerBarEnd={
+            <div className="icon-bg-secondary" onClick={() => setShowDocModal(false)} style={{ cursor: "pointer", padding: "5px" }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF" width="24" height="24">
+                <path d="M0 0h24v24H0V0z" fill="none" />
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+              </svg>
+            </div>
+          }
+          center
+          actionCancelOnSubmit={() => setShowDocModal(false)}
+          actionCancelLabel={t("CS_COMMON_CLOSE") || "Close"}
+          popupStyles={{ width: "80%", maxWidth: "800px" }}
+        >
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "20px", minHeight: "300px" }}>
+            {docFileType === "pdf" ? (
+              <iframe src={docFileUrl} title="Document Preview" width="100%" height="500px" style={{ border: "none" }} />
+            ) : (
+              <img
+                src={docFileUrl}
+                alt="Document Preview"
+                style={{ maxWidth: "100%", maxHeight: "500px", objectFit: "contain", borderRadius: "4px" }}
+              />
+            )}
+          </div>
+        </Modal>
       )}
-    </div>
+    </CollapsibleCardPage>
   );
 };
 

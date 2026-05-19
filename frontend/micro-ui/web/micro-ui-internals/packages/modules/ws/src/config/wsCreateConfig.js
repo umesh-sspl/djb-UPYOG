@@ -195,7 +195,7 @@ export const newConfig = [
       ],
     },
     {
-      head: "WS_COMMON_PROPERTY_DETAILS",
+      // head: "WS_COMMON_PROPERTY_DETAILS",
       isEditConnection: true,
       isCreateConnection: true,
       isModifyConnection: true,
@@ -248,8 +248,8 @@ export const newConfig = [
       }]
     },
     {
-      head: "WS_COMMON_CONNECTION_DETAIL",
-      subHead: "WS_CONNECTION_DETAILS_HEADER_SUB_TEXT_LABEL",
+      // head: "WS_COMMON_CONNECTION_DETAIL",
+      // subHead: "WS_CONNECTION_DETAILS_HEADER_SUB_TEXT_LABEL",
       isEditConnection: false,
       isCreateConnection: true,
       body: [{
@@ -343,7 +343,7 @@ export const newConfig = [
       ],
     },
     {
-      head: "WS_COMMON_PROPERTY_DETAILS",
+      // head: "WS_COMMON_PROPERTY_DETAILS",
       isEditConnection: true,
       isCreateConnection: true,
       isModifyConnection: true,
@@ -396,7 +396,7 @@ export const newConfig = [
       }]
     },
     {
-      head: "WS_COMMON_CONNECTION_DETAIL",
+      // head: "WS_COMMON_CONNECTION_DETAIL",
       isEditConnection: false,
       isCreateConnection: true,
       body: [{
@@ -490,7 +490,7 @@ export const newConfig = [
       ],
     },
     {
-      head: "WS_COMMON_PROPERTY_DETAILS",
+      // head: "WS_COMMON_PROPERTY_DETAILS",
       isEditConnection: true,
       isCreateConnection: true,
       isModifyConnection: true,
@@ -543,7 +543,7 @@ export const newConfig = [
       }]
     },
     {
-      head: "WS_COMMON_CONNECTION_DETAIL",
+      // head: "WS_COMMON_CONNECTION_DETAIL",
       isEditConnection: false,
       isCreateConnection: true,
       body: [{
@@ -637,7 +637,7 @@ export const newConfig = [
       ],
     },
     {
-      head: "WS_COMMON_PROPERTY_DETAILS",
+      // head: "WS_COMMON_PROPERTY_DETAILS",
       isEditConnection: true,
       isCreateConnection: true,
       isModifyConnection: true,

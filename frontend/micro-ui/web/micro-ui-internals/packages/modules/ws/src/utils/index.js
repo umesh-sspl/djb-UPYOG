@@ -241,7 +241,8 @@ export const createPayloadOfWS = async (data) => {
     if (owner?.permanentAddress) owner.correspondenceAddress = owner?.permanentAddress;
   });
 
-  const serviceType = data?.applicationSelection?.serviceType?.code;
+  const srvObj = data?.applicationSelection?.serviceType || data?.ConnectionDetails?.[0]?.serviceType;
+  const serviceType = (typeof srvObj === "object" ? srvObj?.code : srvObj)?.toUpperCase() || "WATER";
   const connectionDetailsArray = Array.isArray(data?.ConnectionDetails)
     ? data.ConnectionDetails
     : data?.ConnectionDetails
@@ -249,8 +250,8 @@ export const createPayloadOfWS = async (data) => {
     : [];
   const connectionDetail = connectionDetailsArray?.[0] || data?.ConnectionDetails || {};
 
-  const isWater = serviceType === "WATER" || serviceType === "BOTH" || connectionDetail?.water;
-  const isSewerage = serviceType === "SEWERAGE" || serviceType === "BOTH" || connectionDetail?.sewerage;
+  const isWater = serviceType?.includes("WATER") || serviceType === "BOTH" || connectionDetail?.water;
+  const isSewerage = serviceType?.includes("SEWERAGE") || serviceType === "BOTH" || connectionDetail?.sewerage;
 
   const connectionDetailsObject = connectionDetail;
   const useDetailsObject = data?.useDetails || connectionDetailsObject || {};
@@ -283,10 +284,14 @@ export const createPayloadOfWS = async (data) => {
             gender: connectionHolder?.gender?.code || connectionHolder?.gender || "",
             mobileNumber: connectionHolder?.mobileNumber || data?.cpt?.details?.owners?.[0]?.mobileNumber || "",
             name: connectionHolder?.name || "",
+            middleName: connectionHolder?.middleName || "",
+            lastName: connectionHolder?.lastName || "",
+            emailId: connectionHolder?.emailId || "",
+            watsAppMobileNumber: connectionHolder?.watsAppMobileNumber || "",
+            isWatsappSameAsMobile: connectionHolder?.isWatsappSameAsMobile || false,
             ownerType: connectionHolder?.ownerType?.code || connectionHolder?.ownerType || "",
             relationship: connectionHolder?.relationship?.code || connectionHolder?.relationship || "OTHERS",
             sameAsPropertyAddress: connectionHolder?.sameAsOwnerDetails || connectionHolder?.sameAsPropertyAddress || false,
-            emailId: connectionHolder?.emailId || "",
           },
         ]
       : [
@@ -296,6 +301,8 @@ export const createPayloadOfWS = async (data) => {
             gender: data?.useDetails?.gender?.code || "",
             mobileNumber: data?.contact?.mobileNumber || "",
             name: `${data?.applicant?.firstName} ${data?.applicant?.middleName || ""} ${data?.applicant?.lastName}`.replace(/\s+/g, " ").trim(),
+            watsAppMobileNumber: data?.contact?.watsAppMobileNumber || "",
+            isWatsappSameAsMobile: data?.contact?.isWatsappSameAsMobile || false,
             ownerType: data?.applicationSelection?.categoryType?.code || "",
             relationship: "OTHERS",
             sameAsPropertyAddress: true,
@@ -303,7 +310,27 @@ export const createPayloadOfWS = async (data) => {
           },
         ],
     service: isWater && !isSewerage ? "Water" : !isWater && isSewerage ? "Sewerage" : "Water And Sewerage",
-    property: data?.cpt?.details,
+    property: {
+      ...data?.cpt?.details,
+      address: {
+        ...data?.cpt?.details?.address,
+        city: data?.propertyAddress?.city?.code || data?.propertyAddress?.city || data?.cpt?.details?.address?.city,
+        locality: data?.propertyAddress?.locality || data?.cpt?.details?.address?.locality,
+        pincode: data?.propertyAddress?.pinCode || data?.cpt?.details?.address?.pincode,
+        doorNo: data?.propertyAddress?.houseNo || data?.cpt?.details?.address?.doorNo,
+        street: data?.propertyAddress?.street || data?.cpt?.details?.address?.street,
+        landmark: data?.propertyAddress?.landmark || data?.cpt?.details?.address?.landmark,
+        latitude: data?.propertyAddress?.Latitude || data?.cpt?.details?.address?.latitude,
+        longitude: data?.propertyAddress?.Longitude || data?.cpt?.details?.address?.longitude,
+        buildingName: data?.propertyAddress?.address || data?.cpt?.details?.address?.buildingName,
+        additionalDetails: {
+          ...data?.cpt?.details?.address?.additionalDetails,
+          assembly: data?.propertyAddress?.Assembly || data?.cpt?.details?.address?.additionalDetails?.assembly,
+          block: data?.propertyAddress?.block || data?.cpt?.details?.address?.additionalDetails?.block,
+          zone: data?.propertyAddress?.zone || data?.cpt?.details?.address?.additionalDetails?.zone,
+        },
+      },
+    },
     propertyId: data?.cpt?.details?.propertyId,
     roadCuttingInfo: data?.roadCuttingDetails
       ?.filter((o) => o?.roadType?.code !== "")
@@ -335,6 +362,8 @@ export const createPayloadOfWS = async (data) => {
       ...useDetailsObject,
       ...data?.djbEmployee,
       ...data?.bankDetails,
+      ...data?.declarationData,
+      ...data?.declaration,
       zro: data?.zro?.code || data?.zro,
       locality: data?.propertyAddress?.locality?.code || data?.cpt?.details?.address?.locality?.code,
       detailsProvidedBy: data?.plumberDetails?.[0]?.detailsProvidedBy?.code || data?.plumberDetails?.[0]?.detailsProvidedBy || "",
@@ -353,6 +382,7 @@ export const createPayloadOfWS = async (data) => {
       isOwnerVerified: data?.applicationSelection?.isOwnerVerified,
       commercialType: data?.applicationSelection?.commercialType?.code,
       govtOrganization: data?.applicationSelection?.govtOrganization,
+      departmentType: data?.applicationSelection?.departmentType?.code,
       governmentEmployee: data?.governmentEmployee,
       whatsAppNumber: data?.contact?.whatsAppNumber,
       identityProofNumber: data?.documents?.identityProofNumber,
@@ -366,7 +396,7 @@ export const createPayloadOfWS = async (data) => {
     },
     channel: Digit.UserService.getType() === "CITIZEN" ? "CITIZEN" : "CFC_COUNTER",
   };
-  sessionStorage.setItem("WS_DOCUMENTS_INOF", JSON.stringify(data?.documents || []));
+  sessionStorage.setItem("WS_DOCUMENTS_INOF", JSON.stringify(data?.documents?.documents || data?.documents || []));
   sessionStorage.setItem("WS_PROPERTY_INOF", JSON.stringify(data?.cpt?.details || {}));
   /* use customiseCreateFormData hook to make some chnages to the water object */
   payload = Digit?.Customizations?.WS?.customiseCreatePayloadOfWS ? Digit?.Customizations?.WS?.customiseCreatePayloadOfWS(data, payload) : payload;
@@ -458,7 +488,10 @@ export const convertToEditWSUpdate = (data) => {
                 gender: data?.ConnectionHolderDetails?.gender?.code || "",
                 mobileNumber: data?.ConnectionHolderDetails?.mobileNumber || "",
                 name: data?.ConnectionHolderDetails?.name || "",
+                middleName: data?.ConnectionHolderDetails?.middleName || "",
+                lastName: data?.ConnectionHolderDetails?.lastName || "",
                 emailId: data?.ConnectionHolderDetails?.emailId || "",
+                watsAppMobileNumber: data?.ConnectionHolderDetails?.watsAppMobileNumber || "",
                 ownerType: data?.ConnectionHolderDetails?.specialCategoryType?.code || "",
                 relationship: data?.ConnectionHolderDetails?.relationship?.code || "",
                 sameAsPropertyAddress: data?.ConnectionHolderDetails?.sameAsOwnerDetails,
@@ -577,7 +610,10 @@ export const convertToEditSWUpdate = (data) => {
                 gender: data?.ConnectionHolderDetails?.gender?.code || "",
                 mobileNumber: data?.ConnectionHolderDetails?.mobileNumber || "",
                 name: data?.ConnectionHolderDetails?.name || "",
+                middleName: data?.ConnectionHolderDetails?.middleName || "",
+                lastName: data?.ConnectionHolderDetails?.lastName || "",
                 emailId: data?.ConnectionHolderDetails?.emailId || "",
+                watsAppMobileNumber: data?.ConnectionHolderDetails?.watsAppMobileNumber || "",
                 ownerType: data?.ConnectionHolderDetails?.specialCategoryType?.code || "",
                 relationship: data?.ConnectionHolderDetails?.relationship?.code || "",
                 sameAsPropertyAddress: data?.ConnectionHolderDetails?.sameAsOwnerDetails,
@@ -1260,8 +1296,12 @@ export const convertApplicationData = (data, serviceType, modify = false, editBy
             sameAsOwnerDetails: false,
             uuid: data?.applicationData?.connectionHolders?.[0]?.uuid,
             name: data?.applicationData?.connectionHolders?.[0]?.name || "",
+            middleName: data?.applicationData?.connectionHolders?.[0]?.middleName || "",
+            lastName: data?.applicationData?.connectionHolders?.[0]?.lastName || "",
             mobileNumber: data?.applicationData?.connectionHolders?.[0]?.mobileNumber || "",
             emailId: data?.applicationData?.connectionHolders?.[0]?.emailId || "",
+            watsAppMobileNumber: data?.applicationData?.connectionHolders?.[0]?.watsAppMobileNumber || "",
+            isWatsappSameAsMobile: (data?.applicationData?.connectionHolders?.[0]?.mobileNumber && data?.applicationData?.connectionHolders?.[0]?.mobileNumber === data?.applicationData?.connectionHolders?.[0]?.watsAppMobileNumber) ? true : false,
             guardian: data?.applicationData?.connectionHolders?.[0]?.fatherOrHusbandName || "",
             address: data?.applicationData?.connectionHolders?.[0]?.correspondenceAddress || "",
             gender: data?.applicationData?.connectionHolders?.[0]?.gender
@@ -1292,6 +1332,8 @@ export const convertApplicationData = (data, serviceType, modify = false, editBy
           {
             sameAsOwnerDetails: true,
             name: "",
+            middleName: "",
+            lastName: "",
             gender: "",
             mobileNumber: "",
             guardian: "",
@@ -1538,7 +1580,10 @@ export const convertEditApplicationDetails = async (data, appData, actionData) =
             gender: data?.ConnectionHolderDetails?.[0]?.gender?.code || "",
             mobileNumber: data?.ConnectionHolderDetails?.[0]?.mobileNumber || "",
             name: data?.ConnectionHolderDetails?.[0]?.name || "",
+            middleName: data?.ConnectionHolderDetails?.[0]?.middleName || "",
+            lastName: data?.ConnectionHolderDetails?.[0]?.lastName || "",
             emailId: data?.ConnectionHolderDetails?.[0]?.emailId || "",
+            watsAppMobileNumber: data?.ConnectionHolderDetails?.[0]?.watsAppMobileNumber || "",
             ownerType: data?.ConnectionHolderDetails?.[0]?.ownerType?.code || "",
             relationship: data?.ConnectionHolderDetails?.[0]?.relationship?.code || "",
             sameAsPropertyAddress: data?.ConnectionHolderDetails?.[0]?.sameAsOwnerDetails,
@@ -1724,7 +1769,10 @@ export const convertModifyApplicationDetails = async (data, appData, actionData 
         gender: data?.ConnectionHolderDetails?.[0]?.gender?.code || "",
         mobileNumber: data?.ConnectionHolderDetails?.[0]?.mobileNumber || "",
         name: data?.ConnectionHolderDetails?.[0]?.name || "",
+        middleName: data?.ConnectionHolderDetails?.[0]?.middleName || "",
+        lastName: data?.ConnectionHolderDetails?.[0]?.lastName || "",
         emailId: data?.ConnectionHolderDetails?.[0]?.emailId || "",
+        watsAppMobileNumber: data?.ConnectionHolderDetails?.[0]?.watsAppMobileNumber || "",
         ownerType: data?.ConnectionHolderDetails?.[0]?.ownerType?.code || "",
         relationship: data?.ConnectionHolderDetails?.[0]?.relationship?.code || "",
         sameAsPropertyAddress: data?.ConnectionHolderDetails?.[0]?.sameAsOwnerDetails,

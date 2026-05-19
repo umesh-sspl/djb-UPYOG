@@ -2,6 +2,7 @@ import {
   CardLabel,
   CardLabelError,
   CheckBox,
+  CollapsibleCardPage,
   Dropdown,
   LabelFieldPair,
   MobileNumber,
@@ -19,6 +20,8 @@ import { getPattern, stringReplaceAll } from "../utils";
 const createConnectionHolderDetails = () => ({
   sameAsOwnerDetails: true,
   name: "",
+  middleName: "",
+  lastName: "",
   gender: "",
   mobileNumber: "",
   guardian: "",
@@ -29,6 +32,8 @@ const createConnectionHolderDetails = () => ({
   documentType: "",
   file: "",
   emailId: "",
+  watsAppMobileNumber: "",
+  isWatsappSameAsMobile: false,
 });
 
 const WSConnectionHolderDetails = ({ config, onSelect, userType, formData, setError, formState, clearErrors }) => {
@@ -215,6 +220,8 @@ const ConnectionDetails = (_props) => {
   } = useForm();
   // const formValue = watch();
   const [name, setName] = useState(connectionHolderDetail?.name);
+  const [middleName, setMiddleName] = useState(connectionHolderDetail?.middleName);
+  const [lastName, setLastName] = useState(connectionHolderDetail?.lastName);
   const [gender, setGender] = useState(connectionHolderDetail?.gender);
   const [mobileNumber, setMobileNumber] = useState(connectionHolderDetail?.mobileNumber);
   const [guardian, setGuardian] = useState(connectionHolderDetail?.guardian);
@@ -224,7 +231,24 @@ const ConnectionDetails = (_props) => {
   const [sameAsOwnerDetails, setSameAsOwnerDetails] = useState(connectionHolderDetail?.sameAsOwnerDetails);
   const [uuid, setuuid] = useState(connectionHolderDetail?.uuid);
   const [emailId, setEmailId] = useState(connectionHolderDetail?.emailId);
-  const formValue = { name, gender, mobileNumber, guardian, relationship, ownerType, sameAsOwnerDetails, address, uuid, emailId };
+  const [watsAppMobileNumber, setWatsAppMobileNumber] = useState(connectionHolderDetail?.watsAppMobileNumber);
+  const [isWatsappSameAsMobile, setIsWatsappSameAsMobile] = useState(connectionHolderDetail?.isWatsappSameAsMobile || false);
+  const formValue = {
+    name,
+    middleName,
+    lastName,
+    gender,
+    mobileNumber,
+    guardian,
+    relationship,
+    ownerType,
+    sameAsOwnerDetails,
+    address,
+    uuid,
+    emailId,
+    watsAppMobileNumber,
+    isWatsappSameAsMobile,
+  };
   const { errors } = localFormState;
   const isMobile = window.Digit.Utils.browser.isMobile();
   const isEmployee = window.location.href.includes("/employee");
@@ -335,8 +359,8 @@ const ConnectionDetails = (_props) => {
   };
   const errorStyle = { width: "70%", marginLeft: "30%", fontSize: "12px", marginTop: "-21px" };
   return (
-    <div>
-      <div className="field">
+    <CollapsibleCardPage title={t("WS_CONNECTION_HOLDER_DETAILS")} defaultOpen={true}>
+      {/* <div className="field">
         <Controller
           control={control}
           name="sameAsOwnerDetails"
@@ -358,13 +382,13 @@ const ConnectionDetails = (_props) => {
             />
           )}
         />
-      </div>
+      </div> */}
 
       {!sameAsOwnerDetails ? (
         <div className="formcomposer-section-grid">
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_OWN_DETAIL_NAME")}*`}</CardLabel>
+              <CardLabel>{`${t("WS_OWN_DETAIL_NAME")}*`}</CardLabel>
               <Controller
                 control={control}
                 name="name"
@@ -424,7 +448,65 @@ const ConnectionDetails = (_props) => {
           </div>
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_CONN_HOLDER_OWN_DETAIL_GENDER_LABEL")}*`}</CardLabel>
+              <CardLabel>{`${t("WS_OWN_DETAIL_MIDDLE_NAME")}`}</CardLabel>
+              <Controller
+                control={control}
+                name="middleName"
+                defaultValue={connectionHolderDetail?.middleName}
+                render={(props) => (
+                  <div>
+                    <TextInput
+                      value={getValues("middleName")}
+                      autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "middleName"}
+                      errorStyle={localFormState.touched.middleName && errors?.middleName?.message ? true : false}
+                      onChange={(e) => {
+                        setMiddleName(e.target.value);
+                        props.onChange(e.target.value);
+                        setFocusIndex({ index: connectionHolderDetail?.key, type: "middleName" });
+                      }}
+                      labelStyle={{ marginTop: "unset" }}
+                      onBlur={props.onBlur}
+                    />
+                  </div>
+                )}
+              />
+            </LabelFieldPair>
+            {localFormState.touched.middleName && errors?.middleName?.message && (
+              <CardLabelError style={errorStyle}>{errors?.middleName?.message}</CardLabelError>
+            )}
+          </div>
+          <div>
+            <LabelFieldPair>
+              <CardLabel>{`${t("WS_OWN_DETAIL_LAST_NAME")}`}</CardLabel>
+              <Controller
+                control={control}
+                name="lastName"
+                defaultValue={connectionHolderDetail?.lastName}
+                render={(props) => (
+                  <div>
+                    <TextInput
+                      value={getValues("lastName")}
+                      autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "lastName"}
+                      errorStyle={localFormState.touched.lastName && errors?.lastName?.message ? true : false}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        props.onChange(e.target.value);
+                        setFocusIndex({ index: connectionHolderDetail?.key, type: "lastName" });
+                      }}
+                      labelStyle={{ marginTop: "unset" }}
+                      onBlur={props.onBlur}
+                    />
+                  </div>
+                )}
+              />
+            </LabelFieldPair>
+            {localFormState.touched.lastName && errors?.lastName?.message && (
+              <CardLabelError style={errorStyle}>{errors?.lastName?.message}</CardLabelError>
+            )}
+          </div>
+          <div>
+            <LabelFieldPair>
+              <CardLabel>{`${t("WS_CONN_HOLDER_OWN_DETAIL_GENDER_LABEL")}*`}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
@@ -486,81 +568,10 @@ const ConnectionDetails = (_props) => {
               <CardLabelError style={errorStyle}>{errors?.gender?.message}</CardLabelError>
             )}
           </div>
+
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("CORE_COMMON_MOBILE_NUMBER")}*`}</CardLabel>
-              <div className="field">
-                <Controller
-                  control={control}
-                  name="mobileNumber"
-                  defaultValue={connectionHolderDetail?.mobileNumber}
-                  rules={{
-                    validate: (e) =>
-                      (e && getPattern("MobileNoWithPrivacy").test(e)) || !e || e.includes("*") ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG"),
-                    required: t("REQUIRED_FIELD"),
-                  }}
-                  //type="number"
-                  isMandatory={true}
-                  render={(props) => {
-                    const mobileValue = getValues("mobileNumber");
-
-                    return (
-                      <div>
-                        <MobileNumber
-                          name="mobileNumber"
-                          value={mobileValue}
-                          autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "mobileNumber"}
-                          errorStyle={localFormState.touched.mobileNumber && errors?.mobileNumber?.message}
-                          onChange={(val) => {
-                            setMobileNumber(val);
-                            props.onChange(val);
-                            setFocusIndex({ index: connectionHolderDetail?.key, type: "mobileNumber" });
-                          }}
-                          onBlur={props.onBlur}
-                          hideSpan={false}
-                        />
-
-                        {checkifPrivacyValid() && (
-                          <div>
-                            <WrapUnMaskComponent
-                              value={mobileValue} // ✅ FIXED
-                              unmaskField={(e) => {
-                                props.onChange(e);
-                              }}
-                              iseyevisible={mobileValue?.includes("*")}
-                              privacy={{
-                                uuid: connectionHolderDetail?.uuid,
-                                fieldName: "connectionHoldersMobileNumber",
-                                model: "WnSConnectionOwner",
-                                loadData: {
-                                  serviceName: formData?.ConnectionDetails?.[0]?.water ? "/ws-services/wc/_search" : "/sw-services/swc/_search",
-                                  requestBody: {},
-                                  requestParam: {
-                                    tenantId: formData?.cpt?.details?.tenantId,
-                                    applicationNumber: formData?.ConnectionDetails?.[0]?.applicationNo,
-                                  },
-                                  jsonPath: formData?.ConnectionDetails?.[0]?.water
-                                    ? "WaterConnection[0].connectionHolders[0].mobileNumber"
-                                    : "SewerageConnections[0].connectionHolders[0].mobileNumber",
-                                  isArray: false,
-                                },
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
-              </div>
-            </LabelFieldPair>
-            {localFormState.touched.mobileNumber && errors?.mobileNumber?.message && (
-              <CardLabelError style={errorStyle}>{errors?.mobileNumber?.message}</CardLabelError>
-            )}
-          </div>
-          <div>
-            <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_OWN_DETAIL_GUARDIAN_LABEL")}*`}</CardLabel>
+              <CardLabel>{`${t("WS_OWN_DETAIL_GUARDIAN_LABEL")}*`}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
@@ -624,7 +635,7 @@ const ConnectionDetails = (_props) => {
           </div>
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_CONN_HOLDER_OWN_DETAIL_RELATION_LABEL")}*`}</CardLabel>
+              <CardLabel>{`${t("WS_CONN_HOLDER_OWN_DETAIL_RELATION_LABEL")}*`}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
@@ -688,135 +699,184 @@ const ConnectionDetails = (_props) => {
           </div>
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_CORRESPONDANCE_ADDRESS_LABEL")}*`}</CardLabel>
+              <CardLabel>{`${t("CORE_COMMON_MOBILE_NUMBER")}*`}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
-                  name="address"
-                  defaultValue={connectionHolderDetail?.address}
+                  name="mobileNumber"
+                  defaultValue={connectionHolderDetail?.mobileNumber}
                   rules={{
-                    validate: (e) => ((e && getPattern("Address").test(e)) || !e || e.includes("*") ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG")),
+                    validate: (e) =>
+                      (e && getPattern("MobileNoWithPrivacy").test(e)) || !e || e.includes("*") ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG"),
                     required: t("REQUIRED_FIELD"),
                   }}
+                  //type="number"
                   isMandatory={true}
-                  render={(props) => (
-                    <div>
-                      <TextInput
-                        value={getValues("address")}
-                        autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "address"}
-                        errorStyle={localFormState.touched.address && errors?.address?.message ? true : false}
-                        onChange={(e) => {
-                          setAddress(e.target.value);
-                          props.onChange(e.target.value);
-                          setFocusIndex({ index: connectionHolderDetail?.key, type: "address" });
-                        }}
-                        labelStyle={{ marginTop: "unset" }}
-                        onBlur={props.onBlur}
-                      />
-                      {checkifPrivacyValid() && (
-                        <div>
-                          <WrapUnMaskComponent
-                            unmaskField={(e) => {
-                              setAddress(e);
-                              props.onChange(e);
-                            }}
-                            iseyevisible={getValues("address")?.includes("*") ? true : false}
-                            privacy={{
-                              uuid: connectionHolderDetail?.uuid,
-                              fieldName: "correspondenceAddress",
-                              model: "WnSConnectionOwner",
-                              loadData: {
-                                serviceName: formData?.ConnectionDetails?.[0]?.water ? "/ws-services/wc/_search" : "/sw-services/swc/_search",
-                                requestBody: {},
-                                requestParam: {
-                                  tenantId: formData?.cpt?.details?.tenantId,
-                                  applicationNumber: formData?.ConnectionDetails?.[0]?.applicationNo,
+                  render={(props) => {
+                    const mobileValue = getValues("mobileNumber");
+
+                    return (
+                      <div>
+                        <MobileNumber
+                          name="mobileNumber"
+                          value={mobileValue}
+                          autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "mobileNumber"}
+                          errorStyle={localFormState.touched.mobileNumber && errors?.mobileNumber?.message}
+                          onChange={(val) => {
+                            setMobileNumber(val);
+                            props.onChange(val);
+                            setFocusIndex({ index: connectionHolderDetail?.key, type: "mobileNumber" });
+                            if (isWatsappSameAsMobile) {
+                              setWatsAppMobileNumber(val);
+                              setValue("watsAppMobileNumber", val);
+                            }
+                          }}
+                          onBlur={props.onBlur}
+                          hideSpan={false}
+                        />
+
+                        {checkifPrivacyValid() && (
+                          <div>
+                            <WrapUnMaskComponent
+                              value={mobileValue} // ✅ FIXED
+                              unmaskField={(e) => {
+                                props.onChange(e);
+                              }}
+                              iseyevisible={mobileValue?.includes("*")}
+                              privacy={{
+                                uuid: connectionHolderDetail?.uuid,
+                                fieldName: "connectionHoldersMobileNumber",
+                                model: "WnSConnectionOwner",
+                                loadData: {
+                                  serviceName: formData?.ConnectionDetails?.[0]?.water ? "/ws-services/wc/_search" : "/sw-services/swc/_search",
+                                  requestBody: {},
+                                  requestParam: {
+                                    tenantId: formData?.cpt?.details?.tenantId,
+                                    applicationNumber: formData?.ConnectionDetails?.[0]?.applicationNo,
+                                  },
+                                  jsonPath: formData?.ConnectionDetails?.[0]?.water
+                                    ? "WaterConnection[0].connectionHolders[0].mobileNumber"
+                                    : "SewerageConnections[0].connectionHolders[0].mobileNumber",
+                                  isArray: false,
                                 },
-                                jsonPath: formData?.ConnectionDetails?.[0]?.water
-                                  ? "WaterConnection[0].connectionHolders[0].correspondenceAddress"
-                                  : "SewerageConnections[0].connectionHolders[0].correspondenceAddress",
-                                isArray: false,
-                              },
-                            }}
-                          ></WrapUnMaskComponent>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
                 />
               </div>
             </LabelFieldPair>
-            {localFormState.touched.address && errors?.address?.message && (
-              <CardLabelError style={errorStyle}>{errors?.address?.message}</CardLabelError>
+            {localFormState.touched.mobileNumber && errors?.mobileNumber?.message && (
+              <CardLabelError style={errorStyle}>{errors?.mobileNumber?.message}</CardLabelError>
             )}
           </div>
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_OWNER_SPECIAL_CATEGORY")}*`}</CardLabel>
+              <CardLabel>{`${t("CORE_COMMON_WHATSAPP_MOBILE_NUMBER")}`}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
-                  name={"ownerType"}
-                  defaultValue={connectionHolderDetail?.ownerType}
-                  rules={{ required: t("REQUIRED_FIELD") }}
-                  //isMandatory={true}
+                  name="isWatsappSameAsMobile"
+                  defaultValue={isWatsappSameAsMobile}
                   render={(props) => (
-                    <div>
-                      <Dropdown
-                        className="form-field"
-                        selected={getValues("ownerType")}
-                        disable={false}
-                        option={Menu}
-                        errorStyle={localFormState.touched.ownerType && errors?.ownerType?.message ? true : false}
-                        select={(e) => {
-                          setOwnerType(e);
-                          props.onChange(e);
-                        }}
-                        optionKey="i18nKey"
-                        onBlur={props.onBlur}
-                        t={t}
-                      />
-                      {checkifPrivacyValid() && (
-                        <div>
-                          <WrapUnMaskComponent
-                            unmaskField={(e) => {
-                              const r = { code: e, i18nKey: `COMMON_MASTERS_OWNERTYPE_${e}`, name: e };
-                              setOwnerType(r);
-                              props.onChange(r);
-                            }}
-                            iseyevisible={ownerType?.i18nKey?.includes("*") ? true : false}
-                            privacy={{
-                              uuid: connectionHolderDetail?.uuid,
-                              fieldName: "ownerType",
-                              model: "WnSConnection",
-                              loadData: {
-                                serviceName: formData?.ConnectionDetails?.[0]?.water ? "/ws-services/wc/_search" : "/sw-services/swc/_search",
-                                requestBody: {},
-                                requestParam: {
-                                  tenantId: formData?.cpt?.details?.tenantId,
-                                  applicationNumber: formData?.ConnectionDetails?.[0]?.applicationNo,
-                                },
-                                jsonPath: formData?.ConnectionDetails?.[0]?.water
-                                  ? "WaterConnection[0].connectionHolders[0].ownerType"
-                                  : "SewerageConnections[0].connectionHolders[0].ownerType",
-                                isArray: false,
-                              },
-                            }}
-                          ></WrapUnMaskComponent>
-                        </div>
-                      )}
-                    </div>
+                    <CheckBox
+                      label={t("WS_SAME_AS_MOBILE_NUMBER")}
+                      name={"isWatsappSameAsMobile"}
+                      autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "isWatsappSameAsMobile"}
+                      errorStyle={localFormState.touched.isWatsappSameAsMobile && errors?.isWatsappSameAsMobile?.message ? true : false}
+                      onChange={(e) => {
+                        setIsWatsappSameAsMobile(e.target.checked);
+                        props.onChange(e.target.checked);
+                        setFocusIndex({ index: connectionHolderDetail?.key, type: "isWatsappSameAsMobile" });
+                        if (e.target.checked) {
+                          setWatsAppMobileNumber(mobileNumber);
+                          setValue("watsAppMobileNumber", mobileNumber);
+                        } else {
+                          setWatsAppMobileNumber("");
+                          setValue("watsAppMobileNumber", "");
+                        }
+                      }}
+                      checked={isWatsappSameAsMobile}
+                      onBlur={props.onBlur}
+                      style={{ paddingBottom: "10px" }}
+                    />
                   )}
+                />
+                <Controller
+                  control={control}
+                  name="watsAppMobileNumber"
+                  defaultValue={connectionHolderDetail?.watsAppMobileNumber}
+                  rules={{
+                    validate: (e) =>
+                      (e && getPattern("MobileNoWithPrivacy").test(e)) || !e || e.includes("*") ? true : t("ERR_DEFAULT_INPUT_FIELD_MSG"),
+                    required: t("REQUIRED_FIELD"),
+                  }}
+                  //type="number"
+                  isMandatory={true}
+                  render={(props) => {
+                    const watsAppmobileValue = getValues("watsAppMobileNumber");
+
+                    return (
+                      <div>
+                        <MobileNumber
+                          name="watsAppMobileNumber"
+                          value={watsAppmobileValue}
+                          autoFocus={focusIndex.index === connectionHolderDetail?.key && focusIndex.type === "watsAppMobileNumber"}
+                          errorStyle={localFormState.touched.watsAppMobileNumber && errors?.watsAppMobileNumber?.message}
+                          onChange={(val) => {
+                            setWatsAppMobileNumber(val);
+                            props.onChange(val);
+                            setFocusIndex({ index: connectionHolderDetail?.key, type: "watsAppMobileNumber" });
+                          }}
+                          onBlur={props.onBlur}
+                          hideSpan={false}
+                          disable={isWatsappSameAsMobile}
+                        />
+
+                        {checkifPrivacyValid() && (
+                          <div>
+                            <WrapUnMaskComponent
+                              value={watsAppmobileValue} // ✅ FIXED
+                              unmaskField={(e) => {
+                                props.onChange(e);
+                              }}
+                              iseyevisible={watsAppmobileValue?.includes("*")}
+                              privacy={{
+                                uuid: connectionHolderDetail?.uuid,
+                                fieldName: "connectionHoldersMobileNumber",
+                                model: "WnSConnectionOwner",
+                                loadData: {
+                                  serviceName: formData?.ConnectionDetails?.[0]?.water ? "/ws-services/wc/_search" : "/sw-services/swc/_search",
+                                  requestBody: {},
+                                  requestParam: {
+                                    tenantId: formData?.cpt?.details?.tenantId,
+                                    applicationNumber: formData?.ConnectionDetails?.[0]?.applicationNo,
+                                  },
+                                  jsonPath: formData?.ConnectionDetails?.[0]?.water
+                                    ? "WaterConnection[0].connectionHolders[0].mobileNumber"
+                                    : "SewerageConnections[0].connectionHolders[0].mobileNumber",
+                                  isArray: false,
+                                },
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
                 />
               </div>
             </LabelFieldPair>
-            {localFormState.touched.ownerType && errors?.ownerType?.message && (
-              <CardLabelError style={errorStyle}>{errors?.ownerType?.message}</CardLabelError>
+            {localFormState.touched.watsAppMobileNumber && errors?.watsAppMobileNumber?.message && (
+              <CardLabelError style={errorStyle}>{errors?.watsAppMobileNumber?.message}</CardLabelError>
             )}
           </div>
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{`${t("WS_EMAIL_ID")}`}</CardLabel>
+              <CardLabel>{`${t("WS_EMAIL_ID")}`}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
@@ -880,7 +940,7 @@ const ConnectionDetails = (_props) => {
           </div>
         </div>
       ) : null}
-    </div>
+    </CollapsibleCardPage>
   );
 };
 export default WSConnectionHolderDetails;

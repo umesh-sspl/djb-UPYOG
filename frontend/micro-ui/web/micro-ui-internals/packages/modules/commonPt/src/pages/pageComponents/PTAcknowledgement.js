@@ -43,6 +43,7 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
   if (onSelect) {
     data = formData?.cptNewProperty?.property;
   }
+  const propertyFromState = location?.state?.property;
 
   let createNUpdate = false;
   let { data: mdmsConfig, isLoading } = Digit.Hooks.pt.useMDMS(stateId, "PropertyTax", "PTWorkflow");
@@ -68,8 +69,9 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
   const { tenants } = storeData || {};
 
   useEffect(() => {
+    if (propertyFromState) return; // Skip if already created
     try {
-      let tenant = userType === "employee" ? tenantId : data?.locationDet?.cityCode?.code;
+      let tenant = userType === "employee" ? tenantId : data?.locationDet?.city?.code;
       data.tenantId = tenant;
 
       let formdata = convertToPropertyLightWeight(data);
@@ -82,16 +84,19 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
       if (!createNUpdate) {
         if (!(mutation.isLoading && mutation.isIdle)) {
           if (mutation.isSuccess) {
-            setTimeout(() => {
-              if (redirectUrl) {
-                history.push(`${redirectUrl}?propertyId=${mutation?.data?.Properties[0]?.propertyId}&tenantId=${formdata.Property.tenantId}`, {
+            /* setTimeout(() => {
+              const queryParams = new URLSearchParams(location.search);
+              const redirectUrlFromQuery = queryParams.get("redirectToUrl");
+              const finalRedirectUrl = (redirectUrl && redirectUrl !== "undefined") ? redirectUrl : (redirectUrlFromQuery && redirectUrlFromQuery !== "undefined" ? redirectUrlFromQuery : null);
+              if (finalRedirectUrl) {
+                history.push(`${finalRedirectUrl}?propertyId=${mutation?.data?.Properties[0]?.propertyId}&tenantId=${formdata.Property.tenantId}`, {
                   ...location?.state?.prevState,
                 });
-                const scrollConst = redirectUrl?.includes("employee/tl") ? 1600 : 300;
+                const scrollConst = finalRedirectUrl?.includes("employee/tl") ? 1600 : 300;
                 setTimeout(() => window.scrollTo(0, scrollConst), 400);
                 return;
               }
-            }, 3000);
+            }, 3000); */
           }
         }
       }
@@ -101,17 +106,21 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
   useEffect(() => {
     let tenant = userType === "employee" ? tenantId : data?.locationDet?.city?.code;
 
+    const queryParams = new URLSearchParams(location.search);
+    const redirectUrlFromQuery = queryParams.get("redirectToUrl");
+    const finalRedirectUrl = (redirectUrl && redirectUrl !== "undefined") ? redirectUrl : (redirectUrlFromQuery && redirectUrlFromQuery !== "undefined" ? redirectUrlFromQuery : null);
+
     if (mutation.isSuccess) {
-      setTimeout(() => {
-        if (redirectUrl) {
-          history.push(`${redirectUrl}?propertyId=${mutation?.data?.Properties[0]?.propertyId}&tenantId=${tenant}`, {
+      /* setTimeout(() => {
+        if (finalRedirectUrl) {
+          history.push(`${finalRedirectUrl}?propertyId=${mutation?.data?.Properties[0]?.propertyId}&tenantId=${tenant}`, {
             ...location?.state?.prevState,
           });
-          const scrollConst = redirectUrl?.includes("employee/tl") ? 1600 : 300;
+          const scrollConst = finalRedirectUrl?.includes("employee/tl") ? 1600 : 300;
           setTimeout(() => window.scrollTo(0, scrollConst), 400);
           return;
         }
-      }, 3000);
+      }, 3000); */
     }
   }, [mutation]);
 
@@ -129,7 +138,7 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
         });
 
         if (mutationForUpdate.isSuccess) {
-          setTimeout(() => {
+          /* setTimeout(() => {
             if (redirectUrl) {
               history.push(
                 `${redirectUrl}?propertyId=${mutationForUpdate?.data?.Properties[0]?.propertyId}&tenantId=${mutationForUpdate?.data?.Properties[0]?.tenantId}`,
@@ -139,7 +148,7 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
               setTimeout(() => window.scrollTo(0, scrollConst), 400);
               return;
             }
-          }, 3000);
+          }, 3000); */
         }
       } catch (er) {}
     }
@@ -155,37 +164,44 @@ const PTAcknowledgement = ({ onSuccess, onSelect, formData, redirectUrl, userTyp
     }
   };
 
-  return mutation.isLoading || mutation.isIdle ? (
+  const isMutationLoading = propertyFromState ? false : (mutation.isLoading || mutation.isIdle);
+  const isMutationSuccess = propertyFromState ? true : mutation.isSuccess;
+  const responseData = propertyFromState ? { Properties: [propertyFromState] } : mutation.data;
+
+  return isMutationLoading ? (
     <Loader />
   ) : (
     <Card>
-      <BannerPicker t={t} data={mutation.data} isSuccess={mutation.isSuccess} isLoading={mutation.isIdle || mutation.isLoading} />
-      {mutation.isSuccess && <CardText>{window.location.href.includes("employee") ? t("CS_CREATE_PROPERTY_SUCCESS_EMP_RESPONSE") : t("CS_CREATE_PROPERTY_SUCCESS_CITIZEN_RESPONSE")}</CardText>}
-      {!mutation.isSuccess && <CardText>{t("CS_FILE_PROPERTY_FAILED_RESPONSE")}</CardText>}
+      <BannerPicker t={t} data={responseData} isSuccess={isMutationSuccess} isLoading={isMutationLoading} />
+      {isMutationSuccess && <CardText>{window.location.href.includes("employee") ? t("CS_CREATE_PROPERTY_SUCCESS_EMP_RESPONSE") : t("CS_CREATE_PROPERTY_SUCCESS_CITIZEN_RESPONSE")}</CardText>}
+      {!isMutationSuccess && <CardText>{t("CS_FILE_PROPERTY_FAILED_RESPONSE")}</CardText>}
 
       <StatusTable>
-        {mutation.isSuccess && (
+        {isMutationSuccess && (
           <Row
             rowContainerStyle={rowContainerStyle}
             last
             label={t("PT_COMMON_TABLE_COL_PT_ID")}
-            text={mutation?.data?.Properties[0]?.propertyId}
+            text={responseData?.Properties[0]?.propertyId}
             textStyle={{ whiteSpace: "pre", width: "200%" }}
           />
         )}
       </StatusTable>
       {/* {mutation.isSuccess && !onSelect && <SubmitBar label={t("PT_DOWNLOAD_ACK_FORM")} onSubmit={null} />} */}
-      {mutation.isSuccess &&
-        window.location.href.includes("/citizen/") &&
+      {isMutationSuccess &&
+        (window.location.href.includes("/citizen/") || window.location.href.includes("/employee/")) &&
         (onSelect ? (
           <SubmitBar label={t("CS_COMMON_PROCEED")} onSubmit={onNext} />
         ) : (
           <SubmitBar
             label={t("CS_COMMON_PROCEED")}
             onSubmit={() => {
-              if (redirectUrl) {
+              const queryParams = new URLSearchParams(location.search);
+              const redirectUrlFromQuery = queryParams.get("redirectToUrl");
+              const finalRedirectUrl = (redirectUrl && redirectUrl !== "undefined") ? redirectUrl : (redirectUrlFromQuery && redirectUrlFromQuery !== "undefined" ? redirectUrlFromQuery : null);
+              if (finalRedirectUrl) {
                 history.push(
-                  `${redirectUrl}?propertyId=${mutationForUpdate?.data?.Properties[0]?.propertyId}&tenantId=${mutationForUpdate?.data?.Properties[0]?.tenantId}`,
+                  `${finalRedirectUrl}?propertyId=${responseData?.Properties[0]?.propertyId}&tenantId=${responseData?.Properties[0]?.tenantId}`,
                   { ...location?.state?.prevState }
                 );
               }

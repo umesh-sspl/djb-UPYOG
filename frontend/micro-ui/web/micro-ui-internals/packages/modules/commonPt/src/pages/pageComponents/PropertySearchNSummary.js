@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { LabelFieldPair, TextInput, LinkButton, Toast, StatusTable, Row, Card, Label } from "@djb25/digit-ui-react-components";
+import {
+  LabelFieldPair,
+  TextInput,
+  LinkButton,
+  Toast,
+  StatusTable,
+  Row,
+  Card,
+  Label,
+  Dropdown,
+  CollapsibleCardPage,
+} from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import _ from "lodash";
 import { useLocation, Link, useHistory } from "react-router-dom";
@@ -100,7 +111,7 @@ const PropertySearchNSummary = ({ config, onSelect, userType, formData, setError
   if (window.location.href.includes("/ws/")) clns = ":";
 
   return (
-    <Card className="no-shadow">
+    <CollapsibleCardPage title={t("PT_PROPERTY_DETAILS")} defaultOpen={true}>
       {(window.location.href.includes("/tl/")
         ? !(formData?.tradedetils?.[0]?.structureType?.code === "MOVABLE") && (isEmpNewApplication || isEmpRenewLicense)
         : true) && (
@@ -117,71 +128,80 @@ const PropertySearchNSummary = ({ config, onSelect, userType, formData, setError
                   onSelect(config.key, { id: e.target.value });
                 }}
                 style={{ width: "80%", float: "left" }}
+                placeholder={`${t("PT_ENTER_PROPERTY_ID")}`}
               />
               <button className="submit-bar" type="button" style={{ color: "white" }} onClick={searchProperty}>
                 {`${t("PT_SEARCH")}`}
               </button>
+
+              <span
+                onClick={() =>
+                  history.push(`/digit-ui/${userType}/${pathname.split("/")[3]}/create-application/create-property`, { ...state, ...formData })
+                }
+              >
+                <button className="submit-bar" type="button" style={{ color: "white" }}>{t("CPT_CREATE_PROPERTY")}</button>
+              </span>
             </div>
           </LabelFieldPair>
-          <span onClick={() => history.push(`/digit-ui/employee/commonpt/search?redirectToUrl=${redirectBackUrl}&${serachParams}`, { ...state })}>
+          {/* <span onClick={() => history.push(`/digit-ui/${userType}/commonpt/search?${serachParams}`, { ...state })}>
             <LinkButton label={t("CPT_SEARCH_PROPERTY")} style={{ color: "#a82227", display: "inline-block" }} />
-          </span>
-          &nbsp; | &nbsp;
-          <span
-            onClick={() => history.push(`/digit-ui/employee/commonpt/new-application?redirectToUrl=${redirectBackUrl}&${serachParams}`, { ...state })}
-          >
-            <LinkButton label={t("CPT_CREATE_PROPERTY")} style={{ color: "#a82227", display: "inline-block" }} />
-          </span>
+          </span> */}
+          {/* &nbsp; | &nbsp; */}
+
           {propertyDetails && propertyDetails?.Properties.length ? (
             <React.Fragment>
-              <header className="card-section-header" style={{ marginBottom: "5px", marginTop: "20px" }}>
+              {/* <header className="card-section-header" style={{ marginBottom: "5px", marginTop: "20px" }}>
                 {t("PT_DETAILS")}
-              </header>
-              <StatusTable>
-                <div className="formcomposer-section-grid" style={isMobile ? {} : {}}>
-                  <Row
-                    className="border-none"
-                    labelStyle={isMobile ? { width: "40%" } : {}}
-                    label={t(`PROPERTY_ID`)}
-                    text={propertyDetails?.Properties[0]?.propertyId}
-                  />
-                  <Row
-                    className="border-none"
-                    labelStyle={isMobile ? { width: "40%" } : {}}
-                    label={t(`OWNER_NAME`)}
-                    text={getOwnerNames(propertyDetails?.Properties[0])}
-                  />
-                  {/* <span style={{ display: "inline-flex", width: "fit-content"}}> */}
-                  <Row
-                    className="border-none"
-                    labelStyle={isMobile ? { width: "40%" } : {}}
-                    textStyle={{ wordBreak: "break-word" }}
-                    label={t(`PROPERTY_ADDRESS`)}
-                    text={propertyAddress}
-                    privacy={{
-                      uuid: propertyDetails?.Properties[0]?.owners?.[0]?.uuid,
-                      fieldName: ["doorNo", "street", "landmark"],
-                      model: "Property",
-                      showValue: true,
-                      loadData: {
-                        serviceName: "/property-services/property/_search",
-                        requestBody: {},
-                        requestParam: { tenantId: propertyDetails?.Properties[0]?.tenantId, propertyIds: propertyDetails?.Properties[0]?.propertyId },
-                        jsonPath: "Properties[0].address.street",
-                        d: (res) => {
-                          let resultString =
-                            (_.get(res, "Properties[0].address.doorNo") ? `${_.get(res, "Properties[0].address.doorNo")}, ` : "") +
-                            (_.get(res, "Properties[0].address.street") ? `${_.get(res, "Properties[0].address.street")}, ` : "") +
-                            (_.get(res, "Properties[0].address.landmark") ? `${_.get(res, "Properties[0].address.landmark")}` : "");
-                          return resultString;
+              </header> */}
+              <Card className="card-with-background" style={{ margin: "16px 0px", padding: "20px", boxShadow: "none" }}>
+                <StatusTable style={{ padding: "0", margin: "0" }}>
+                  <div className="formcomposer-section-grid" style={isMobile ? {} : {}}>
+                    <Row
+                      className="border-none"
+                      labelStyle={isMobile ? { width: "40%" } : { width: "30%", color: "#505a5f", fontWeight: "600" }}
+                      textStyle={{ color: "#000" }}
+                      label={t(`PROPERTY_ID`)}
+                      text={propertyDetails?.Properties[0]?.propertyId}
+                    />
+                    <Row
+                      className="border-none"
+                      labelStyle={isMobile ? { width: "40%" } : { width: "30%", color: "#505a5f", fontWeight: "600" }}
+                      textStyle={{ color: "#000" }}
+                      label={t(`OWNER_NAME`)}
+                      text={getOwnerNames(propertyDetails?.Properties[0])}
+                    />
+                    {/* <span style={{ display: "inline-flex", width: "fit-content"}}> */}
+                    <Row
+                      className="border-none"
+                      labelStyle={isMobile ? { width: "40%" } : { width: "30%", color: "#505a5f", fontWeight: "600" }}
+                      textStyle={{ wordBreak: "break-word", color: "#000" }}
+                      label={t(`PROPERTY_ADDRESS`)}
+                      text={propertyAddress}
+                      privacy={{
+                        uuid: propertyDetails?.Properties[0]?.owners?.[0]?.uuid,
+                        fieldName: ["doorNo", "street", "landmark"],
+                        model: "Property",
+                        showValue: true,
+                        loadData: {
+                          serviceName: "/property-services/property/_search",
+                          requestBody: {},
+                          requestParam: { tenantId: propertyDetails?.Properties[0]?.tenantId, propertyIds: propertyDetails?.Properties[0]?.propertyId },
+                          jsonPath: "Properties[0].address.street",
+                          d: (res) => {
+                            let resultString =
+                              (_.get(res, "Properties[0].address.doorNo") ? `${_.get(res, "Properties[0].address.doorNo")}, ` : "") +
+                              (_.get(res, "Properties[0].address.street") ? `${_.get(res, "Properties[0].address.street")}, ` : "") +
+                              (_.get(res, "Properties[0].address.landmark") ? `${_.get(res, "Properties[0].address.landmark")}` : "");
+                            return resultString;
+                          },
+                          isArray: false,
                         },
-                        isArray: false,
-                      },
-                    }}
-                  />
-                </div>
-              </StatusTable>
-              <Link
+                      }}
+                    />
+                  </div>
+                </StatusTable>
+              </Card>
+              {/* <Link
                 to={`/digit-ui/employee/commonpt/view-property?propertyId=${propertyId}&tenantId=${tenantId}&from=${
                   window.location.pathname?.includes("employee/ws/new-application")
                     ? "ES_COMMON_WS_NEW_CONNECTION"
@@ -193,7 +213,7 @@ const PropertySearchNSummary = ({ config, onSelect, userType, formData, setError
                 }`}
               >
                 <LinkButton label={t("CPT_COMPLETE_PROPERTY_DETAILS")} style={{ color: "#a82227", textAlign: "Left" }} />
-              </Link>
+              </Link> */}
             </React.Fragment>
           ) : null}
           {showToast && (
@@ -210,7 +230,7 @@ const PropertySearchNSummary = ({ config, onSelect, userType, formData, setError
           )}
         </React.Fragment>
       )}
-    </Card>
+    </CollapsibleCardPage>
   );
 };
 

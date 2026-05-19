@@ -24,7 +24,7 @@ const NewApplication = ({ path }) => {
   const redirectUrl = new URLSearchParams(search).get('redirectToUrl');
 
   const createProperty = async () => {
-    history.push(`${match.path}/acknowledgement`);
+    history.push(`${match.path}/save-property`);
   };
 
   const onSuccess = () => {
@@ -39,10 +39,10 @@ const NewApplication = ({ path }) => {
   return (
     <Switch>
       <Route exact path={`${match.path}`}>
-        <CreatePropertyForm onSubmit={createProperty} value={params} redirectUrl={redirectUrl} userType={"employee"} />
+        <CreatePropertyForm onSubmit={createProperty} value={params}  userType={"employee"} />
       </Route>
       <Route exact path={`${match.path}/save-property`}>
-        <PTAcknowledgement data={params} onSuccess={onSuccess} redirectUrl={redirectUrl} userType={"employee"} />
+        <PTAcknowledgement data={params} onSuccess={onSuccess} userType={"employee"} />
       </Route>
     </Switch>
   );

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation } from "react-router-dom";
-import { PrivateRoute, ModuleHeader, PrintBtnCommon, Toast, MultiLink, LinkButton } from "@djb25/digit-ui-react-components";
+import { PrivateRoute, ModuleHeader, PrintBtnCommon, Toast, MultiLink, LinkButton, LayoutWrapper } from "@djb25/digit-ui-react-components";
 
 import WSResponse from "./WSResponse";
 import Response from "./Response";
@@ -203,12 +203,18 @@ const BILLSBreadCrumbs = ({ location, showPrint }) => {
     {
       path: "/digit-ui/employee/module/details",
       label: t("ES_TITLE_WATER_AND_SEWERAGE"),
-      show: location.pathname.includes("/create-application") || location.pathname.includes("/new-application"),
+      show:
+        location.pathname.includes("/create-application") ||
+        location.pathname.includes("/new-application") ||
+        location.pathname.includes("/old-application"),
     },
     {
       path: "/digit-ui/employee/ws/create-application",
       label: t("ES_COMMON_WS_DOCUMENTS_REQUIRED"),
-      show: location.pathname.includes("/create-application") || location.pathname.includes("/new-application"),
+      show:
+        location.pathname.includes("/create-application") ||
+        location.pathname.includes("/new-application") ||
+        location.pathname.includes("/old-application"),
       rightContent: location.pathname.includes("/create-application") && (
         <div className="flex-center flex-gap-1 .cursorPointer" onClick={printDiv}>
           <PrintBtnCommon width={24} heigth={24} fill="#fff" />
@@ -270,6 +276,11 @@ const BILLSBreadCrumbs = ({ location, showPrint }) => {
       path: "/digit-ui/employee/ws/new-application",
       label: fromScreen ? `${t(fromScreen)} / ${t("ES_COMMON_WS_NEW_CONNECTION")}` : t("ES_COMMON_WS_NEW_CONNECTION"),
       show: location.pathname.includes("/new-application") ? true : false,
+    },
+    {
+      path: "/digit-ui/employee/ws/old-application",
+      label: fromScreen ? `${t(fromScreen)} / ${t("ES_COMMON_WS_OLD_CONNECTION")}` : t("ES_COMMON_WS_OLD_CONNECTION"),
+      show: location.pathname.includes("/old-application") ? true : false,
     },
     {
       path: `${location?.pathname}${location.search}`,
@@ -502,6 +513,8 @@ const App = ({ path }) => {
   const WSResubmitDisconnection = Digit?.ComponentRegistryService?.getComponent("WSResubmitDisconnection");
   const WSSearchIntegrated = Digit?.ComponentRegistryService?.getComponent("WSSearchIntegrated");
   const WSBulkBillGeneration = Digit?.ComponentRegistryService?.getComponent("WSBulkBillGeneration");
+  const CPTCreateProperty = Digit?.ComponentRegistryService?.getComponent("CPTCreateProperty");
+  const CPTAcknowledgement = Digit?.ComponentRegistryService?.getComponent("CPTAcknowledgement");
 
   const locationCheck =
     window.location.href.includes("/employee/ws/new-application") ||
@@ -529,9 +542,34 @@ const App = ({ path }) => {
         <div className="employee-form">
           <div className="employee-form-content">
             <Switch>
+              <PrivateRoute
+                path={`${path}/create-application/create-property/save-property`}
+                component={(props) => {
+                  const redirectUrl = new URLSearchParams(props.location.search).get("redirectToUrl");
+                  return <CPTAcknowledgement {...props} redirectUrl={redirectUrl} />;
+                }}
+              />
+              <PrivateRoute
+                path={`${path}/create-application/create-property`}
+                component={(props) => {
+                  const redirectUrl = new URLSearchParams(props.location.search).get("redirectToUrl");
+                  return (
+                    <LayoutWrapper layoutClass="action">
+                      <CPTCreateProperty {...props} redirectUrl={redirectUrl} />
+                    </LayoutWrapper>
+                  );
+                }}
+              />
               <PrivateRoute path={`${path}/create-application`} component={WSDocsRequired} />
               <PrivateRoute path={`${path}/new-application`} component={WSNewApplication} />
-              <PrivateRoute path={`${path}/old-application`} component={WSOLDApplication} />
+              <PrivateRoute
+                path={`${path}/old-application`}
+                component={() => (
+                  <LayoutWrapper layoutClass="action">
+                    <WSOLDApplication {...{ path }} />
+                  </LayoutWrapper>
+                )}
+              />
 
               <PrivateRoute path={`${path}/edit-application`} component={WSEditApplication} />
               <PrivateRoute path={`${path}/edit-disconnection-application`} component={WSEditDisconnectionApplication} />
