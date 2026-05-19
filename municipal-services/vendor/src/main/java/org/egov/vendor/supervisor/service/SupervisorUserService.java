@@ -2,13 +2,7 @@ package org.egov.vendor.supervisor.service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.Role;
@@ -145,10 +139,18 @@ public class SupervisorUserService {
             throw new CustomException(VendorErrorConstants.INVALID_DRIVER_ERROR,
                     "Name, dob, gender, relationship and fatherOrHusbandName are mandatory for Supervisor");
         }
-        // use roleMapping.getRoleCode() / getRoleName() from MDMS
+
+        // Create the primary role from MDMS (EKYC_SUPERVISOR)
         Role role = getRoleObj(roleMapping.getRoleCode(), roleMapping.getRoleName());
-        if (owner.getRoles() != null) owner.getRoles().add(role);
-        else owner.setRoles(Arrays.asList(role));
+
+        // CREATE the CITIZEN role
+        Role citizenRole = getRoleObj("CITIZEN", "Citizen");
+
+        // Add BOTH roles
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+        roles.add(citizenRole);
+        owner.setRoles(roles);
 
         owner.setActive(true);
         owner.setType(VendorConstants.CITIZEN);
@@ -160,20 +162,29 @@ public class SupervisorUserService {
                 .append(config.getUserCreateEndpoint());
 
         UserDetailResponse response = userCall(new UserRequest(requestInfo, owner), uri);
-        log.info("Supervisor user created with role {}: {}", roleCode, response.getUser().get(0).getUuid());
+        log.info("Supervisor user created with roles {}, CITIZEN: {}", roleCode, response.getUser().get(0).getUuid());
         return response.getUser().get(0);
     }
 
     private User addRoleToExistingUser(User existing, RequestInfo requestInfo,
                                        HashMap<String, String> errorMap, String roleCode, String roleName, ModuleRoleMapping roleMapping) {
+        // Add the MDMS role (EKYC_SUPERVISOR)
         existing.getRoles().add(getRoleObj(roleMapping.getRoleCode(), roleMapping.getRoleName()));
+
+        // Also add CITIZEN role if not already present
+        boolean hasCitizen = existing.getRoles().stream()
+                .anyMatch(r -> "CITIZEN".equals(r.getCode()));
+        if (!hasCitizen) {
+            existing.getRoles().add(getRoleObj("CITIZEN", "Citizen"));
+        }
+
         StringBuilder uri = new StringBuilder(config.getUserHost())
                 .append(config.getUserContextPath()).append(config.getUserUpdateEndpoint());
         UserDetailResponse response = ownerCall(
                 UserRequest.builder().user(existing).requestInfo(requestInfo).build(), uri);
         if (response != null && !CollectionUtils.isEmpty(response.getUser()))
             return response.getUser().get(0);
-        errorMap.put(VendorErrorConstants.INVALID_DRIVER_ERROR, "Unable to add Supervisor role to existing user");
+        errorMap.put(VendorErrorConstants.INVALID_DRIVER_ERROR, "Unable to add Supervisor roles to existing user");
         return null;
     }
 
