@@ -51,10 +51,47 @@ const SupervisorDetails = (props) => {
   const [showToast, setShowToast] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [selectedOption, setSelectedOption] = useState({});
-
-  const { data: supervisorData, isLoading, refetch } = Digit.Hooks.fsm.useSupervisorDetails(tenantId, { ids: supervisorId }, { staleTime: Infinity });
-
   const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, {});
+  const { data: supervisorSearchResponse, isLoading, refetch } = Digit.Hooks.fsm.useSupervisorSearch(tenantId, { ids: supervisorId }, { staleTime: Infinity });
+
+  const supervisorData = React.useMemo(() => {
+    if (!supervisorSearchResponse?.supervisors?.length) return [];
+    
+    return supervisorSearchResponse.supervisors.map((data) => {
+      // Find the mapped vendor if we have vendorData loaded
+      const mappedVendor = vendorData?.find(v => v.dsoDetails?.id === data.vendorId || v.dsoDetails?.vendorId === data.vendorId);
+      const vendorName = mappedVendor?.dsoDetails?.name || data.vendorId || "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR";
+
+      return {
+        supervisorData: data,
+        vendorDetails: { vendor: mappedVendor ? [mappedVendor.dsoDetails] : [] },
+        employeeResponse: [
+          {
+            title: "ES_VENDOR_SUPERVISOR_BASIC_DETAILS",
+            values: [
+              { title: "ES_VENDOR_SUPERVISOR_FULL_NAME", value: data?.name },
+              { title: "ES_VENDOR_SUPERVISOR_MOBILE_NUMBER", value: data?.owner?.mobileNumber || data?.mobileNo },
+              { title: "ES_VENDOR_SUPERVISOR_EMAIL_ID", value: data?.owner?.emailId },
+              { title: "ES_VENDOR_SUPERVISOR_STAFF_CODE", value: data?.employeeId || "N/A" },
+              { title: "ES_VENDOR_SUPERVISOR_GENDER", value: data?.owner?.gender },
+              {
+                title: "ES_VENDOR_SUPERVISOR_AGENCY_NAME",
+                value: vendorName,
+                type: "custom",
+              },
+            ],
+          },
+          {
+            title: "ES_VENDOR_SUPERVISOR_MAPPED_SURVEYORS",
+            type: "ES_FSM_REGISTRY_DETAILS_TYPE_SURVEYOR",
+            child: [], // You can add surveyor data mapping here if needed in the future
+          }
+        ]
+      };
+    });
+  }, [supervisorSearchResponse, vendorData]);
+
+
 
   const { mutate: mutateSupervisor } = Digit.Hooks.fsm.useSupervisorUpdate(tenantId);
   const { mutate: mutateVendor } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
