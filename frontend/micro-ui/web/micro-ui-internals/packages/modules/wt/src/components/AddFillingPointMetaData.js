@@ -121,7 +121,7 @@ const AddFillingPointMetaData = ({
   };
 
   return (
-    <CollapsibleCardPage title={t("WT_FILLING_POINT_APPLICANT_DETAILS")} defaultOpen={true}>
+    <CollapsibleCardPage title={"Filling Point Details"} defaultOpen={true}>
       <div className="formcomposer-section-grid">
         {filteredInputs.map((input) => (
           <div key={input.name}>
