@@ -15,7 +15,7 @@ import Reports from "../../components/Reports";
 const EmployeeApp = ({ path }) => {
   const { t } = useTranslation();
   const location = useLocation();
-  const fixedPointInboxLabel = t("WT_FIXED_POINT") !== "WT_FIXED_POINT" ? `${t("WT_FIXED_POINT")} ${t("ES_COMMON_INBOX")}` : "Fixed Point Inbox";
+  const fixedPointInboxLabel = t("Emergency Inbox") !== "Emergency Inbox" ? `${t("Emergency Inbox")} ${t("ES_COMMON_INBOX")}` : "Emergency Inbox";
   const emergencyRequestLabel =
     t("WT_EMERGENCY_WATER_TANKER_REQUEST") !== "WT_EMERGENCY_WATER_TANKER_REQUEST"
       ? t("WT_EMERGENCY_WATER_TANKER_REQUEST")

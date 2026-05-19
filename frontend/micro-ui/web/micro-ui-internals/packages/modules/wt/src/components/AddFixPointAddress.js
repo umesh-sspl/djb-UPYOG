@@ -121,7 +121,7 @@ const AddFixPointAddress = () => {
       <VerticalTimeline config={[{ timeLine: [{ actions: editId ? "Update Fixed Point" : "Add Fixed Point", currentStep: 1 }] }]} showFinalStep={false} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px" }}>
-        <CollapsibleCardPage title={t("WT_FIXING_POINT_APPLICANT_DETAILS")} defaultOpen={true}>
+        <CollapsibleCardPage title={t("Fixed Point Details")} defaultOpen={true}>
           <div className="formcomposer-section-grid">
             <div style={{ display: "flex", flexDirection: "column" }}>
               <CardLabel>
