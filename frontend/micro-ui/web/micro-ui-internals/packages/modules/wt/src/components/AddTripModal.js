@@ -12,6 +12,17 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
   const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
+  const isEditMode = Boolean(initialValues);
+  const normalizeToString = (value) => (value === undefined || value === null ? "" : String(value).trim().toLowerCase());
+  const normalizeActiveValue = (value) => {
+    const parsedValue = value?.value !== undefined ? value.value : value;
+    if (typeof parsedValue === "string") {
+      const normalized = parsedValue.trim().toUpperCase();
+      return normalized === "TRUE" || normalized === "YES" || normalized === "Y";
+    }
+    return Boolean(parsedValue);
+  };
+
 
 
   const defaultValues = initialValues
@@ -26,11 +37,12 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
       returnFpl: initialValues.returnFpl || initialValues.time_of_arriving_back_fpl_after_delivery || currentTime,
       frequencyNo: initialValues.frequencyNo || initialValues.trip_no || 1,
       vehicleId: initialValues.vehicleId || initialValues.vehicle_id || "",
-      fixedPointCode: initialValues.fixedPointCode || initialValues.fixed_point_code || "",
+      fixedPointCode: initialValues.fixedPointCode || initialValues.fixed_point_code || initialValues.fixedPointId || "",
       fillingPointCode: initialValues.fillingPointCode || initialValues.fillingPointId || "",
       day: initialValues.day || [],
       volume: initialValues.volume || initialValues.volume_water_tobe_delivery || "",
       remarks: initialValues.remarks || "",
+      active: normalizeActiveValue(initialValues.active),
     }
 
     : {
@@ -56,6 +68,8 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
       remarks: "",
 
       frequencyNo: 1,
+
+      active: true,
 
     };
 
@@ -122,43 +136,84 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
 
 
-  const fixedPoints = fixedPointsData?.waterTankerBookingDetail || [];
+  const fixedPoints = [
+    ...(fixedPointsData?.waterTankerBookingDetail || []),
+    ...(fixedPointsData?.fixedPointTimeTableDetails || []),
+    ...(fixedPointsData?.fixedPoints || []),
+  ];
 
   const fillingPoints = fillingPointsData?.fillingPoints || [];
 
 
 
-  const fixedPointOptions = fixedPoints.map((fp) => {
-    const name = fp?.applicantDetail?.name || "NA";
-    const fixedPointId = fp?.applicantDetail?.fixedPointId || fp?.fixedPointCode || "";
-    const displayName = fixedPointId ? `${name} (${fixedPointId})` : name;
+  const initialFixedPointCode = initialValues?.fixedPointCode || initialValues?.fixed_point_code || initialValues?.fixedPointId || "";
+  const initialFixedPointName = initialValues?.fixedPointName || initialFixedPointCode || "NA";
+
+  const baseFixedPointOptions = fixedPoints.map((fp) => {
+    const code = fp?.fixedPointCode || fp?.applicantDetail?.fixedPointId || fp?.fixedPointId || fp?.code || fp?.id || "";
+    const id = fp?.applicantDetail?.fixedPointId || fp?.fixedPointId || fp?.id || code;
+    const value = fp?.applicantDetail?.applicantId || fp?.id || fp?.bookingId || code;
+    const name = fp?.applicantDetail?.name || fp?.fixedPointName || fp?.name || code || "NA";
+    const displayName = code ? `${name} (${code})` : name;
+    const mobileNumber = fp?.applicantDetail?.mobileNumber || fp?.mobileNumber || "NA";
+    const locality = fp?.address?.locality || fp?.locality || "NA";
 
     return {
       name: displayName,
-      mobileNumber: fp?.applicantDetail?.mobileNumber || "NA",
-      locality: fp?.address?.locality || "NA",
-      displayLabel: `${displayName} | ${fp?.applicantDetail?.mobileNumber || "NA"} | ${fp?.address?.locality || "NA"}`,
-      value: fp?.applicantDetail?.applicantId || fp?.id || fp?.bookingId,
-      code: fp.fixedPointCode || fp?.applicantDetail?.fixedPointId || "",
-      id: fp?.applicantDetail?.fixedPointId || "",
+      mobileNumber,
+      locality,
+      displayLabel: `${displayName} | ${mobileNumber} | ${locality}`,
+      value,
+      code,
+      id,
       fullAddress: [
-
-      fp?.address?.houseNo && `${t("WT_HOUSE_NO")} = ${fp.address.houseNo}`,
-
-      fp?.address?.streetName && `${t("WT_STREET_NAME")} = ${fp.address.streetName}`,
-
-      fp?.address?.landmark && `${t("WT_LANDMARK")} = ${fp.address.landmark}`,
-
-      fp?.address?.locality && `${t("WT_LOCALITY")} = ${fp.address.locality}`,
-
-    ]
-
-      .filter(Boolean)
-
-      .join(", "),
-
+        fp?.address?.houseNo && `${t("WT_HOUSE_NO")} = ${fp.address.houseNo}`,
+        fp?.address?.streetName && `${t("WT_STREET_NAME")} = ${fp.address.streetName}`,
+        fp?.address?.landmark && `${t("WT_LANDMARK")} = ${fp.address.landmark}`,
+        fp?.address?.locality && `${t("WT_LOCALITY")} = ${fp.address.locality}`,
+      ]
+        .filter(Boolean)
+        .join(", "),
     };
   });
+
+  const fixedPointOptions = baseFixedPointOptions.reduce((acc, option) => {
+    const isDuplicate = acc.some((existing) =>
+      [existing.value, existing.code, existing.id].some((candidate) =>
+        [option.value, option.code, option.id].some((incoming) => normalizeToString(candidate) === normalizeToString(incoming))
+      )
+    );
+    if (!isDuplicate) acc.push(option);
+    return acc;
+  }, []);
+
+  const hasInitialFixedPointInOptions =
+    initialFixedPointCode &&
+    fixedPointOptions.some((opt) =>
+      [opt.value, opt.code, opt.id].some((candidate) => normalizeToString(candidate) === normalizeToString(initialFixedPointCode))
+    );
+
+  if (initialFixedPointCode && !hasInitialFixedPointInOptions) {
+    const displayName =
+      initialFixedPointCode && normalizeToString(initialFixedPointName) !== normalizeToString(initialFixedPointCode)
+        ? `${initialFixedPointName} (${initialFixedPointCode})`
+        : initialFixedPointName;
+    fixedPointOptions.unshift({
+      name: displayName,
+      mobileNumber: "NA",
+      locality: "NA",
+      displayLabel: `${displayName} | NA | NA`,
+      value: initialFixedPointCode,
+      code: initialFixedPointCode,
+      id: initialValues?.fixedPointId || initialFixedPointCode,
+      fullAddress: "",
+    });
+  }
+
+  const getFixedPointByAnyKey = (selectedValue) =>
+    fixedPointOptions.find((opt) =>
+      [opt.value, opt.code, opt.id].some((candidate) => normalizeToString(candidate) === normalizeToString(selectedValue))
+    );
 
 
 
@@ -178,7 +233,7 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
   const selectedFixedPointCode = watch("fixedPointCode");
 
-  const selectedFixedPoint = fixedPointOptions.find((opt) => opt.value === selectedFixedPointCode);
+  const selectedFixedPoint = getFixedPointByAnyKey(selectedFixedPointCode);
 
 
 
@@ -198,6 +253,11 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
     { label: t("SUNDAY"), value: "SUNDAY" },
 
+  ];
+
+  const activeOptions = [
+    { label: "true", value: true },
+    { label: "false", value: false },
   ];
 
 
@@ -235,11 +295,11 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
 
   const onFormSubmit = (data) => {
-    const selectedFixedPoint = fixedPointOptions.find((opt) => opt.value === data.fixedPointCode);
+    const selectedFixedPoint = getFixedPointByAnyKey(data.fixedPointCode);
     const enrichedData = {
       ...data,
       fixedPointId: selectedFixedPoint ? selectedFixedPoint.id : (initialValues?.fixedPointId || ""),
-      fixedPointCode: selectedFixedPoint ? selectedFixedPoint.code : (initialValues?.fixedPointCode || ""),
+      fixedPointCode: selectedFixedPoint ? selectedFixedPoint.code : (data.fixedPointCode || initialValues?.fixedPointCode || ""),
     };
     onSubmit(enrichedData);
   };
@@ -484,7 +544,7 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
                   name="fixedPointCode"
 
-                  defaultValue={defaultValues.fixedPointId || defaultValues.fixedPointCode}
+                  defaultValue={defaultValues.fixedPointCode || defaultValues.fixedPointId || ""}
 
                   render={(props) => (
 
@@ -494,9 +554,9 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
                       optionKey="displayLabel"
 
-                      selected={fixedPointOptions.find((opt) => opt.value === props.value)}
+                      selected={getFixedPointByAnyKey(props.value)}
 
-                      select={(val) => props.onChange(val.value)}
+                      select={(val) => props.onChange(val.code || val.id || val.value)}
 
                       t={t}
 
@@ -519,7 +579,7 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
 
               )}
 
-              {selectedFixedPoint && (
+              {selectedFixedPoint?.fullAddress && (
 
                 <div
 
@@ -778,6 +838,26 @@ const AddTripModal = ({ t, closeModal, onSubmit, initialValues }) => {
               />
 
             </div>
+
+            {isEditMode && (
+              <div className="field-group">
+                <CardLabel style={{ marginBottom: "8px", fontWeight: "500" }}>{t("WT_ACTIVE")}</CardLabel>
+                <Controller
+                  control={control}
+                  name="active"
+                  defaultValue={defaultValues.active}
+                  render={(props) => (
+                    <CustomNameDropdown
+                      option={activeOptions}
+                      optionKey="label"
+                      selected={activeOptions.find((opt) => opt.value === normalizeActiveValue(props.value)) || activeOptions[0]}
+                      select={(val) => props.onChange(val.value)}
+                      t={t}
+                    />
+                  )}
+                />
+              </div>
+            )}
 
 
 
