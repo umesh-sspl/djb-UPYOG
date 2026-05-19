@@ -185,6 +185,33 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
     }
   };
 
+  const lastSentValue = React.useRef(null);
+  React.useEffect(() => {
+    let finalApplicantName = "";
+    if (isExistingFixedPoint?.code === "YES") {
+      finalApplicantName = fixedPoint?.applicantDetail?.name || fixedPoint?.name || "";
+    } else {
+      finalApplicantName = typeof fixedPoint === "string" ? fixedPoint : fixedPoint?.name || "";
+    }
+
+    let applicantDetails = {
+      applicantName: finalApplicantName, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId,
+      fixedPoint, isExistingFixedPoint
+    };
+
+    let isDifferent = true;
+    try {
+      isDifferent = JSON.stringify(lastSentValue.current) !== JSON.stringify(applicantDetails);
+    } catch (e) {
+      isDifferent = Object.keys(applicantDetails).some(k => lastSentValue.current?.[k] !== applicantDetails[k]);
+    }
+
+    if (isDifferent) {
+      lastSentValue.current = applicantDetails;
+      onSelect(config.key, { ...applicantDetails, silent: true }, false);
+    }
+  }, [fixedPoint, isExistingFixedPoint, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId, onSelect, config.key]);
+
   return (
     <React.Fragment>
       <FormStep

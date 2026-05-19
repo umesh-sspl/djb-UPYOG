@@ -83,6 +83,21 @@ const EmergencyFixedPointDispatchDetails = ({ t, config, onSelect, formData }) =
     onSelect(config.key, { fillingPoint, vendor, vehicle, driver }, false);
   };
 
+  const lastSentValue = React.useRef(null);
+  React.useEffect(() => {
+    const dispatchDetails = { fillingPoint, vendor, vehicle, driver };
+    let isDifferent = true;
+    try {
+      isDifferent = JSON.stringify(lastSentValue.current) !== JSON.stringify(dispatchDetails);
+    } catch (e) {
+      isDifferent = Object.keys(dispatchDetails).some(k => lastSentValue.current?.[k] !== dispatchDetails[k]);
+    }
+    if (isDifferent) {
+      lastSentValue.current = dispatchDetails;
+      onSelect(config.key, { ...dispatchDetails, silent: true }, false);
+    }
+  }, [fillingPoint, vendor, vehicle, driver, onSelect, config.key]);
+
   return (
     <React.Fragment>
       <FormStep

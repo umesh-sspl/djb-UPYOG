@@ -27,7 +27,6 @@ export const fixedPointConfig = [
         nextStep: "fp-address-details",
         isMandatory: true,
         texts: {
-          submitBarLabel: "COMMON_SAVE_NEXT",
           header: "ES_APPLICANT_DETAILS",
         },
         timeLine: [
@@ -51,7 +50,6 @@ export const fixedPointConfig = [
         isMandatory: true,
         nextStep: "fp-dispatch-details",
         texts: {
-          submitBarLabel: "COMMON_SAVE_NEXT",
           header: "ES_ADDRESS_DETAILS",
         },
         timeLine: [
@@ -75,7 +73,6 @@ export const fixedPointConfig = [
         isMandatory: true,
         nextStep: "fp-request-details",
         texts: {
-          submitBarLabel: "COMMON_SAVE_NEXT",
           header: "WT_DISPATCH_DETAILS",
         },
         timeLine: [
@@ -99,7 +96,7 @@ export const fixedPointConfig = [
         isMandatory: true,
         nextStep: null,
         texts: {
-          submitBarLabel: "COMMON_SAVE_NEXT",
+          submitBarLabel: "CS_COMMON_SAVE",
           header: "WT_REQUEST_DETAILS",
         },
         timeLine: [

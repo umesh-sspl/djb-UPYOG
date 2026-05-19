@@ -93,7 +93,7 @@ const WTEmergencyFixedPointCheckPage = ({ onSubmit, value = {} }) => {
       <Card className="overflow-y-scroll">
         <CardHeader>{t("WT_SUMMARY_PAGE")}</CardHeader>
         <div>
-          <CardSubHeader>{t("ES_TITILE_OWNER_DETAILS")}</CardSubHeader>
+          <CardSubHeader>{t("ES_APPLICANT_DETAILS")}</CardSubHeader>
           <StatusTable style={{ marginTop: "30px", marginBottom: "30px" }}>
             <Row
               label={owner?.isExistingFixedPoint?.code === "YES" || owner?.type === "FIXED-POINT" ? t("WT_FIXED_POINT_DELIVERY_POINT", "Fixed Point/Delivery Point") : t("COMMON_APPLICANT_NAME")}
@@ -117,6 +117,11 @@ const WTEmergencyFixedPointCheckPage = ({ onSubmit, value = {} }) => {
             <Row label={t("CITY")} text={`${t(checkForNA(address?.city?.city?.name))}`} />
             <Row label={t("LOCALITY")} text={`${t(checkForNA(address?.locality?.i18nKey))}`} />
             <Row label={t("PINCODE")} text={`${t(checkForNA(address?.pincode))}`} />
+            <Row label={t("LATITUDE")} text={`${t(checkForNA(address?.latitude))}`} />
+            <Row label={t("LONGITUDE")} text={`${t(checkForNA(address?.longitude))}`} />
+            <Row label={t("ASSEMBLY")} text={`${t(checkForNA(typeof address?.assembly === 'string' ? address?.assembly : address?.assembly?.name))}`} />
+            <Row label={t("BLOCK")} text={`${t(checkForNA(typeof address?.block === 'string' ? address?.block : (address?.block?.name || address?.ward?.name)))}`} />
+            <Row label={t("ZONE")} text={`${t(checkForNA(typeof address?.zone === 'string' ? address?.zone : address?.zone?.name))}`} />
             <Row label={t("LANDMARK")} text={`${t(checkForNA(address?.landmark))}`} />
             <Row label={t("STREET_NAME")} text={`${t(checkForNA(address?.streetName))}`} />
           </StatusTable>

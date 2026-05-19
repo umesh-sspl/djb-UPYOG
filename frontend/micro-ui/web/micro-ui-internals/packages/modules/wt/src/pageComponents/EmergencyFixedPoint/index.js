@@ -110,13 +110,23 @@ const WTEmergencyFixedPointCreate = () => {
       Object.keys(data).forEach((k) => {
         if (k !== "navigationKey" && k !== "silent") {
           const updatedValue = { ...newParams[k], ...data[k] };
-          if (JSON.stringify(newParams[k]) !== JSON.stringify(updatedValue)) {
+          let isDifferent = true;
+          try {
+            isDifferent = JSON.stringify(newParams[k]) !== JSON.stringify(updatedValue);
+          } catch (e) {
+            // Fallback for circular references: just compare top-level keys loosely
+            isDifferent = Object.keys(updatedValue).some(key => newParams[k]?.[key] !== updatedValue[key]);
+          }
+          if (isDifferent) {
             newParams[k] = updatedValue;
             hasChanged = true;
           }
         }
       });
-      if (hasChanged) setParams(newParams);
+      if (hasChanged) {
+        setParams(newParams);
+        paramsRef.current = newParams;
+      }
       if (data.silent) return;
       const navigationKey = data.navigationKey || Object.keys(data)[0];
       goNext(skipStep, index, isAddMultiple, navigationKey);
@@ -125,18 +135,42 @@ const WTEmergencyFixedPointCreate = () => {
 
     if (key === "owners") {
       let owners = currentParams.owners || [];
-      if (JSON.stringify(owners[index]) !== JSON.stringify(data)) {
+      let isDifferent = true;
+      try {
+        isDifferent = JSON.stringify(owners[index]) !== JSON.stringify(data);
+      } catch (e) {
+        isDifferent = Object.keys(data).some(k => owners[index]?.[k] !== data[k]);
+      }
+      if (isDifferent) {
         owners[index] = data;
-        setParams({ ...currentParams, [key]: [...owners] });
+        const newParams = { ...currentParams, [key]: [...owners] };
+        setParams(newParams);
+        paramsRef.current = newParams;
       }
     } else if (key === "units") {
-      if (JSON.stringify(currentParams.units) !== JSON.stringify(data)) {
-        setParams({ ...currentParams, units: data });
+      let isDifferent = true;
+      try {
+        isDifferent = JSON.stringify(currentParams.units) !== JSON.stringify(data);
+      } catch (e) {
+        isDifferent = Object.keys(data).some(k => currentParams.units?.[k] !== data[k]);
+      }
+      if (isDifferent) {
+        const newParams = { ...currentParams, units: data };
+        setParams(newParams);
+        paramsRef.current = newParams;
       }
     } else {
       const updatedValue = { ...currentParams[key], ...data };
-      if (JSON.stringify(currentParams[key]) !== JSON.stringify(updatedValue)) {
-        setParams({ ...currentParams, [key]: updatedValue });
+      let isDifferent = true;
+      try {
+        isDifferent = JSON.stringify(currentParams[key]) !== JSON.stringify(updatedValue);
+      } catch (e) {
+        isDifferent = Object.keys(updatedValue).some(k => currentParams[key]?.[k] !== updatedValue[k]);
+      }
+      if (isDifferent) {
+        const newParams = { ...currentParams, [key]: updatedValue };
+        setParams(newParams);
+        paramsRef.current = newParams;
       }
     }
     if (data?.silent) return;
