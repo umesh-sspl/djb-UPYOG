@@ -163,6 +163,27 @@ const EmergencyFixedPointRequestDetails = ({ t, config, onSelect, userType, form
     })();
   }, [file]);
 
+  useEffect(() => {
+    if (!waterType && WaterTypeData?.length) {
+      const drinkableOption = WaterTypeData.find(
+        (data) => data.code === "Drinkable" || data.code?.toUpperCase() === "DRINKABLE" || data.code?.toUpperCase() === "DRINKING_WATER"
+      );
+      if (drinkableOption) {
+        setWaterType({
+          i18nKey: `${drinkableOption.code}`,
+          code: `${drinkableOption.code}`,
+          value: `${drinkableOption.code}`
+        });
+      } else {
+        setWaterType({
+          i18nKey: `${WaterTypeData[0].code}`,
+          code: `${WaterTypeData[0].code}`,
+          value: `${WaterTypeData[0].code}`
+        });
+      }
+    }
+  }, [WaterTypeData, waterType]);
+
   const goNext = () => {
     let requestDetails = formData.requestDetails;
     let request = {

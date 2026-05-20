@@ -159,34 +159,76 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
     { name: "Father", code: "FATHER", i18nKey: "COMMON_FATHER" },
   ];
 
-  const goNext = () => {
-    let owner = formData.owner;
+ const goNext = () => {
 
-    let finalApplicantName = "";
-    if (isExistingFixedPoint?.code === "YES") {
-      finalApplicantName = fixedPoint?.applicantDetail?.name || fixedPoint?.name || "";
-    } else {
-      finalApplicantName = typeof fixedPoint === "string" ? fixedPoint : fixedPoint?.name || "";
+  let owner = formData.owner || {};
+
+  let applicantDetails = {
+    ...owner,
+    applicantName:
+      isExistingFixedPoint?.code === "YES"
+        ? fixedPoint?.applicantDetail?.name || fixedPoint?.name || ""
+        : typeof fixedPoint === "string"
+          ? fixedPoint
+          : fixedPoint?.name || "",
+
+    mobileNumber:
+      isExistingFixedPoint?.code === "YES"
+        ? fixedPoint?.applicantDetail?.mobileNumber || mobileNumber || ""
+        : mobileNumber || "",
+
+    alternateNumber:
+      isExistingFixedPoint?.code === "YES"
+        ? fixedPoint?.applicantDetail?.alternateNumber || alternateNumber || ""
+        : alternateNumber || "",
+
+    emailId:
+      isExistingFixedPoint?.code === "YES"
+        ? fixedPoint?.applicantDetail?.emailId || emailId || ""
+        : emailId || "",
+
+    gender,
+    dateOfBirth,
+    relationShipType,
+    guardianName,
+    fixedPoint,
+    isExistingFixedPoint,
+  };
+
+  if (autoPopulatedAddress) {
+    onSelect("multiple", {
+      owner: applicantDetails,
+      address: autoPopulatedAddress,
+      navigationKey: config.key,
+    });
+  } else {
+    onSelect(config.key, applicantDetails, false);
+  }
+};
+
+  const normalizeForCompare = (val) => {
+    if (val === null || val === undefined || val === "") return "";
+    if (typeof val === "object") {
+      if (val.code !== undefined) return val.code;
+      if (val.uuid !== undefined) return val.uuid;
+      if (val.id !== undefined) return val.id;
+      try {
+        return JSON.stringify(val);
+      } catch (e) {
+        return String(val);
+      }
     }
-
-    let applicantDetails = {
-      ...owner, applicantName: finalApplicantName, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId,
-      fixedPoint, isExistingFixedPoint
-    };
-
-    if (autoPopulatedAddress) {
-      onSelect("multiple", {
-        owner: applicantDetails,
-        address: autoPopulatedAddress,
-        navigationKey: config.key
-      });
-    } else {
-      onSelect(config.key, applicantDetails, false);
-    }
+    return String(val);
   };
 
   const lastSentValue = React.useRef(null);
   React.useEffect(() => {
+    // Skip silent updates if there is no user-entered data yet
+    const hasUserData = fixedPoint || mobileNumber || emailId || alternateNumber;
+    if (!hasUserData) {
+      return;
+    }
+
     let finalApplicantName = "";
     if (isExistingFixedPoint?.code === "YES") {
       finalApplicantName = fixedPoint?.applicantDetail?.name || fixedPoint?.name || "";
@@ -195,22 +237,50 @@ const EmergencyFixedPointApplicantDetails = ({ t, config, onSelect, formData }) 
     }
 
     let applicantDetails = {
-      applicantName: finalApplicantName, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId,
-      fixedPoint, isExistingFixedPoint
+      applicantName: finalApplicantName,
+      mobileNumber,
+      gender,
+      dateOfBirth,
+      alternateNumber,
+      relationShipType,
+      guardianName,
+      emailId,
+      fixedPoint,
+      isExistingFixedPoint,
     };
 
-    let isDifferent = true;
-    try {
-      isDifferent = JSON.stringify(lastSentValue.current) !== JSON.stringify(applicantDetails);
-    } catch (e) {
-      isDifferent = Object.keys(applicantDetails).some(k => lastSentValue.current?.[k] !== applicantDetails[k]);
+    let isDifferent = false;
+    if (!lastSentValue.current) {
+      isDifferent = true;
+    } else {
+      for (const key of Object.keys(applicantDetails)) {
+        if (normalizeForCompare(lastSentValue.current[key]) !== normalizeForCompare(applicantDetails[key])) {
+          isDifferent = true;
+          break;
+        }
+      }
     }
 
-    if (isDifferent) {
+    // Also verify against the actual parent formData to prevent unnecessary triggers
+    const parentOwner = formData?.owner || {};
+    let isDifferentFromParent = false;
+    for (const key of Object.keys(applicantDetails)) {
+      const localVal = normalizeForCompare(applicantDetails[key]);
+      const parentVal = normalizeForCompare(parentOwner[key]);
+      if (localVal !== parentVal) {
+        // Guard: do not overwrite filled parent data with empty values during race conditions
+        if (!localVal && parentVal) {
+          continue;
+        }
+        isDifferentFromParent = true;
+      }
+    }
+
+    if (isDifferent || isDifferentFromParent) {
       lastSentValue.current = applicantDetails;
       onSelect(config.key, { ...applicantDetails, silent: true }, false);
     }
-  }, [fixedPoint, isExistingFixedPoint, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId, onSelect, config.key]);
+  }, [fixedPoint, isExistingFixedPoint, mobileNumber, gender, dateOfBirth, alternateNumber, relationShipType, guardianName, emailId, onSelect, config.key, formData?.owner]);
 
   return (
     <React.Fragment>
