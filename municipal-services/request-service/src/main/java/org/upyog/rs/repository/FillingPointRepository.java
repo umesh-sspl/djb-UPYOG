@@ -1,6 +1,7 @@
 package org.upyog.rs.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -341,5 +342,14 @@ public class FillingPointRepository {
         }
 
         return jdbcTemplate.queryForObject(query.toString(), params.toArray(), Integer.class);
+    }
+
+    public String getFillingPointUuidByCode(String code) {
+        String query = "SELECT id FROM upyog_rs_water_tanker_filling_point WHERE filling_point_id = ?";
+        try {
+            return jdbcTemplate.queryForObject(query, String.class, code);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }

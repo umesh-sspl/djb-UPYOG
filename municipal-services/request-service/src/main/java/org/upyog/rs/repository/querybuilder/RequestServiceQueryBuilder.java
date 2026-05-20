@@ -62,8 +62,8 @@ public class RequestServiceQueryBuilder {
                     "urfp.ae_name, urfp.ae_email AS ae_email_id, urfp.ae_mobile AS ae_mobile_number, " +
                     "urfp.je_name, urfp.je_email AS je_email_id, urfp.je_mobile AS je_mobile_number " +
                     "FROM public.upyog_rs_water_tanker_booking_details ursbd " +
-                    "LEFT JOIN public.upyog_rs_water_tanker_applicant_details urad ON ursbd.booking_id = urad.booking_id " +
-                    "LEFT JOIN public.upyog_rs_water_tanker_address_details uraddr ON urad.applicant_id = uraddr.applicant_id " +
+                    "LEFT JOIN public.upyog_rs_water_tanker_applicant_details urad ON ursbd.applicant_id = urad.applicant_id " +
+                    "LEFT JOIN public.upyog_rs_water_tanker_address_details uraddr ON ursbd.applicant_id = uraddr.applicant_id  " +
                     "LEFT JOIN public.upyog_rs_water_tanker_filling_point urfp ON ursbd.filling_point_id = urfp.id"
     );
 

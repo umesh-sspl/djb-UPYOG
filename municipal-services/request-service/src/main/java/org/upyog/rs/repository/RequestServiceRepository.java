@@ -45,7 +45,6 @@ public interface RequestServiceRepository {
 
 	public WaterTankerBookingDetail getBookingByMobileNumber(String mobileNumber);
 
-	void updateApplicantBookingId(String applicantId, String bookingId);
 	String getWaterTankerStatusCountQuery(WaterTankerBookingSearchCriteria criteria,
 										  List<Object> preparedStmtList);
 	Map<String, Integer> getStatusCountsByApplicationType(

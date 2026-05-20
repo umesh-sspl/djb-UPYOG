@@ -2,8 +2,10 @@ package org.upyog.rs.wt.scheduler.service;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.upyog.rs.repository.FillingPointRepository;
 import org.upyog.rs.wt.scheduler.model.FixedPointScheduleData;
 import org.upyog.rs.wt.scheduler.model.VehicleDriverAssignmentData;
 
@@ -28,16 +30,33 @@ public class VehicleAssignmentService {
     @Value("${wt.vehicle.max-trip-limit:8}")
     private int maxTripLimit;
 
+    @Autowired
+    private FillingPointRepository fillingPointDetailsRepository;
+
     public List<FixedPointScheduleData> assignVehicles(
             String fillingPointId,
             List<FixedPointScheduleData> schedules,
             List<VehicleDriverAssignmentData> vehicles
     ) {
+
+        String systemFillingPointId = fillingPointDetailsRepository.getFillingPointUuidByCode(fillingPointId);
+
+        if (systemFillingPointId == null) {
+            throw new IllegalStateException("Invalid Filling Point Code: " + fillingPointId);
+        }
+
         if (schedules == null || schedules.isEmpty()) {
             return schedules;
         }
 
-        if (vehicles == null || vehicles.isEmpty()) {
+        List<VehicleDriverAssignmentData> eligibleVehicles = new ArrayList<>();
+        for (VehicleDriverAssignmentData vehicle : vehicles) {
+            if (systemFillingPointId.equals(vehicle.getFillingPointId())) {
+                eligibleVehicles.add(vehicle);
+            }
+        }
+
+        if (eligibleVehicles.isEmpty()) {
             throw new IllegalStateException("No active vehicle with mapped driver found for fillingPointId=" + fillingPointId);
         }
 
@@ -45,66 +64,114 @@ public class VehicleAssignmentService {
 
         int roundRobinIndex = 0;
 
+        List<FixedPointScheduleData> assignedSchedules = new ArrayList<>();
+
         for (FixedPointScheduleData schedule : schedules) {
 
             VehicleDriverAssignmentData selectedVehicle = null;
 
             String fixedPointId = schedule.getFixedPointId();
 
-            VehicleDriverAssignmentData existingVehicle = fixedPointVehicleMap.get(fixedPointId);
+            VehicleDriverAssignmentData existingVehicle =
+                    fixedPointVehicleMap.get(fixedPointId);
 
             /*
-             * Reuse same vehicle for same fixed point until preferred trip limit.
+             * Reuse same vehicle for same fixed point
+             * until preferred limit.
              */
-            if (existingVehicle != null && existingVehicle.getAssignedCount() < preferredTripLimit) {
+            if (existingVehicle != null
+                    && existingVehicle.getAssignedCount() < preferredTripLimit) {
+
                 selectedVehicle = existingVehicle;
             }
 
             /*
-             * If no existing vehicle or preferred limit reached,
-             * pick next available vehicle below preferred limit.
+             * Find vehicle under preferred limit.
              */
             if (selectedVehicle == null) {
-                selectedVehicle = findNextVehicleUnderLimit(vehicles, roundRobinIndex, preferredTripLimit);
+
+                selectedVehicle =
+                        findNextVehicleUnderLimit(
+                                eligibleVehicles,
+                                roundRobinIndex,
+                                preferredTripLimit
+                        );
             }
 
             /*
-             * If all vehicles crossed preferred limit,
-             * allow assignment up to maximum limit.
+             * Allow max limit fallback.
              */
             if (selectedVehicle == null) {
-                selectedVehicle = findNextVehicleUnderLimit(vehicles, roundRobinIndex, maxTripLimit);
+
+                selectedVehicle =
+                        findNextVehicleUnderLimit(
+                                eligibleVehicles,
+                                roundRobinIndex,
+                                maxTripLimit
+                        );
             }
 
+            /*
+             * IMPORTANT:
+             * Skip only this schedule instead of failing whole batch.
+             */
             if (selectedVehicle == null) {
-                throw new IllegalStateException("No vehicle capacity available for fillingPointId=" + fillingPointId);
+
+                log.warn(
+                        "No vehicle capacity available. fillingPointId={}, fixedPointId={}, scheduleId={}",
+                        fillingPointId,
+                        fixedPointId,
+                        schedule.getScheduleId()
+                );
+
+                continue;
             }
 
+            /*
+             * Assign vehicle details.
+             */
             schedule.setVendorId(selectedVehicle.getVendorId());
             schedule.setVehicleId(selectedVehicle.getVehicleId());
             schedule.setDriverId(selectedVehicle.getDriverId());
             schedule.setVehicleType(selectedVehicle.getVehicleType());
             schedule.setVehicleCapacity(selectedVehicle.getVehicleCapacity());
 
-            selectedVehicle.setAssignedCount(selectedVehicle.getAssignedCount() + 1);
+            /*
+             * Increase trip count.
+             */
+            selectedVehicle.setAssignedCount(
+                    selectedVehicle.getAssignedCount() + 1
+            );
 
+            /*
+             * Remember assignment for same fixed point.
+             */
             fixedPointVehicleMap.put(fixedPointId, selectedVehicle);
 
-            roundRobinIndex = vehicles.indexOf(selectedVehicle) + 1;
-            if (roundRobinIndex >= vehicles.size()) {
+            assignedSchedules.add(schedule);
+
+            /*
+             * Round robin next index.
+             */
+            roundRobinIndex =
+                    eligibleVehicles.indexOf(selectedVehicle) + 1;
+
+            if (roundRobinIndex >= eligibleVehicles.size()) {
                 roundRobinIndex = 0;
             }
 
-            log.info("Assigned vehicle. fillingPointId={}, fixedPointId={}, deliveryTime={}, vehicleId={}, driverId={}, assignedCount={}",
+            log.info(
+                    "Assigned vehicle. fillingPointId={}, fixedPointId={}, deliveryTime={}, vehicleId={}, driverId={}, assignedCount={}",
                     fillingPointId,
                     fixedPointId,
                     schedule.getDeliveryTime(),
                     selectedVehicle.getVehicleId(),
                     selectedVehicle.getDriverId(),
-                    selectedVehicle.getAssignedCount());
+                    selectedVehicle.getAssignedCount()
+            );
         }
 
-        return schedules;
+        return assignedSchedules;
     }
 
     private VehicleDriverAssignmentData findNextVehicleUnderLimit(

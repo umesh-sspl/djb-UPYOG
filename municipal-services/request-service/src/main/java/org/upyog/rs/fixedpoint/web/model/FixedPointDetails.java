@@ -55,4 +55,9 @@ public class FixedPointDetails {
     @JsonProperty("audit_details")
     private AuditDetails auditDetails;
 
+    @JsonProperty("fixed_point_name")
+    private String fixedPointName;
+
+    @JsonProperty("fixed_point_id")
+    private String fixedointId;
 }

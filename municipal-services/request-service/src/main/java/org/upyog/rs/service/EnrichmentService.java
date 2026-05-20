@@ -64,7 +64,18 @@ public class EnrichmentService {
 		WaterTankerBookingDetail waterTankerDetail = waterTankerRequest.getWaterTankerBookingDetail();
 		RequestInfo requestInfo = waterTankerRequest.getRequestInfo();
 		String userUuid = requestInfo.getUserInfo().getUuid();
-		String applicantUuid = RequestServiceUtil.getRandonUUID();
+//		String applicantUuid = RequestServiceUtil.getRandonUUID();
+		String businessService =
+				waterTankerDetail.getWorkflow().getBusinessService();
+		String applicantUuid;
+		if ("watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
+
+			applicantUuid = waterTankerDetail.getApplicantId();
+
+		} else {
+
+			applicantUuid = RequestServiceUtil.getRandonUUID();
+		}
 		String bookingCreateBy = waterTankerRequest.getRequestInfo().getUserInfo().getUserName();
 		AuditDetails auditDetails = RequestServiceUtil.getAuditDetails(requestInfo.getUserInfo().getUuid(), true);
 		if (config.getIsUserProfileEnabled()) {
@@ -81,8 +92,11 @@ public class EnrichmentService {
 			if (StringUtils.isBlank(applicantDetailId)) {
 				enrichUserDetails(waterTankerRequest);
 			}
-			if (StringUtils.isBlank(addressDetailId)) {
-				enrichAddressDetails(waterTankerRequest, waterTankerDetail);
+
+			if (!"watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
+				if (StringUtils.isBlank(addressDetailId)) {
+					enrichAddressDetails(waterTankerRequest, waterTankerDetail);
+				}
 			}
 		} else {
 			/*
@@ -96,7 +110,14 @@ public class EnrichmentService {
 				enrichUserDetails(waterTankerRequest);
 			}
 			waterTankerDetail.setApplicantUuid(null);
-			waterTankerDetail.setAddressDetailId(null);
+			if (waterTankerDetail.getAddress() != null) {
+
+				String existingAddressId =
+						waterTankerDetail.getAddress().getAddressId();
+
+				waterTankerDetail.setAddressDetailId(existingAddressId);
+				waterTankerDetail.getAddress().setAddressId(existingAddressId);
+			}
 			log.info("User profile is not enabled, using generated applicantUuid for both tables");
 		}
 
@@ -110,17 +131,41 @@ public class EnrichmentService {
 
 			waterTankerDetail.setBookingId(bookingId);
 			waterTankerDetail.setBookingNo(customIds.get(0));
-			waterTankerDetail.setApplicantId(applicantUuid);
 			waterTankerDetail.getApplicantDetail().setApplicantId(applicantUuid);
-			waterTankerDetail.getApplicantDetail().setBookingId(bookingId);
-			waterTankerDetail.getAddress().setAddressId(RequestServiceUtil.getRandonUUID());
-			waterTankerDetail.getAddress().setApplicantId(applicantUuid);
+		if (!"watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
 
+			waterTankerDetail.setApplicantId(applicantUuid);
+
+			if (waterTankerDetail.getApplicantDetail() != null) {
+
+				waterTankerDetail.getApplicantDetail().setApplicantId(applicantUuid);
+
+				waterTankerDetail.getApplicantDetail().setBookingId(bookingId);
+			}
+		}
+		if (waterTankerDetail.getAddress() != null) {
+
+			if (!"watertanker-fixedpoint".equalsIgnoreCase(businessService)) {
+
+				if (StringUtils.isBlank(
+						waterTankerDetail.getAddress().getAddressId())) {
+
+					waterTankerDetail.getAddress()
+							.setAddressId(RequestServiceUtil.getRandonUUID());
+				}
+
+				waterTankerDetail.getAddress()
+						.setApplicantId(applicantUuid);
+			}
+
+			// save existing address id in booking table
+			waterTankerDetail.setAddressDetailId(
+					waterTankerDetail.getAddress().getAddressId()
+			);
+		}
 		if (waterTankerDetail.getWorkflow() == null || StringUtils.isBlank(waterTankerDetail.getWorkflow().getBusinessService())) {
 			throw new CustomException("INVALID_REQUEST", "Business Service is missing in Workflow object");
 		}
-
-		String businessService = waterTankerDetail.getWorkflow().getBusinessService();
 
 		if ("watertanker".equalsIgnoreCase(businessService)) {
 			waterTankerDetail.getWorkflow().setAction("APPLY");
@@ -185,6 +230,8 @@ public class EnrichmentService {
 		waterTankerDetail.setDeliveryDate(waterTankerRequest.getWaterTankerBookingDetail().getDeliveryDate());
 		waterTankerDetail.setDeliveryTime(waterTankerRequest.getWaterTankerBookingDetail().getDeliveryTime());
 		waterTankerDetail.setApplicationType(waterTankerDetail.getWorkflow().getBusinessService());
+		waterTankerDetail.getApplicantDetail().setType(null);
+		waterTankerDetail.getApplicantDetail().setFixedPointId(null);
 
 
 		waterTankerDetail.setBookingCreatedBy(bookingCreateBy);

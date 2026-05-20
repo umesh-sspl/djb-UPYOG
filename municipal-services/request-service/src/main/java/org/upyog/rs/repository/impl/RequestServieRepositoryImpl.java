@@ -63,8 +63,8 @@ public class RequestServieRepositoryImpl implements RequestServiceRepository {
 	private void pushWaterTankerRequestToKafka(WaterTankerBookingRequest waterTankerRequest) {
 		if(requestServiceConfiguration.getIsUserProfileEnabled()) {
 			producer.push(requestServiceConfiguration.getWaterTankerApplicationWithProfileSaveTopic(), waterTankerRequest);
-//		} else if(waterTankerRequest.getWaterTankerBookingDetail().getWorkflow().getBusinessService().equals("watertanker-fixedpoint")){
-//			producer.push(requestServiceConfiguration.getWaterTankerEmergencySaveTopic(), waterTankerRequest);
+		} else if(waterTankerRequest.getWaterTankerBookingDetail().getWorkflow().getBusinessService().equals("watertanker-fixedpoint")){
+			producer.push(requestServiceConfiguration.getEmergencyWaterTankerBooking(), waterTankerRequest);
 		}
 		else {
 			producer.push(requestServiceConfiguration.getWaterTankerApplicationSaveTopic(), waterTankerRequest);
@@ -341,16 +341,7 @@ public class RequestServieRepositoryImpl implements RequestServiceRepository {
 		}
 	}
 
-	private static final String UPDATE_BOOKING_ID_QUERY =
-			"UPDATE upyog_rs_water_tanker_applicant_details " +
-					"SET booking_id = ? " +
-					"WHERE applicant_id = ?";
 
-	@Override
-	public void updateApplicantBookingId(String applicantId, String bookingId) {
-		log.info("Updating booking_id={} for applicant_id={}", bookingId, applicantId);
-		jdbcTemplate.update(UPDATE_BOOKING_ID_QUERY, bookingId, applicantId);
-	}
 
 	@Override
 	public String getWaterTankerStatusCountQuery(WaterTankerBookingSearchCriteria criteria, List<Object> preparedStmtList) {

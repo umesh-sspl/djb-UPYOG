@@ -130,13 +130,6 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 	// 6. Save NEW record (Push to 'create-water-tanker-booking' topic)
 	requestServiceRepository.saveWaterTankerBooking(waterTankerRequest);
 
-	// 7. Link Applicant to the NEW Booking ID
-	if (waterTankerDetail.getApplicantDetail() != null && waterTankerDetail.getBookingId() != null) {
-		requestServiceRepository.updateApplicantBookingId(
-				waterTankerDetail.getApplicantDetail().getApplicantId(),
-				waterTankerDetail.getBookingId());
-	}
-
 	return waterTankerDetail;
 }
 
