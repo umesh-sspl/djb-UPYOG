@@ -33,7 +33,7 @@ public class FixedPointBookingSchedulerService {
     private final FillingPointVehicleRepository vehicleRepository;
     private final VehicleAssignmentService vehicleAssignmentService;
     private final FixedPointSchedulerDataMapper schedulerDataMapper;
-    private final WaterTankerBookingRequestMapper bookingRequestMapper; // Switched to active mapper
+    private final WaterTankerBookingRequestMapper bookingRequestMapper;
     private final WaterTankerInternalBookingService internalBookingService;
     private final FillingPointRepository fillingPointRepository;
 
@@ -66,9 +66,19 @@ public class FixedPointBookingSchedulerService {
                         dayOfWeek.name(),
                         fillingPointId
                 );
+        log.info("Timetable rows loaded. count={}", timetableRows.size());
+
+        // ── Step 2: Map rows + enrich from fixed point search API ─────────
+        //
+        // Per row: GET http://localhost:8091/request-service/water-tanker/fixed-point/v1/_search
+        //                  ?tenantId=dl.djb&fixedPointId=FXP-05946
+        //
+        // Fills: applicantId, mobileNumber, addressId, address fields, etc.
+        // from response key "waterTankerBookingDetail" → WaterTankerFixedPointDetail
+
 
         List<FixedPointScheduleData> scheduleDataList =
-                schedulerDataMapper.toSchedulerDataList(timetableRows);
+                schedulerDataMapper.toSchedulerDataList(timetableRows,requestInfo);
 
         Map<String, List<FixedPointScheduleData>> groupedByFillingPoint =
                 scheduleDataList.stream()
@@ -109,28 +119,29 @@ public class FixedPointBookingSchedulerService {
 
                 for (FixedPointScheduleData schedule : assignedSchedules) {
                     try {
+                        // Validate mandatory fields came from API.
+                        // IMPORTANT: we do NOT fall back to system user here.
+                        //            If the API didn't return data, skip the booking.
                         // Dynamically resolve baseline fallback context from RequestInfo if missing
-                        if (!StringUtils.hasText(schedule.getApplicantId()) && requestInfo.getUserInfo() != null) {
-                            schedule.setApplicantId(requestInfo.getUserInfo().getUuid());
-                        }
-
-                        if (!StringUtils.hasText(schedule.getMobileNumber()) && requestInfo.getUserInfo() != null) {
-                            schedule.setMobileNumber(requestInfo.getUserInfo().getMobileNumber());
-                        }
-
-                        if (!StringUtils.hasText(schedule.getAddressId())) {
-                            schedule.setAddressId("ADDR-" + schedule.getFixedPointId());
+                        String skipReason = firstMissingMandatoryField(schedule);
+                        if (skipReason != null) {
+                            log.warn("Skipping — {}. fixedPointCode={}, scheduleId={}",
+                                    skipReason, schedule.getFixedPointCode(), schedule.getScheduleId());
+                            fillingPointFailed++;
+                            totalFailed++;
+                            continue;
                         }
 
                         if (!StringUtils.hasText(schedule.getDeliveryTime())) {
                             schedule.setDeliveryTime("08:00 PM");
                         }
 
-                        String fillingPointCode = schedule.getFillingPointId(); // e.g. FLP-000012
+                        String fillingPointCode = schedule.getFillingPointId();
                         String fillingPointUuid = fillingPointRepository.getFillingPointUuidByCode(fillingPointCode);
 
-                        if (fillingPointUuid == null) {
-                            log.warn("No filling point UUID found for code: {}. Skipping booking.", fillingPointCode);
+                        if (!StringUtils.hasText(fillingPointUuid)) {
+                            log.warn("No UUID for fillingPointCode={}. Skipping. scheduleId={}",
+                                    fillingPointCode, schedule.getScheduleId());
                             fillingPointFailed++;
                             totalFailed++;
                             continue;
@@ -150,6 +161,8 @@ public class FixedPointBookingSchedulerService {
                         internalBookingService.createBooking(bookingRequest);
                         fillingPointSuccess++;
                         totalSuccess++;
+                        log.info("Booking created. fixedPointCode={}, scheduleId={}, deliveryDate={}",
+                                schedule.getFixedPointCode(), schedule.getScheduleId(), deliveryDate);
 
                     } catch (DuplicateKeyException duplicateKeyException) {
                         fillingPointFailed++;
@@ -177,6 +190,9 @@ public class FixedPointBookingSchedulerService {
                     .failedCount(fillingPointFailed)
                     .build());
         }
+        log.info("Scheduler complete. tenantId={}, deliveryDate={}, " +
+                        "totalRows={}, success={}, failed={}",
+                tenantId, deliveryDate, scheduleDataList.size(), totalSuccess, totalFailed);
 
         return FixedPointSchedulerRunResponse.builder()
                 .tenantId(tenantId)
@@ -187,6 +203,28 @@ public class FixedPointBookingSchedulerService {
                 .failedCount(totalFailed)
                 .fillingPointSummaries(summaries)
                 .build();
+    }
+
+    /**
+     * Returns the first missing mandatory field name, or null if all are present.
+     *
+     * applicantId and mobileNumber MUST come from the fixed point search API.
+     * They are NEVER populated from requestInfo or system user.
+     */
+    private String firstMissingMandatoryField(FixedPointScheduleData data) {
+        if (!StringUtils.hasText(data.getApplicantId()))
+            return "applicantId missing — fixed point API returned no applicant data";
+        if (!StringUtils.hasText(data.getMobileNumber()))
+            return "mobileNumber missing — fixed point API returned no applicant data";
+        if (!StringUtils.hasText(data.getAddressId()))
+            return "addressId missing — fixed point has no address in API response";
+        if (!StringUtils.hasText(data.getVendorId()))
+            return "vendorId missing — no vehicle assigned for this filling point";
+        if (!StringUtils.hasText(data.getVehicleId()))
+            return "vehicleId missing — no vehicle assigned for this filling point";
+        if (!StringUtils.hasText(data.getDriverId()))
+            return "driverId missing — no driver mapped to vehicle";
+        return null;
     }
 
     private void validateBeforeBooking(FixedPointScheduleData data) {
