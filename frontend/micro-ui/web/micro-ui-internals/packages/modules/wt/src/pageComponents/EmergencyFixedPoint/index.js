@@ -160,7 +160,8 @@ const WTEmergencyFixedPointCreate = () => {
         paramsRef.current = newParams;
       }
     } else {
-      const updatedValue = { ...currentParams[key], ...data };
+      const { silent, ...restData } = data;
+      const updatedValue = { ...currentParams[key], ...restData };
       let isDifferent = true;
       try {
         isDifferent = JSON.stringify(currentParams[key]) !== JSON.stringify(updatedValue);
