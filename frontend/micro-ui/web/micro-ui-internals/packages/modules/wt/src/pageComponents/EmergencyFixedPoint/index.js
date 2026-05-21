@@ -215,7 +215,7 @@ const WTEmergencyFixedPointCreate = () => {
   /*                      COMPONENT REGISTRY                             */
   /* ------------------------------------------------------------------ */
 
-  const CheckPage     = Digit?.ComponentRegistryService?.getComponent("EmergencyFixedPointCheckPage");
+  const CheckPage = Digit?.ComponentRegistryService?.getComponent("EmergencyFixedPointCheckPage");
   const WTAcknowledgement = Digit?.ComponentRegistryService?.getComponent("WTEmergencyFixedPointAcknowledgement");
 
   /* ------------------------------------------------------------------ */
@@ -225,7 +225,7 @@ const WTEmergencyFixedPointCreate = () => {
   return (
     <React.Fragment>
       <div className="employee-form-section-wrapper">
-        {!pathname.includes("/fp-info") && <VerticalTimeline config={config} showFinalStep={true} />}
+        {/* {!pathname.includes("/fp-info") && <VerticalTimeline config={config} showFinalStep={true} />} */}
         <div className="employee-form-section">
           <Switch>
             {/* Review / Check page */}
