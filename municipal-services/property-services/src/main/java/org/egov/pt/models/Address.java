@@ -67,6 +67,9 @@ public class Address {
 	@JsonProperty("geoLocation")
 	private GeoLocation geoLocation;
 	
+	@JsonProperty("zroLocation")
+	private String zroLocation;
+
 	@JsonProperty("additionalDetails")
 	private Object additionalDetails;
 }

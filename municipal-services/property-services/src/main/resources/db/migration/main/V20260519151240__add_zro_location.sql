@@ -1,0 +1,1 @@
+ALTER TABLE eg_pt_address ADD COLUMN IF NOT EXISTS zro_location CHARACTER VARYING (64);
