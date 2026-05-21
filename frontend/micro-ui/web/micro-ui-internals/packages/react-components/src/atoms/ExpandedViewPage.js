@@ -12,14 +12,18 @@ const ExpandedViewPage = ({ modules = [] }) => {
   const location = useLocation();
 
   const locationState = location.state || {};
-  const { moduleName, links = [] } = locationState;
+  const queryParams = new URLSearchParams(location.search);
+  const moduleNameFromQuery = queryParams.get("moduleName");
+
+  const moduleName = locationState.moduleName || moduleNameFromQuery;
+  const links = locationState.links || [];
 
   const [activeModuleCode, setActiveModuleCode] = useState(null);
-  
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!location.state) {
+    if (!moduleName && !location.state) {
       history.push("/digit-ui/employee");
       return;
     }
@@ -38,7 +42,7 @@ const ExpandedViewPage = ({ modules = [] }) => {
         setActiveModuleCode(moduleName);
       }
     }
-  }, [location.state, history, modules, moduleName, t]);
+  }, [location.state, moduleName, history, modules, t]);
 
   const sidebarList = modules.filter((m) =>
     Digit.ComponentRegistryService.getComponent(`${m.code}Card`)
@@ -114,10 +118,10 @@ const ExpandedViewPage = ({ modules = [] }) => {
         />
 
         <div className="expanded-page-container">
-          
+
           <div className="mobile-sidebar-toggle" onClick={() => setIsMobileMenuOpen(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="hamburger-icon">
-              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span>{activeModuleLabel || "Select Module"}</span>
           </div>
@@ -144,7 +148,7 @@ const ExpandedViewPage = ({ modules = [] }) => {
                     className={`sidebar-item ${isActive ? "active" : ""}`}
                     onClick={() => {
                       setActiveModuleCode(mod.code);
-                      setIsMobileMenuOpen(false); 
+                      setIsMobileMenuOpen(false);
                     }}
                   >
                     <div className="sidebar-icon-placeholder">
@@ -172,7 +176,7 @@ const ExpandedViewPage = ({ modules = [] }) => {
           <div className="expanded-content-area" style={{ flex: 1 }}>
             {renderContent()}
           </div>
-          
+
         </div>
       </div>
     </Fragment>
