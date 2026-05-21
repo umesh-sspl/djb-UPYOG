@@ -33,7 +33,7 @@ public class DriverDetailsQueryBuilder {
             .append("urwtfp.je_name AS fp_je_name, urwtfp.je_mobile AS fp_je_mobile, urwtfp.je_email AS fp_je_email ")
 
             .append("FROM upyog_rs_water_tanker_booking_details ursbd ")
-            .append("INNER JOIN upyog_rs_water_tanker_applicant_details urad ON ursbd.booking_id = urad.booking_id ")
+            .append("INNER JOIN upyog_rs_water_tanker_applicant_details urad ON ursbd.applicant_id = urad.applicant_id ")
             .append("INNER JOIN upyog_rs_water_tanker_address_details uraddr ON urad.applicant_id = uraddr.applicant_id ")
             .append("LEFT JOIN eg_vehicle ev ON ursbd.vehicle_id = ev.id ")
             .append("LEFT JOIN eg_driver_trip edt ON ursbd.booking_id = edt.booking_id ")
