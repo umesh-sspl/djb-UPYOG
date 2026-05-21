@@ -60,13 +60,26 @@ public class FixedPointBookingSchedulerService {
             requestInfo = internalBookingService.buildSystemRequestInfo(tenantId);
         }
 
-        List<FixedPointTimeTableDetail> timetableRows =
+        // 1. Fetch all rows for the given day and tenant
+        List<FixedPointTimeTableDetail> allTimetableRows =
                 fixedPointDetailsRepository.getScheduledFixedPointsForScheduler(
                         tenantId,
                         dayOfWeek.name(),
                         fillingPointId
                 );
-        log.info("Timetable rows loaded. count={}", timetableRows.size());
+
+        // 2. Filter ONLY the dynamic rows where isEnable == true
+        List<FixedPointTimeTableDetail> timetableRows = allTimetableRows.stream()
+                .filter(row -> Boolean.TRUE.equals(row.getIsEnable()))
+                .collect(Collectors.toList());
+
+        log.info("Timetable rows loaded. total fetched={}, enabled for scheduling={}",
+                allTimetableRows.size(), timetableRows.size());
+
+        if (timetableRows.isEmpty()) {
+            log.info("No enabled fixed points found for today. Skipping booking creation.");
+            // You can safely return the response early here if there is nothing to schedule.
+        }
 
         // ── Step 2: Map rows + enrich from fixed point search API ─────────
         //
@@ -75,7 +88,6 @@ public class FixedPointBookingSchedulerService {
         //
         // Fills: applicantId, mobileNumber, addressId, address fields, etc.
         // from response key "waterTankerBookingDetail" → WaterTankerFixedPointDetail
-
 
         List<FixedPointScheduleData> scheduleDataList =
                 schedulerDataMapper.toSchedulerDataList(timetableRows,requestInfo);
