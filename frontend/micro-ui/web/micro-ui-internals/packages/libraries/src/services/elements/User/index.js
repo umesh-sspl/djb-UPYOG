@@ -87,9 +87,10 @@ export const UserService = {
     // 🔄 Fallback to localStorage if sessionStorage is lost or corrupted
     if (!user || !user.info) {
       const localUser = JSON.parse(localStorage.getItem("Digit.User") || "null");
-      const infoOnly = JSON.parse(localStorage.getItem("user-info") || "null") || 
-                       JSON.parse(localStorage.getItem("Citizen.user-info") || "null") || 
-                       JSON.parse(localStorage.getItem("Employee.user-info") || "null");
+      const infoOnly =
+        JSON.parse(localStorage.getItem("user-info") || "null") ||
+        JSON.parse(localStorage.getItem("Citizen.user-info") || "null") ||
+        JSON.parse(localStorage.getItem("Employee.user-info") || "null");
 
       if (localUser && localUser.info) {
         user = localUser;
@@ -217,6 +218,37 @@ export const UserService = {
       auth: true,
       userService: true,
       data: data.pageSize ? { tenantId, ...data } : { tenantId, ...data, pageSize: "100" },
+    });
+  },
+  fetchUserDetails: async (kc) => {
+    if (!kc) {
+      throw new Error("Keycloak instance (kc) is required");
+    }
+
+    if (!kc?.token) {
+      throw new Error("Keycloak token not available");
+    }
+
+    const requestData = {
+      tenantId: Digit.ULBService.getCurrentTenantId(),
+      uuid: kc?.uuid,
+      userName: kc?.userName,
+      userInfo: {
+        email: kc?.email || "",
+        name: kc?.userName || "",
+        tenantId: Digit.ULBService.getCurrentTenantId() || "",
+      },
+    };
+
+    return Request({
+      url: Urls.UserDetails,
+      method: "POST",
+      auth: true,
+      userService: true,
+      params: {
+        access_token: kc.token,
+      },
+      data: requestData,
     });
   },
 };

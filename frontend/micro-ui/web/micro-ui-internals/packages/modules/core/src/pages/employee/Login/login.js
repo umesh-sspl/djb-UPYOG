@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { fetchUserDetails } from "../../../../../../libraries/src/services/elements/UserDetails";
 import axios from "axios";
 
 const Login = () => {
@@ -58,7 +57,7 @@ const Login = () => {
         const tenantId = "dl.djb";
 
         // First API
-        const userDetailsResponse = await fetchUserDetails(kc);
+        const userDetailsResponse = await await Digit.UserService.fetchUserDetails(kc);
 
         if (!isMounted) return;
 
