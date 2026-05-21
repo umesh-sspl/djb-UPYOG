@@ -70,9 +70,6 @@ const addComponentsToRegistry = () => {
 
 export const VENDORModule = ({ stateCode, userType, tenants }) => {
   const { path, url } = useRouteMatch();
-  const moduleCode = "VENDOR";
-  const language = Digit.StoreData.getCurrentLanguage();
-  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
   addComponentsToRegistry();
 
   Digit.SessionStorage.set("VENDOR_TENANTS", tenants);
@@ -85,6 +82,7 @@ export const VENDORModule = ({ stateCode, userType, tenants }) => {
         locale: Digit.StoreData.getCurrentLanguage(),
         tenantId: Digit.ULBService.getCurrentTenantId(),
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

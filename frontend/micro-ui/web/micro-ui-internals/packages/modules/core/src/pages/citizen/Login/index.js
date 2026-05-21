@@ -100,7 +100,6 @@ const Login = () => {
     if (!user?.info) return;
 
     try {
-      Digit.SessionStorage.set("User", user);
       Digit.UserService.setUser(user);
       Digit.UserService.setType("CITIZEN");
 
