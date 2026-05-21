@@ -125,7 +125,7 @@ const WSDeclaration = ({ config, onSelect, userType, formData, setError, formSta
   return (
     <React.Fragment>
       <CollapsibleCardPage title={t("WS_DECLARATION")} defaultOpen={true}>
-        <div style={{ padding: "10px 0" }}>
+        <div>
           {declarationPoints.map((point, index) => (
             <div key={index} style={{ display: "flex", alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid #eee" }}>
               <span style={{ fontSize: "14px", lineHeight: "1.5", marginRight: "8px", fontWeight: "bold" }}>{index + 1}.</span>
@@ -134,7 +134,7 @@ const WSDeclaration = ({ config, onSelect, userType, formData, setError, formSta
           ))}
         </div>
 
-        <div style={{ marginTop: "10px", marginBottom: "20px" }}>
+        <div style={{ marginTop: "10px" }}>
           <Controller
             control={control}
             name="agree"
@@ -152,10 +152,10 @@ const WSDeclaration = ({ config, onSelect, userType, formData, setError, formSta
           />
         </div>
 
-        <div className="formcomposer-section-grid" style={{ marginTop: "20px" }}>
+        <div className="formcomposer-section-grid">
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{t("WS_SUBMITTED_BY")}</CardLabel>
+              <CardLabel>{t("WS_SUBMITTED_BY")}</CardLabel>
               <div className="field">
                 <Controller
                   control={control}
@@ -170,7 +170,7 @@ const WSDeclaration = ({ config, onSelect, userType, formData, setError, formSta
 
           <div>
             <LabelFieldPair>
-              <CardLabel className="card-label-smaller">{t("WS_UPLOAD_SIGNATURE_FILE")}</CardLabel>
+              <CardLabel>{t("WS_UPLOAD_SIGNATURE_FILE")}</CardLabel>
               <div className="field" style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                 <div style={{ flex: 1 }}>
                   <UploadFile
