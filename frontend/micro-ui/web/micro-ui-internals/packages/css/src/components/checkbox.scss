@@ -64,7 +64,7 @@
 .checkbox-wrap .custom-checkbox svg,
 .checkbox-wrap .custom-checkbox-emp svg {
   opacity: 0;
-  color: #e84335;
+  color: #00497e;
   transition: opacity 0.15s ease;
   pointer-events: none;
 }
@@ -72,7 +72,7 @@
 /* Checked state */
 .checkbox-wrap input:checked + .custom-checkbox,
 .checkbox-wrap input:checked + .custom-checkbox-emp {
-  border-color: #e84335;
+  border-color: #00497e;
 }
 
 .checkbox-wrap input:checked + .custom-checkbox svg,

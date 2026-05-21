@@ -31,16 +31,16 @@ export const WTSearch = {
         values: [
           { title: "WT_BOOKING_NO", value: response?.bookingNo || t("CS_NA") },
           { title: "WT_BOOKING_STATUS", value: response?.bookingStatus || t("CS_NA") },
-          { title: "WT_APPLICATION_DATE", value: response?.applicationDate ? Digit.DateUtils.ConvertEpochToDate(response?.applicationDate) : t("CS_NA") },
+          { title: "WT_APPLICATION_DATE", value: (response?.applicationDate || response?.auditDetails?.createdTime) ? Digit.DateUtils.ConvertEpochToDate(response?.applicationDate || response?.auditDetails?.createdTime) : t("CS_NA") },
           { title: "WT_PAYMENT_DATE", value: response?.paymentDate ? Digit.DateUtils.ConvertEpochToDate(response?.paymentDate) : t("CS_NA") }
         ]
       },
       {
-        title: "WT_APPLICANT_DETAILS",
+        title: window.location.href.includes("fixed-point") ? "WT_FIXED_POINT_DETAILS" : "WT_APPLICANT_DETAILS",
 
         asSectionHeader: true,
         values: [
-          { title: "WT_APPLICANT_NAME", value: response?.applicantDetail?.name || t("CS_NA") },
+          { title: window.location.href.includes("fixed-point") ? "WT_FIXED_POINT_NAME" : "WT_APPLICANT_NAME", value: response?.applicantDetail?.name || t("CS_NA") },
           { title: "WT_MOBILE_NUMBER", value: response?.applicantDetail?.mobileNumber || t("CS_NA") },
           { title: "WT_ALT_MOBILE_NUMBER", value: response?.applicantDetail?.alternateNumber || t("CS_NA") },
           { title: "WT_EMAIL_ID", value: response?.applicantDetail?.emailId || t("CS_NA") }

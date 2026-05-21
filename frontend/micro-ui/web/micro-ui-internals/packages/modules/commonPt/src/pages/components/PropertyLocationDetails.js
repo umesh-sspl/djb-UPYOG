@@ -1,7 +1,5 @@
-
-
 import React, { useState, useEffect } from "react";
-import { AddressDetails } from "@djb25/digit-ui-react-components";
+import { AddressDetails, CollapsibleCardPage } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 
@@ -35,7 +33,7 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
     zone: address?.zone || "",
     zro: address?.zro || "",
   });
-  
+
   const isPropertyFound = !!formDataProp?.cpt?.details?.propertyId;
 
   useEffect(() => {
@@ -43,10 +41,16 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
       const details = formDataProp.cpt.details;
       const addressData = details.address || {};
       const additionalDetails = details.additionalDetails || {};
-      
+
       const localityCode = addressData.locality?.code || addressData.locality || "";
-      const lat = addressData.geoLocation?.latitude && addressData.geoLocation?.latitude !== 0 ? addressData.geoLocation.latitude : addressData.locality?.latitude || addressData.latitude || "";
-      const lng = addressData.geoLocation?.longitude && addressData.geoLocation?.longitude !== 0 ? addressData.geoLocation.longitude : addressData.locality?.longitude || addressData.longitude || "";
+      const lat =
+        addressData.geoLocation?.latitude && addressData.geoLocation?.latitude !== 0
+          ? addressData.geoLocation.latitude
+          : addressData.locality?.latitude || addressData.latitude || "";
+      const lng =
+        addressData.geoLocation?.longitude && addressData.geoLocation?.longitude !== 0
+          ? addressData.geoLocation.longitude
+          : addressData.locality?.longitude || addressData.longitude || "";
 
       setFormData({
         pincode: addressData.pincode || "",
@@ -75,7 +79,7 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
           assembly: additionalDetails.assembly || addressData.additionalDetails?.assembly || "",
           block: additionalDetails.block || addressData.additionalDetails?.block || "",
           zone: additionalDetails.zone || addressData.additionalDetails?.zone || "",
-        }
+        },
       });
     }
   }, [formDataProp?.cpt?.details]);
@@ -229,21 +233,23 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
   };
 
   return (
-    <div style={{ boxShadow: "none", ...props.style }}>
-      <AddressDetails
-        t={t}
-        formData={formData}
-        onSelect={(key, data) => {
-          setFormData(data);
-          onSelect(key, data);
-        }}
-        config={config}
-        isEdit={isEdit}
-        showZRO={true}
-        disable={isPropertyFound}
-        hideNextButton={true}
-      />
-    </div>
+    <CollapsibleCardPage title={t("PT_LOCATION_DETAILS")} defaultOpen={true}>
+      <div style={{ boxShadow: "none", ...props.style }}>
+        <AddressDetails
+          t={t}
+          formData={formData}
+          onSelect={(key, data) => {
+            setFormData(data);
+            onSelect(key, data);
+          }}
+          config={{ isCollapsible: false, ...config }}
+          isEdit={isEdit}
+          showZRO={true}
+          disable={isPropertyFound}
+          hideNextButton={true}
+        />
+      </div>
+    </CollapsibleCardPage>
   );
 };
 export default PropertyLocationDetails;

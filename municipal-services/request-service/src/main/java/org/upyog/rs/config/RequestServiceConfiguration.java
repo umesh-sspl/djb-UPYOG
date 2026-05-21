@@ -114,6 +114,9 @@ public class RequestServiceConfiguration {
 	@Value("${persister.create.water-tanker-emergency.topic}")
 	private String emergencyWaterTankerBooking;
 
+	@Value("${persister.update.water-tanker-emergency.topic}")
+	private String updateEmergencyWaterTankerBooking;
+
 	@Value("${persister.update.water-tanker.topic}")
 	private String waterTankerApplicationUpdateTopic;
 

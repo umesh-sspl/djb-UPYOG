@@ -31,30 +31,25 @@ const WSDjbEmployee = ({ config, onSelect, userType, formData, setError, formSta
   return (
     <React.Fragment>
       <CollapsibleCardPage title={t("WS_DJB_EMPLOYEE")} defaultOpen={true}>
-        <LabelFieldPair>
-          <CardLabel>{t("WS_DJB_EMPLOYEE")}</CardLabel>
-          <div className="field">
-            <Controller
-              control={control}
-              name="isDjbEmployee"
-              render={(props) => <CheckBox checked={props.value} onChange={(e) => props.onChange(e.target.checked)} />}
-            />
-          </div>
-        </LabelFieldPair>
+        <div style={{ marginBottom: "24px" }}>
+          <Controller
+            control={control}
+            name="isDjbEmployee"
+            render={(props) => <CheckBox label={t("WS_DJB_EMPLOYEE")} checked={props.value} onChange={(e) => props.onChange(e.target.checked)} />}
+          />
+        </div>
 
         {isDjbEmployee && (
           <div className="formcomposer-section-grid">
             <div>
               <LabelFieldPair>
                 <CardLabel>{t("WS_EMPLOYEE_ID") + " *"}</CardLabel>
-                <div className="field">
-                  <Controller
-                    control={control}
-                    name="employeeId"
-                    rules={{ required: isDjbEmployee ? t("CORE_COMMON_REQUIRED_ERRMSG") : false }}
-                    render={(props) => <TextInput value={props.value} onChange={(e) => props.onChange(e.target.value)} onBlur={props.onBlur} />}
-                  />
-                </div>
+                <Controller
+                  control={control}
+                  name="employeeId"
+                  rules={{ required: isDjbEmployee ? t("CORE_COMMON_REQUIRED_ERRMSG") : false }}
+                  render={(props) => <TextInput value={props.value} onChange={(e) => props.onChange(e.target.value)} onBlur={props.onBlur} />}
+                />
               </LabelFieldPair>
             </div>
 

@@ -45,7 +45,7 @@ export const TableConfig = (t) => ({
       },
 
       {
-        Header: t("WT_APPLICANT_NAME"),
+        Header: window.location.href.includes("fixed-point") ? t("WT_FIXED_POINT_NAME") : t("WT_APPLICANT_NAME"),
         id: "applicantName",
         accessor: (row) => row?.searchData?.applicantDetail?.["name"] || "",
         Cell: (row) => {

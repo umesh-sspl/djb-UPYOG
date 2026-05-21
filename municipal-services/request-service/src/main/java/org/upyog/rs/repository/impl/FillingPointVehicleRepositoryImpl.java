@@ -40,22 +40,24 @@ public class FillingPointVehicleRepositoryImpl implements FillingPointVehicleRep
             return Collections.emptyList();
         }
 
-        String sql = "SELECT DISTINCT " +
+        String sql = "SELECT " +
                 "fv.filling_point_id, " +
                 "fv.vendor_id, " +
                 "v.id AS vehicle_id, " +
-                "dm.driver_id, " +
+                "d.owner_id AS driver_id, " +
                 "v.type AS vehicle_type, " +
                 "v.tankcapicity AS vehicle_capacity " +
                 "FROM public.eg_wt_fillingpoint_vendor_map fv " +
-                "JOIN eg_vendor_vehicle vv ON vv.vendor_id::uuid = fv.vendor_id::uuid " +
-                "AND vv.vendorvehiclestatus = 'ACTIVE' " +
-                "JOIN eg_vehicle v ON v.id::uuid = vv.vechile_id::uuid " +
-                "AND v.status = 'ACTIVE' " +
-                "JOIN eg_vehicle_driver_mapping dm ON dm.vehicle_id = v.id " +
-                "AND dm.status = 'ACTIVE' " +
+                "JOIN public.eg_vendor_vehicle vv ON fv.vendor_id::uuid = vv.vendor_id::uuid " +
+                "    AND vv.vendorvehiclestatus = 'ACTIVE' " +
+                "JOIN public.eg_vehicle v ON vv.vechile_id = v.id " +
+                "    AND v.status = 'ACTIVE' " +
+                "JOIN public.eg_vehicle_driver_mapping vdm ON v.id = vdm.vehicle_id " +
+                "    AND vdm.status = 'ACTIVE' " +
+                "JOIN public.eg_driver d ON vdm.driver_id = d.id " +
+                "    AND d.status = 'ACTIVE' " +
                 "WHERE fv.filling_point_id = ?::uuid " +
-                "AND fv.tenant_id = ?";
+                "  AND fv.tenant_id = ?";
 
         log.info("Fetching active vehicles for System UUID: {}", systemFillingPointUuid);
         log.info("Fetching active vehicles with mapped driver. Checked parameters: tenantId={}, fillingPointId={}",
