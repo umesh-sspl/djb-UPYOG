@@ -139,6 +139,7 @@ const Login = () => {
       console.error("Citizen session setup failed:", err);
       setError("Failed to setup user session");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, history]);
 
   if (error) {
