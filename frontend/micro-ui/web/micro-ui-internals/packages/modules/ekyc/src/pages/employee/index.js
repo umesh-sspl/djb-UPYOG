@@ -3,6 +3,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, useLocation } from "react-router-dom";
 import Dashboard from "../../components/Dashboard";
+import CeoDashboard from "../../components/CeoDashboard.jsx";
+import VendorDetails from "../../components/VendorDetails.jsx";
 import Inbox from "./Inbox";
 import Mapping from "./Mapping";
 import Create from "./Create";
@@ -15,8 +17,6 @@ const EmployeeApp = ({ path }) => {
   const location = useLocation();
 
   sessionStorage.removeItem("revalidateddone");
-
-  const CeoDashboard = Digit.ComponentRegistryService.getComponent("CeoDashboard");
 
   const getBreadcrumbLabel = () => {
     const pathname = location.pathname;
@@ -110,6 +110,15 @@ const EmployeeApp = ({ path }) => {
                 component={() => (
                   <LayoutWrapper layoutClass="normal">
                     <CeoDashboard />
+                  </LayoutWrapper>
+                )}
+              />
+
+              <PrivateRoute
+                path={`${path}/vendors/:vendorId`}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <VendorDetails />
                   </LayoutWrapper>
                 )}
               />
