@@ -195,7 +195,12 @@ const EmployeeModuleCard = ({ Icon, moduleName, kpis = [], links = [], className
       onDetailsClick();
       return;
     }
-    history.push("/digit-ui/employee/module/details", {
+    Digit.SessionStorage.set("MODULE_DETAILS", {
+      moduleName,
+      links,
+    });
+
+    history.push(`/digit-ui/employee/module/details`, {
       moduleName,
       links,
     });

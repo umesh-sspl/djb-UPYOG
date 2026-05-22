@@ -86,6 +86,14 @@ const EmployeeApp = ({ path }) => {
                   </LayoutWrapper>
                 )}
               />
+              <PrivateRoute
+                path={`${path}/assign`}
+                component={() => (
+                  <LayoutWrapper layoutClass="normal">
+                    <Mapping />
+                  </LayoutWrapper>
+                )}
+              />
 
               <PrivateRoute
                 path={formStepRoutes.map((route) => `${path}/${route}`)}
