@@ -54,4 +54,22 @@ public class SurveyorRepository {
                 .totalCount(surveyorRowMapper.getFullCount())
                 .build();
     }
+
+    /**
+     * Fetch all ACTIVE surveyors for a given vendorId.
+     * Used during vendor search enrichment to populate surveyors list.
+     */
+    public List<Surveyor> getSurveyorsByVendorId(String vendorId, String tenantId) {
+        SurveyorSearchCriteria criteria = SurveyorSearchCriteria.builder()
+                .vendorId(vendorId)
+                .tenantId(tenantId)
+                .status(java.util.Arrays.asList("ACTIVE"))
+                .limit(-1)
+                .offset(0)
+                .build();
+        List<Object> preparedStmtList = new ArrayList<>();
+        String query = surveyorQueryBuilder.getSurveyorSearchQuery(criteria, preparedStmtList);
+        log.info("SurveyorsByVendorId Query: {}", query);
+        return jdbcTemplate.query(query, preparedStmtList.toArray(), surveyorRowMapper);
+    }
 }

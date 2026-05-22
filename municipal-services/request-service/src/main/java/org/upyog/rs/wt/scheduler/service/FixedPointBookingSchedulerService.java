@@ -3,6 +3,7 @@ package org.upyog.rs.wt.scheduler.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.request.RequestInfo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -37,6 +38,9 @@ public class FixedPointBookingSchedulerService {
     private final WaterTankerInternalBookingService internalBookingService;
     private final FillingPointRepository fillingPointRepository;
 
+    @Value("${wt.fixedpoint.tenant-id:dl.djb}")
+    private String tenantId;
+
     public FixedPointSchedulerRunResponse runScheduler(
             String tenantId,
             LocalDate deliveryDate,
@@ -60,13 +64,26 @@ public class FixedPointBookingSchedulerService {
             requestInfo = internalBookingService.buildSystemRequestInfo(tenantId);
         }
 
-        List<FixedPointTimeTableDetail> timetableRows =
+        // 1. Fetch all rows for the given day and tenant
+        List<FixedPointTimeTableDetail> allTimetableRows =
                 fixedPointDetailsRepository.getScheduledFixedPointsForScheduler(
                         tenantId,
                         dayOfWeek.name(),
                         fillingPointId
                 );
-        log.info("Timetable rows loaded. count={}", timetableRows.size());
+
+        // 2. Filter ONLY the dynamic rows where isEnable == true
+        List<FixedPointTimeTableDetail> timetableRows = allTimetableRows.stream()
+                .filter(row -> Boolean.TRUE.equals(row.getIsEnable()))
+                .collect(Collectors.toList());
+
+        log.info("Timetable rows loaded. total fetched={}, enabled for scheduling={}",
+                allTimetableRows.size(), timetableRows.size());
+
+        if (timetableRows.isEmpty()) {
+            log.info("No enabled fixed points found for today. Skipping booking creation.");
+            // You can safely return the response early here if there is nothing to schedule.
+        }
 
         // ── Step 2: Map rows + enrich from fixed point search API ─────────
         //
@@ -75,7 +92,6 @@ public class FixedPointBookingSchedulerService {
         //
         // Fills: applicantId, mobileNumber, addressId, address fields, etc.
         // from response key "waterTankerBookingDetail" → WaterTankerFixedPointDetail
-
 
         List<FixedPointScheduleData> scheduleDataList =
                 schedulerDataMapper.toSchedulerDataList(timetableRows,requestInfo);
@@ -238,5 +254,30 @@ public class FixedPointBookingSchedulerService {
         if (!StringUtils.hasText(data.getDriverId())) throw new IllegalStateException("driverId is missing");
         if (data.getDeliveryTime() == null) throw new IllegalStateException("deliveryTime is missing");
         if (!StringUtils.hasText(data.getMobileNumber())) throw new IllegalStateException("mobileNumber is missing");
+    }
+
+    // Inside FixedPointBookingSchedulerService.java
+
+    public void runAutomatedDailyJob() {
+        log.info("Starting automated daily Fixed Point Booking Job for tenant: {}", tenantId);
+
+        // 1. Fetch all active filling points (using your repository)
+        List<String> activeFillingPoints = fixedPointDetailsRepository.getAllActiveFillingPoints(tenantId);
+
+        if (activeFillingPoints == null || activeFillingPoints.isEmpty()) {
+            log.warn("No active filling points found. Scheduler nothing to do.");
+            return;
+        }
+
+        // 2. Iterate and trigger the scheduling logic for each filling point
+        // We pass null for fillingPointId to process all, or loop through the list:
+        for (String fillingPointId : activeFillingPoints) {
+            try {
+                log.info("Automated job processing fillingPointId: {}", fillingPointId);
+                runScheduler(tenantId, LocalDate.now(), fillingPointId, null);
+            } catch (Exception e) {
+                log.error("Failed to process automated booking for fillingPointId: {}", fillingPointId, e);
+            }
+        }
     }
 }

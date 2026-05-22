@@ -107,7 +107,6 @@ public class PropertyRowMapper implements ResultSetExtractor<List<Property>> {
 						.tenantId(tenanId)
 						.id(propertyUuId)
 						.address(address)
-						.zroLocation(rs.getString("zro_location"))
 						.build();
 
 
@@ -339,6 +338,7 @@ public class PropertyRowMapper implements ResultSetExtractor<List<Property>> {
 		.id(rs.getString("addressid"))
 		.state(rs.getString("state"))
 		.city(rs.getString("city"))
+		.zroLocation(rs.getString("addresszrolocation"))
 		.geoLocation(geoLocation)
 		.locality(locality)
 		.tenantId(tenanId)

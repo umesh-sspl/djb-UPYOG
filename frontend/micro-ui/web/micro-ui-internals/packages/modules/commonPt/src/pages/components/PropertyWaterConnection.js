@@ -34,7 +34,7 @@ const PropertyWaterConnection = ({ t, config, onSelect, formData, formState, set
 
   const { isLoading: isWSServicesMastersLoading, data: ptServicesMastersData } = Digit.Hooks.pt.usePropertyMDMS(tenantId, "PropertyTax", [
     "PropertyCategory",
-    "NewPropertyType",
+    "PropertyType",
     "NoOfFloors",
     "PropertyNewUsageType",
   ]);
@@ -66,32 +66,11 @@ const PropertyWaterConnection = ({ t, config, onSelect, formData, formState, set
   }, [ptServicesMastersData]);
 
   const propertyTypeOptions = useMemo(() => {
-    const allOptions = ptServicesMastersData?.PropertyTax?.NewPropertyType?.filter((item) => item.active).map((item) => ({
+    return ptServicesMastersData?.PropertyTax?.PropertyType?.filter((item) => item.active).map((item) => ({
       code: item.code,
       name: item.name,
-      type: item.type,
     })) || [];
-
-    if (watchPropertyCategory?.code && watchPropertyCategory.code !== "MIXED") {
-      return allOptions.filter((item) => item.type === watchPropertyCategory.code);
-    }
-    return allOptions;
-  }, [ptServicesMastersData, watchPropertyCategory]);
-
-  useEffect(() => {
-    if (!isPropertyFound) {
-      const currentPropertyType = watch("useDetails.propertyType");
-      if (currentPropertyType && watchPropertyCategory) {
-        if (watchPropertyCategory.code === "MIXED") return;
-        const isCompatible = ptServicesMastersData?.PropertyTax?.NewPropertyType?.some(
-          (item) => item.code === currentPropertyType.code && item.type === watchPropertyCategory.code
-        );
-        if (!isCompatible) {
-          setValue("useDetails.propertyType", null);
-        }
-      }
-    }
-  }, [watchPropertyCategory, ptServicesMastersData, isPropertyFound, setValue]);
+  }, [ptServicesMastersData]);
 
   const usageTypeOptions = useMemo(() => {
     return (

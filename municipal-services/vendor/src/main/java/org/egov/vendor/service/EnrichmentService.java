@@ -11,6 +11,10 @@ import org.egov.vendor.config.VendorConfiguration;
 import org.egov.vendor.driver.service.DriverService;
 import org.egov.vendor.driver.web.model.DriverResponse;
 import org.egov.vendor.driver.web.model.DriverSearchCriteria;
+import org.egov.vendor.supervisor.repository.SupervisorRepository;
+import org.egov.vendor.supervisor.web.model.Supervisor;
+import org.egov.vendor.surveyor.repository.SurveyorRepository;
+import org.egov.vendor.surveyor.web.model.Surveyor;
 import org.egov.vendor.repository.VendorRepository;
 import org.egov.vendor.util.IdgenUtil;
 import org.egov.vendor.util.VendorConstants;
@@ -55,6 +59,12 @@ public class EnrichmentService {
 	private DriverService driverService;
 	@Autowired
 	private IdgenUtil idgenUtil;
+
+	@Autowired
+	private SupervisorRepository supervisorRepository;
+
+	@Autowired
+	private SurveyorRepository surveyorRepository;
 
 	/**
 	 * enriches the request object for create, assigns random ids for vedor,
@@ -225,8 +235,24 @@ public class EnrichmentService {
 
 			addDrivers(requestInfo, vendor, tenantId);
 			addVehicles(requestInfo, vendor, tenantId);
+			addSupervisors(vendor, tenantId);
+			addSurveyors(vendor, tenantId);
 			boundaryService.getAreaType(VendorRequest.builder().vendor(vendor).build(), config.getHierarchyTypeCode());
 		});
+	}
+
+	private void addSupervisors(Vendor vendor, String tenantId) {
+		List<Supervisor> supervisors = supervisorRepository.getSupervisorsByVendorId(vendor.getId(), tenantId);
+		if (!CollectionUtils.isEmpty(supervisors)) {
+			vendor.setSupervisors(supervisors);
+		}
+	}
+
+	private void addSurveyors(Vendor vendor, String tenantId) {
+		List<Surveyor> surveyors = surveyorRepository.getSurveyorsByVendorId(vendor.getId(), tenantId);
+		if (!CollectionUtils.isEmpty(surveyors)) {
+			vendor.setSurveyors(surveyors);
+		}
 	}
 
 	private void addDrivers(RequestInfo requestInfo, Vendor vendor, String tenantId) {

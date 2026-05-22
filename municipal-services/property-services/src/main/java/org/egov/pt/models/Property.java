@@ -79,9 +79,6 @@ public class Property extends PropertyInfo {
 	@JsonProperty("channel")
 	private Channel channel;
 
-	@JsonProperty("zroLocation")
-	private String zroLocation;
-
 	@JsonProperty("documents")
 	@Valid
 	private List<Document> documents;
