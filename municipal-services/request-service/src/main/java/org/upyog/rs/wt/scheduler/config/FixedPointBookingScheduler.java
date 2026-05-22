@@ -27,28 +27,50 @@ public class FixedPointBookingScheduler {
     @Value("${wt.fixedpoint.tenant-id}")
     private String tenantId;
 
-    @Scheduled(cron = "${wt.fixedpoint.scheduler.cron}")
-    public void runFixedPointBookingScheduler() {
 
-        log.info("========== Fixed Point Booking Scheduler Started ==========");
+    @Scheduled(
+            cron = "${wt.fixedpoint.scheduler.cron}",
+            zone = "${wt.fixed.point.scheduler.timezone}"
+    )
+    public void executeDailyFixedPointBookings() {
+        log.info("--- CRON TRIGGERED: Starting Automated Fixed Point Bookings ---");
 
-        if (!Boolean.TRUE.equals(schedulerEnabled)) {
-            log.warn("Fixed Point Booking Scheduler is disabled");
+        if (Boolean.FALSE.equals(schedulerEnabled)) {
+            log.warn("Scheduler is disabled in configuration.");
             return;
         }
 
         try {
-            schedulerService.runScheduler(
-                    tenantId,
-                    LocalDate.now(),
-                    null,
-                    null
-            );
+            // This triggers the service orchestration we added in step 1
+            schedulerService.runAutomatedDailyJob();
 
-            log.info("========== Fixed Point Booking Scheduler Completed ==========");
-
+            log.info("--- Automated Scheduler Completed Successfully ---");
         } catch (Exception e) {
-            log.error("Fixed Point Booking Scheduler failed", e);
+            log.error("--- Automated Scheduler Failed: {} ---", e.getMessage(), e);
         }
     }
+//    @Scheduled(cron = "${wt.fixedpoint.scheduler.cron}")
+//    public void runFixedPointBookingScheduler() {
+//
+//        log.info("========== Fixed Point Booking Scheduler Started ==========");
+//
+//        if (!Boolean.TRUE.equals(schedulerEnabled)) {
+//            log.warn("Fixed Point Booking Scheduler is disabled");
+//            return;
+//        }
+//
+//        try {
+//            schedulerService.runScheduler(
+//                    tenantId,
+//                    LocalDate.now(),
+//                    null,
+//                    null
+//            );
+//
+//            log.info("========== Fixed Point Booking Scheduler Completed ==========");
+//
+//        } catch (Exception e) {
+//            log.error("Fixed Point Booking Scheduler failed", e);
+//        }
+//    }
 }

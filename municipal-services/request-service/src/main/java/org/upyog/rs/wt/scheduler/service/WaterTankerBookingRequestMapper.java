@@ -17,6 +17,7 @@ import org.upyog.rs.wt.scheduler.model.FixedPointScheduleData;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Slf4j
 @Component
@@ -88,15 +89,27 @@ public class WaterTankerBookingRequestMapper {
     private LocalTime resolveDeliveryTime(String deliveryTime) {
         if (StringUtils.hasText(deliveryTime)) {
             try {
-                // Supports both standard "08:00" or full "08:00:00" formats
-                if (deliveryTime.length() == 5) {
-                    return LocalTime.parse(deliveryTime, DateTimeFormatter.ofPattern("HH:mm"));
+                String cleanTime = deliveryTime.toUpperCase().trim();
+
+                // 1. Detect and parse 12-hour format like "11:43 PM" or "8:00 AM"
+                if (cleanTime.endsWith("AM") || cleanTime.endsWith("PM")) {
+                    DateTimeFormatter formatter12 = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
+                    return LocalTime.parse(cleanTime, formatter12);
                 }
-                return LocalTime.parse(deliveryTime);
+
+                // 2. Supports standard 24-hour "08:00" format
+                if (cleanTime.length() == 5) {
+                    return LocalTime.parse(cleanTime, DateTimeFormatter.ofPattern("HH:mm"));
+                }
+
+                // 3. Fallback to standard full parsing "08:00:00"
+                return LocalTime.parse(cleanTime);
+
             } catch (Exception e) {
-                log.warn("Failed to parse delivery time: {}. Using default.", deliveryTime);
+                log.error("Failed to parse delivery time: '{}'. Falling back to 08:00. Error: {}", deliveryTime, e.getMessage());
             }
         }
+        // Strict fallback if nothing was sent
         return LocalTime.of(8, 0);
     }
 
