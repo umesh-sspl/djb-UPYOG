@@ -48,6 +48,24 @@ public class SupervisorRepository {
     }
 
     /**
+     * Fetch all ACTIVE supervisors for a given vendorId.
+     * Used during vendor search enrichment to populate supervisors list.
+     */
+    public List<Supervisor> getSupervisorsByVendorId(String vendorId, String tenantId) {
+        SupervisorSearchCriteria criteria = SupervisorSearchCriteria.builder()
+                .vendorId(vendorId)
+                .tenantId(tenantId)
+                .status(java.util.Arrays.asList("ACTIVE"))
+                .limit(-1)
+                .offset(0)
+                .build();
+        List<Object> preparedStmtList = new ArrayList<>();
+        String query = queryBuilder.getSearchQuery(criteria, preparedStmtList);
+        log.info("SupervisorsByVendorId Query: {}", query);
+        return jdbcTemplate.query(query, preparedStmtList.toArray(), rowMapper);
+    }
+
+    /**
      * Returns vendor IDs owned by the given user UUID.
      * Used for role-based restriction — agency users can only see
      * supervisors belonging to their own vendor.
