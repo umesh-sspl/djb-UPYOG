@@ -114,4 +114,18 @@ public class FixedPointDetailsRepositoryImpl implements FixedPointDetailsReposit
         return jdbcTemplate.query(query, preparedStmtList.toArray(), fixedPointRowMapper);
     }
 
+    @Override
+    public List<String> getAllActiveFillingPoints(String tenantId) {
+      String query = "SELECT DISTINCT filling_point_id FROM eg_fixed_point_time_table WHERE tenant_id = ? AND is_enable  = true";
+
+        log.info("Fetching distinct filling target definitions. Query executed: {}", query);
+
+        try {
+            return jdbcTemplate.queryForList(query, new Object[]{tenantId}, String.class);
+        } catch (Exception e) {
+            log.error("Failed to gather distinct contextual schedules matrices maps from database: ", e);
+            return new ArrayList<>();
+        }
+    }
+
 }

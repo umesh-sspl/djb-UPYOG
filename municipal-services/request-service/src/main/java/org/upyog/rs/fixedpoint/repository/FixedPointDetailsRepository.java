@@ -35,4 +35,6 @@ public interface FixedPointDetailsRepository  {
             String dayOfWeek,
             String fillingPointId
     );
+
+    List<String> getAllActiveFillingPoints(String tenantId);
 }
