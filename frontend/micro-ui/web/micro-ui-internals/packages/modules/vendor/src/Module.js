@@ -70,6 +70,10 @@ const addComponentsToRegistry = () => {
 
 export const VENDORModule = ({ stateCode, userType, tenants }) => {
   const { path, url } = useRouteMatch();
+  const moduleCode = "VENDOR";
+  const language = Digit.StoreData.getCurrentLanguage();
+  // Dont remove this it is requiored for Localization
+  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
   addComponentsToRegistry();
 
   Digit.SessionStorage.set("VENDOR_TENANTS", tenants);
