@@ -53,6 +53,24 @@ public class WaterTankerBookingSearchCriteria {
     @JsonIgnore
     private List<String> createdBy;
 
+    @JsonProperty("vendorName")
+    private String vendorName;
+
+    @JsonProperty("vehicleName")
+    private String vehicleName;
+
+    @JsonProperty("driverName")
+    private String driverName;
+
+    @JsonProperty("vendorIds")
+    private List<String> vendorIds;
+
+    @JsonProperty("vehicleIds")
+    private List<String> vehicleIds;
+
+    @JsonProperty("driverIds")
+    private List<String> driverIds;
+
     public boolean isEmpty() {
         return (this.tenantId == null && this.status == null && this.bookingNo == null
                 && this.mobileNumber == null
