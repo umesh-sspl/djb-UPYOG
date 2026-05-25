@@ -124,6 +124,24 @@ const SupervisorConfig = (t, agencies = [], reportingManagers = [], disabled = f
           },
         },
         {
+          label: t("ES_VENDOR_SUPERVISOR_ASSIGNED_ZONE"),
+          isMandatory: true,
+          type: "component",
+          key: "assignedZone",
+          component: "SelectEkycDropdown",
+          populators: {
+            name: "assignedZone",
+            options: [
+              { code: "ZONE-01", name: "ZONE-01" },
+              { code: "ZONE-02", name: "ZONE-02" },
+              { code: "ZONE-03", name: "ZONE-03" },
+              { code: "ZONE-04", name: "ZONE-04" },
+              { code: "ZONE-05", name: "ZONE-05" },
+            ],
+            optionsKey: "name",
+          },
+        },
+        {
           label: t("ES_VENDOR_SUPERVISOR_DESCRIPTION"),
           isMandatory: false,
           type: "text",
