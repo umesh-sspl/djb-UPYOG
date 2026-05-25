@@ -206,6 +206,36 @@ public class RequestServiceQueryBuilder {
         }
 
 
+        // Existing single driverId check (leave as is)
+        if (!ObjectUtils.isEmpty(criteria.getDriverId())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.driver_id = ? ");
+            preparedStmtList.add(criteria.getDriverId());
+        }
+
+        // 1. FILTER BY VENDOR IDS
+        if (criteria.getVendorIds() != null && !criteria.getVendorIds().isEmpty()) {
+            addClauseIfRequired(query, preparedStmtList);
+            String placeholders = String.join(",", Collections.nCopies(criteria.getVendorIds().size(), "?"));
+            query.append(" ursbd.vendor_id IN (").append(placeholders).append(") ");
+            preparedStmtList.addAll(criteria.getVendorIds());
+        }
+
+        // 2. FILTER BY VEHICLE IDS
+        if (criteria.getVehicleIds() != null && !criteria.getVehicleIds().isEmpty()) {
+            addClauseIfRequired(query, preparedStmtList);
+            String placeholders = String.join(",", Collections.nCopies(criteria.getVehicleIds().size(), "?"));
+            query.append(" ursbd.vehicle_id IN (").append(placeholders).append(") ");
+            preparedStmtList.addAll(criteria.getVehicleIds());
+        }
+
+        // 3. FILTER BY DRIVER IDS (List)
+        if (criteria.getDriverIds() != null && !criteria.getDriverIds().isEmpty()) {
+            addClauseIfRequired(query, preparedStmtList);
+            String placeholders = String.join(",", Collections.nCopies(criteria.getDriverIds().size(), "?"));
+            query.append(" ursbd.driver_id IN (").append(placeholders).append(") ");
+            preparedStmtList.addAll(criteria.getDriverIds());
+        }
         // Return count query directly without applying pagination
         if (criteria.isCountCall()) {
             return query.toString();

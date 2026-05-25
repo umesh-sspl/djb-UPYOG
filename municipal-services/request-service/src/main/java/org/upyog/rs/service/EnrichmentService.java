@@ -1,7 +1,10 @@
 package org.upyog.rs.service;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.egov.common.contract.request.RequestInfo;
@@ -17,6 +20,7 @@ import org.upyog.rs.repository.RequestServiceRepository;
 import org.upyog.rs.util.IdgenUtil;
 import org.upyog.rs.util.RequestServiceUtil;
 import org.upyog.rs.util.UserUtil;
+import org.upyog.rs.util.VendorUtil;
 import org.upyog.rs.web.models.Address;
 import org.upyog.rs.web.models.ApplicantDetail;
 import org.upyog.rs.web.models.AuditDetails;
@@ -27,14 +31,11 @@ import org.upyog.rs.web.models.mobileToilet.MobileToiletBookingDetail;
 import org.upyog.rs.web.models.mobileToilet.MobileToiletBookingRequest;
 import org.upyog.rs.web.models.user.AddressV2;
 import org.upyog.rs.web.models.user.User;
-import org.upyog.rs.web.models.waterTanker.WaterTankerBookingDetail;
-import org.upyog.rs.web.models.waterTanker.WaterTankerBookingRequest;
+import org.upyog.rs.web.models.waterTanker.*;
 import org.apache.commons.lang3.StringUtils;
 
 import digit.models.coremodels.IdResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.upyog.rs.web.models.waterTanker.WaterTankerFixedPointDetail;
-import org.upyog.rs.web.models.waterTanker.WaterTankerFixedPointRequest;
 
 @Service
 @Slf4j
@@ -55,7 +56,11 @@ public class EnrichmentService {
 	@Autowired
 	private RequestServiceRepository requestServiceRepository;
 
+	@Autowired
+	private VendorUtil vendorUtil;
 
+	@Autowired
+	private com.fasterxml.jackson.databind.ObjectMapper mapper;
 
 	public void enrichCreateWaterTankerRequest(WaterTankerBookingRequest waterTankerRequest) {
 		String bookingId = RequestServiceUtil.getRandonUUID();
@@ -702,5 +707,77 @@ public class EnrichmentService {
 
 		log.info("Enriched application request data :" + waterTankerFixedPointDetail);
 
+	}
+	public void enrichSearchCriteriaWithIds(RequestInfo requestInfo, WaterTankerBookingSearchCriteria criteria) {
+		String tenantId = criteria.getTenantId();
+
+		if (!StringUtils.isEmpty(criteria.getVendorName())) {
+			Object response = vendorUtil.searchVendor(requestInfo, tenantId, null, criteria.getVendorName());
+			// Note: Replace "vendor" below with "vendorInfo" or whatever array key the Vendor API actually returns
+			List<String> vendorIds = extractIdsFromResponse(response, "vendor");
+			criteria.setVendorIds(vendorIds);
+		}
+
+		// TODO: Duplicate above block for Driver and Vehicle
+	}
+	public void enrichCrossServiceDetails(RequestInfo requestInfo, List<WaterTankerBookingDetail> bookings) {
+		if (CollectionUtils.isEmpty(bookings)) return;
+
+		String tenantId = bookings.get(0).getTenantId();
+
+		// 1. Gather all unique IDs from the list of bookings (Bulk approach prevents API spam)
+		List<String> vendorIds = bookings.stream().map(WaterTankerBookingDetail::getVendorId)
+				.filter(java.util.Objects::nonNull).distinct().collect(Collectors.toList());
+
+		// 2. Fetch full objects in bulk
+		Map<String, Object> vendorMap = new HashMap<>();
+		if (!vendorIds.isEmpty()) {
+			Object vendorResponse = vendorUtil.searchVendor(requestInfo, tenantId, vendorIds, null);
+			vendorMap = createLookupMap(vendorResponse, "vendor", "id");
+		}
+
+		// 3. Map the objects back to the @Transient fields
+		for (WaterTankerBookingDetail booking : bookings) {
+			if (booking.getVendorId() != null) {
+				booking.setVendor(vendorMap.get(booking.getVendorId()));
+			}
+			// TODO: Do the same for vehicle and driver maps...
+		}
+	}
+
+	// --- JSON Utility Helper Methods ---
+
+	private List<String> extractIdsFromResponse(Object response, String jsonArrayKey) {
+		List<String> ids = new ArrayList<>();
+		try {
+			Map<String, Object> responseMap = mapper.convertValue(response, Map.class);
+			if (responseMap.containsKey(jsonArrayKey)) {
+				List<Map<String, Object>> entities = (List<Map<String, Object>>) responseMap.get(jsonArrayKey);
+				for (Map<String, Object> entity : entities) {
+					ids.add(entity.get("id").toString());
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error parsing IDs from cross-service response", e);
+		}
+		return ids;
+	}
+
+	private Map<String, Object> createLookupMap(Object response, String jsonArrayKey, String idField) {
+		Map<String, Object> map = new HashMap<>();
+		try {
+			Map<String, Object> responseMap = mapper.convertValue(response, Map.class);
+			if (responseMap.containsKey(jsonArrayKey)) {
+				List<Map<String, Object>> entities = (List<Map<String, Object>>) responseMap.get(jsonArrayKey);
+				for (Map<String, Object> entity : entities) {
+					if (entity.containsKey(idField)) {
+						map.put(entity.get(idField).toString(), entity);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error creating lookup map for enrichment", e);
+		}
+		return map;
 	}
 }

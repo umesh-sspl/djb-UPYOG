@@ -20,6 +20,7 @@ import org.upyog.rs.web.models.waterTanker.WaterTankerBookingDetail;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class FillingPointServiceImpl implements FillingPointService {
@@ -147,11 +148,20 @@ public class FillingPointServiceImpl implements FillingPointService {
         return request.getFillingPoints();
     }
     public List<FillingPointVendorMap> mapVendor(FillingPointVendorMapRequest request) {
-
+        if (request.getMappings() == null || request.getMappings().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String tenantId = request.getMappings().get(0).getTenantId();
+        // 1. Extract unique vendor IDs
+        List<String> vendorIds = request.getMappings().stream()
+                .map(FillingPointVendorMap::getVendorId)
+                .distinct()
+                .collect(Collectors.toList());
+        Object vendorResponse = vendorUtil.searchVendor(request.getRequestInfo(), tenantId, vendorIds, null);
         // 1. Validate: Ensure all vendor IDs in the request actually exist in the system
-        request.getMappings().forEach(map -> {
-            vendorUtil.validateVendor(map.getVendorId(), map.getTenantId());
-        });
+//        request.getMappings().forEach(map -> {
+//            vendorUtil.validateVendor(map.getVendorId(), map.getTenantId());
+//        });
 
         // 2. Enrichment: Assign UUIDs and AuditDetails to new mappings
         enrichmentUtil.enrichCreate(request);

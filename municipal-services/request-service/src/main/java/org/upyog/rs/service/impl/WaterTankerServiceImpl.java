@@ -192,24 +192,60 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 	public List<WaterTankerBookingDetail> getWaterTankerBookingDetails(RequestInfo requestInfo,
 			WaterTankerBookingSearchCriteria waterTankerBookingSearchCriteria) {
 
+		enrichmentService.enrichSearchCriteriaWithIds(requestInfo, waterTankerBookingSearchCriteria);
 
+		// If the user searched by a Vendor name, but that vendor doesn't exist, return empty immediately.
+		if (!StringUtils.isEmpty(waterTankerBookingSearchCriteria.getVendorName())
+				&& CollectionUtils.isEmpty(waterTankerBookingSearchCriteria.getVendorIds())) {
+			return new ArrayList<>();
+		}
+
+		// Add this in WaterTankerServiceImpl inside getWaterTankerBookingDetails()
+		if (!StringUtils.isEmpty(waterTankerBookingSearchCriteria.getVehicleName())
+				&& CollectionUtils.isEmpty(waterTankerBookingSearchCriteria.getVehicleIds())) {
+			return new ArrayList<>();
+		}
+
+		if (!StringUtils.isEmpty(waterTankerBookingSearchCriteria.getDriverName())
+				&& CollectionUtils.isEmpty(waterTankerBookingSearchCriteria.getDriverIds())) {
+			return new ArrayList<>();
+		}
+
+		// --- 2. DATABASE QUERY ---
 		List<WaterTankerBookingDetail> applications = requestServiceRepository
 				.getWaterTankerBookingDetails(waterTankerBookingSearchCriteria);
 
-		/**
-		 * Check if the retrieved list is empty using Spring's CollectionUtils Prevents
-		 * potential null pointer exceptions by returning an empty list Ensures
-		 * consistent return type and prevents calling methods from handling null
-		 */
 		if (CollectionUtils.isEmpty(applications)) {
 			return new ArrayList<>();
 		}
+
 		if (config.getIsUserProfileEnabled()) {
-			// Enrich each booking with user details
 			for (WaterTankerBookingDetail booking : applications) {
 				userService.enrichBookingWithUserDetails(booking, waterTankerBookingSearchCriteria);
 			}
 		}
+
+		// --- 3. DATA ENRICHMENT ---
+		// Fetch full nested JSON objects for Vendors, Vehicles, and Drivers
+		enrichmentService.enrichCrossServiceDetails(requestInfo, applications);
+
+//		List<WaterTankerBookingDetail> applications = requestServiceRepository
+//				.getWaterTankerBookingDetails(waterTankerBookingSearchCriteria);
+//
+//		/**
+//		 * Check if the retrieved list is empty using Spring's CollectionUtils Prevents
+//		 * potential null pointer exceptions by returning an empty list Ensures
+//		 * consistent return type and prevents calling methods from handling null
+//		 */
+//		if (CollectionUtils.isEmpty(applications)) {
+//			return new ArrayList<>();
+//		}
+//		if (config.getIsUserProfileEnabled()) {
+//			// Enrich each booking with user details
+//			for (WaterTankerBookingDetail booking : applications) {
+//				userService.enrichBookingWithUserDetails(booking, waterTankerBookingSearchCriteria);
+//			}
+//		}
 
 		// Return retrieved application
 		return applications;

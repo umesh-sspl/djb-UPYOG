@@ -148,4 +148,12 @@ public class WaterTankerBookingDetail {
 	@JsonProperty("applicationType")
 	private String applicationType;
 
+	@JsonProperty("vendor")
+	private Object vendor;
+
+	@JsonProperty("vehicle")
+	private Object vehicle;
+
+	@JsonProperty("driver")
+	private Object driver;
 }
