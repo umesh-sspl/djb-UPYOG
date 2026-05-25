@@ -358,7 +358,7 @@ public class RequestServiceController {
 
 
 	@PostMapping("/water-tanker/fixed_point/scheduler/_run")
-	public FixedPointSchedulerRunResponse runSchedulerManually(
+	public ResponseEntity<FixedPointSchedulerRunResponse> runSchedulerManually(
 			@Valid @RequestBody FixedPointSchedulerRunRequest request
 	) {
 		log.info("Manual fixed-point scheduler API called. tenantId={}, deliveryDate={}, fillingPointId={}",
@@ -366,11 +366,12 @@ public class RequestServiceController {
 				request.getDeliveryDate(),
 				request.getFillingPointId());
 
-		return schedulerService.runScheduler(
+		FixedPointSchedulerRunResponse response = schedulerService.runScheduler(
 				request.getTenantId(),
 				request.getDeliveryDate(),
 				request.getFillingPointId(),
 				request.getRequestInfo()
 		);
+		return ResponseEntity.ok(response);
 	}
 }

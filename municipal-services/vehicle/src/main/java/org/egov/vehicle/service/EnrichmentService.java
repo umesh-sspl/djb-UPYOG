@@ -37,15 +37,27 @@ public class EnrichmentService {
 
 	public void enrichVehicleCreateRequest(VehicleRequest vehicleRequest) {
 		RequestInfo requestInfo = vehicleRequest.getRequestInfo();
+		Vehicle vehicle = vehicleRequest.getVehicle();
 
 		AuditDetails auditDetails = util.getAuditDetails(requestInfo.getUserInfo().getUuid(), true, null);
 		vehicleRequest.getVehicle().setAuditDetails(auditDetails);
 		vehicleRequest.getVehicle().setStatus(Vehicle.StatusEnum.ACTIVE);
 
 		vehicleRequest.getVehicle().setId(UUID.randomUUID().toString());
-		if (vehicleRequest.getVehicle().getOwner().getId() == null) {
-			vehicleRequest.getVehicle().getOwner().setId(Long.parseLong(UUID.randomUUID().toString()));
-		}
+		userService.manageOwner(vehicleRequest, false);
+//		String mobileNumber = vehicle.getOwner().getMobileNumber();
+//		User existingOwner = userService.getOwnerByMobileNumber(mobileNumber, requestInfo);
+//		if (existingOwner != null) {
+//			// Link to existing owner
+//			vehicle.setOwner(existingOwner);
+//			vehicle.setOwnerId(existingOwner.getUuid());
+//		} else {
+//						vehicle.getOwner().setUuid(UUID.randomUUID().toString());
+//		}
+//
+//		if (vehicleRequest.getVehicle().getOwner().getId() == null) {
+//			vehicleRequest.getVehicle().getOwner().setId(Long.parseLong(UUID.randomUUID().toString()));
+//		}
 
 	}
 

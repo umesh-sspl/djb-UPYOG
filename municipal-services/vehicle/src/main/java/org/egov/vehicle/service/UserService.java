@@ -68,61 +68,30 @@ public class UserService {
 
 		Vehicle vehicle = vehicleRequest.getVehicle();
 		User owner = vehicle.getOwner();
-
-		UserDetailResponse userDetailResponse = null;
-		if (owner != null) {
-			userDetailResponse = userExists(owner);
-
-			if (userDetailResponse != null && CollectionUtils.isEmpty(userDetailResponse.getUser()) && !isUpdate) {
-
-				Boolean notFoundUser = Boolean.FALSE;
-				for (int j = 0; j < userDetailResponse.getUser().size(); j++) {
-					User user = userDetailResponse.getUser().get(j);
-
-					if ((user.getUserName().equalsIgnoreCase(user.getMobileNumber())
-							&& user.getName().equalsIgnoreCase(owner.getName()))
-							|| user.getName().equalsIgnoreCase(owner.getName())) {
-						// found user with mobilenumber username not same and name as equal to the
-						// applicnat name provided by ui
-						// then consider that user as applicant
-						owner = user;
-						break;
-					} else {
-						notFoundUser = Boolean.TRUE;
-					}
-
-				}
-				// users exists with mobile number but non of them have the same Name so create new
-				// user
-				if (notFoundUser) {
-					owner = createVehicleOwner(owner, vehicleRequest);
-
-				}
-
-			 else {
-				if (!isUpdate) {
-					// User with mobile number itself not found then create new user and consider
-					// the new user as applicant.
-					owner = createVehicleOwner(owner, vehicleRequest);
-				} else {
-
-					HashMap<String, String> errorMap = new HashMap<>();
-					owner = updateUserDetails(owner, vehicleRequest.getRequestInfo(), errorMap);
-
-				}
-			}
-
-				HashMap<String, String> errorMap = new HashMap<>();
-				updateUserDetails(owner, vehicleRequest.getRequestInfo(), errorMap);
-
-			}
-			vehicle.setOwner(owner);
-
-		} else {
-			log.debug("MobileNo is not existed in Application.");
+		if (owner == null || StringUtils.isEmpty(owner.getMobileNumber())) {
 			throw new CustomException(VehicleErrorConstants.INVALID_OWNER_ERROR, "MobileNo is mandatory for ownerInfo");
 		}
 
+		UserSearchRequest searchRequest = new UserSearchRequest();
+		searchRequest.setMobileNumber(owner.getMobileNumber());
+		searchRequest.setTenantId(owner.getTenantId().split("\\.")[0]);
+		StringBuilder uri = new StringBuilder(config.getUserHost()).append(config.getUserSearchEndpoint());
+		UserDetailResponse response = ownerCall(searchRequest, uri);
+
+		if (response != null && !CollectionUtils.isEmpty(response.getUser())) {
+
+			owner = response.getUser().get(0);
+			log.info("Existing owner found for mobile {}: {}", owner.getMobileNumber(), owner.getUuid());
+		} else {
+			if (!isUpdate) {
+				owner = createVehicleOwner(owner, vehicleRequest);
+			} else {
+				throw new CustomException("OWNER_NOT_FOUND", "No owner found to update");
+			}
+		}
+
+		vehicle.setOwner(owner);
+		vehicle.setOwnerId(owner.getUuid());
 	}
 
 	private User updateUserDetails(User vehicleInfo, RequestInfo requestInfo, HashMap<String, String> errorMap) {
