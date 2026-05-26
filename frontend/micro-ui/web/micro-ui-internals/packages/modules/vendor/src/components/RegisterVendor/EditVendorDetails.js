@@ -62,6 +62,22 @@ const EditVendorDetails = (props) => {
 
   const { data: dsoData, isLoading, refetch: refetchDso } = Digit.Hooks.fsm.useDsoSearch(tenantId, { ids: dsoId }, { staleTime: Infinity });
 
+  const { data: vendorAdditionalData, isLoading: isVendorAdditionalLoading } = Digit.Hooks.vendor.useEmpvendorCommonSearch(
+    { tenantId, filters: { vendorId: dsoId } },
+    { enabled: !!dsoId }
+  );
+
+  let parsedAdditionalDetails = dsoData?.[0]?.dsoDetails?.additionalDetails;
+  if (typeof parsedAdditionalDetails === "string") {
+    try {
+      parsedAdditionalDetails = JSON.parse(parsedAdditionalDetails);
+    } catch (e) {
+      console.error("Error parsing additional details", e);
+    }
+  }
+  const serviceType = vendorAdditionalData?.VendorDetails?.[0]?.vendorAdditionalDetails?.serviceType || parsedAdditionalDetails?.serviceType;
+  const isEkyc = serviceType === "EKYC" || serviceType === "ekyc";
+
   const { data: vehicleData, refetch: refetchVehicle } = Digit.Hooks.fsm.useVehiclesSearch({
     tenantId,
     filters: {
@@ -70,6 +86,7 @@ const EditVendorDetails = (props) => {
       sortOrder: "ASC",
       vehicleWithNoVendor: true,
     },
+    config: { enabled: !isEkyc }
   });
 
   const { data: driverData, refetch: refetchDriver } = Digit.Hooks.fsm.useDriverSearch({
@@ -80,11 +97,19 @@ const EditVendorDetails = (props) => {
       status: "ACTIVE",
       driverWithNoVendor: true,
     },
+    config: { enabled: !isEkyc }
   });
 
-  const { data: vendorAdditionalData, isLoading: isVendorAdditionalLoading } = Digit.Hooks.vendor.useEmpvendorCommonSearch(
-    { tenantId, filters: { vendorId: dsoId } },
-    { enabled: !!dsoId }
+  const { data: supervisorData, refetch: refetchSupervisor } = Digit.Hooks.fsm.useSupervisorSearch(
+    tenantId,
+    { vendorId: dsoId },
+    { enabled: isEkyc }
+  );
+
+  const { data: surveyorData, refetch: refetchSurveyor } = Digit.Hooks.fsm.useSurveyorSearch(
+    tenantId,
+    { vendorId: dsoId },
+    { enabled: isEkyc }
   );
 
   const { mutate } = Digit.Hooks.fsm.useVendorUpdate(tenantId);
@@ -320,7 +345,10 @@ const EditVendorDetails = (props) => {
       {!isLoading ? (
         <React.Fragment>
           <Card>
-            {dsoData?.[0]?.employeeResponse?.map((detail, index) => (
+            {dsoData?.[0]?.employeeResponse?.map((detail, index) => {
+              if (isEkyc && index > 0) return null;
+
+              return (
               <React.Fragment key={index}>
                 {index > 0 && <CardSectionHeader style={{ marginBottom: "16px", marginTop: "32px" }}>{t(detail.title)}</CardSectionHeader>}
                 <div>
@@ -437,7 +465,72 @@ const EditVendorDetails = (props) => {
                   )}
                 </div>
               </React.Fragment>
-            ))}
+              );
+            })}
+
+            {isEkyc && (
+              <React.Fragment>
+                <CardSectionHeader style={{ marginBottom: "16px", marginTop: "32px" }}>{t("ES_VENDOR_SUPERVISOR_DETAILS")}</CardSectionHeader>
+                <div>
+                  {supervisorData?.supervisor?.map((supervisor, index) => (
+                    <Card className="card-with-background" key={supervisor.id || index}>
+                      <div className="card-head">
+                        <h2>{t("ES_VENDOR_SUPERVISOR_DETAILS")} {index + 1}</h2>
+                        <div style={{ display: "flex" }}>
+                          <span onClick={() => history.push(`/digit-ui/${userType}/vendor/registry/supervisor-details/${supervisor.id}`)}>
+                            <EditIcon style={{ cursor: "pointer", marginRight: "20px" }} className="edit" fill="#a82227" />
+                          </span>
+                        </div>
+                      </div>
+                      <div className="additional-grid" style={{ padding: "8px 16px" }}>
+                        <div className="additional-label">{t("ES_FSM_REGISTRY_NEW_OWNER_NAME")}</div>
+                        <div className="additional-value">{supervisor.owner?.name}</div>
+                        <div className="additional-label">{t("ES_FSM_REGISTRY_VENDOR_PHONE")}</div>
+                        <div className="additional-value">{supervisor.owner?.mobileNumber}</div>
+                        <div className="additional-label">{t("ES_VENDOR_STATUS")}</div>
+                        <div className="additional-value" style={supervisor.status === "ACTIVE" ? { color: "green" } : {}}>{supervisor.status}</div>
+                      </div>
+                    </Card>
+                  ))}
+                  <div
+                    className="add-details-link hover-button"
+                    onClick={() => history.push(`/digit-ui/${userType}/vendor/registry/new-supervisor?vendorId=${dsoId}`)}
+                  >
+                    {t(`ES_VENDOR_ADD_SUPERVISOR`)}
+                  </div>
+                </div>
+
+                <CardSectionHeader style={{ marginBottom: "16px", marginTop: "32px" }}>{t("ES_VENDOR_SURVEYOR_DETAILS")}</CardSectionHeader>
+                <div>
+                  {surveyorData?.surveyor?.map((surveyor, index) => (
+                    <Card className="card-with-background" key={surveyor.id || index}>
+                      <div className="card-head">
+                        <h2>{t("ES_VENDOR_SURVEYOR_DETAILS")} {index + 1}</h2>
+                        <div style={{ display: "flex" }}>
+                          <span onClick={() => history.push(`/digit-ui/${userType}/vendor/registry/surveyor-details/${surveyor.id}`)}>
+                            <EditIcon style={{ cursor: "pointer", marginRight: "20px" }} className="edit" fill="#a82227" />
+                          </span>
+                        </div>
+                      </div>
+                      <div className="additional-grid" style={{ padding: "8px 16px" }}>
+                        <div className="additional-label">{t("ES_FSM_REGISTRY_NEW_OWNER_NAME")}</div>
+                        <div className="additional-value">{surveyor.owner?.name}</div>
+                        <div className="additional-label">{t("ES_FSM_REGISTRY_VENDOR_PHONE")}</div>
+                        <div className="additional-value">{surveyor.owner?.mobileNumber}</div>
+                        <div className="additional-label">{t("ES_VENDOR_STATUS")}</div>
+                        <div className="additional-value" style={surveyor.status === "ACTIVE" ? { color: "green" } : {}}>{surveyor.status}</div>
+                      </div>
+                    </Card>
+                  ))}
+                  <div
+                    className="add-details-link hover-button"
+                    onClick={() => history.push(`/digit-ui/${userType}/vendor/registry/new-surveyor?vendorId=${dsoId}`)}
+                  >
+                    {t(`ES_VENDOR_ADD_SURVEYOR`)}
+                  </div>
+                </div>
+              </React.Fragment>
+            )}
           </Card>
 
           {showModal && (
@@ -448,8 +541,8 @@ const EditVendorDetails = (props) => {
                     selectedAction === "DELETE"
                       ? "ES_FSM_REGISTRY_DELETE_POPUP_HEADER"
                       : selectedAction === "ADD_VEHICLE"
-                      ? "ES_FSM_REGISTRY_ADD_VEHICLE_POPUP_HEADER"
-                      : "ES_FSM_REGISTRY_ADD_DRIVER_POPUP_HEADER"
+                        ? "ES_FSM_REGISTRY_ADD_VEHICLE_POPUP_HEADER"
+                        : "ES_FSM_REGISTRY_ADD_DRIVER_POPUP_HEADER"
                   )}
                 />
               }

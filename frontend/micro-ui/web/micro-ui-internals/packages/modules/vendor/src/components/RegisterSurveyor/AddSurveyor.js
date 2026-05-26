@@ -3,16 +3,25 @@ import { useTranslation } from "react-i18next";
 import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 import { useQueryClient } from "react-query";
 import SurveyorConfig from "../../config/SurveyorConfig";
+import { useLocation } from "react-router-dom";
 
 const AddSurveyor = ({ parentUrl, heading }) => {
-  const tenantId = Digit.ULBService.getCurrentTenantId();
   const { t } = useTranslation();
+
+  // getCurrentTenantId() returns state-level 'dl' for CITIZEN users.
+  // ULB-level tenantId (e.g. 'dl.djb') is required by the surveyor API.
+  const userInfo = Digit.UserService.getUser()?.info;
+  const rawTenantId = Digit.ULBService.getCurrentTenantId();
+  const tenantId = rawTenantId?.includes(".") ? rawTenantId : `${rawTenantId}.djb`;
 
   const [showToast, setShowToast] = useState(null);
   const queryClient = useQueryClient();
   const [canSubmit, setCanSubmit] = useState(false);
 
   const { mutate } = Digit.Hooks.fsm.useSurveyorCreate(tenantId);
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const vendorIdParam = queryParams.get("vendorId");
 
   const Config = SurveyorConfig(t);
 
@@ -45,10 +54,27 @@ const AddSurveyor = ({ parentUrl, heading }) => {
 
   const onSubmit = (data) => {
     const formData = {
+      RequestInfo: {
+        apiId: "Rainmaker",
+        ver: "1.0",
+        ts: null,
+        action: "_create",
+        msgId: `${Date.now()}|en_IN`,
+        authToken: userInfo?.authToken,
+        userInfo: {
+          id: userInfo?.id,
+          uuid: userInfo?.uuid,
+          userName: userInfo?.userName,
+          name: userInfo?.name,
+          type: userInfo?.type,
+          tenantId: tenantId,
+          roles: userInfo?.roles,
+        },
+      },
       surveyor: {
         tenantId: tenantId,
-        vendorId: data?.agencyName?.code || data?.agencyName?.id || "DL-DJB-000082", // Fallback for testing as per CURL
-        supervisorId: data?.reportingManager?.code || data?.reportingManager?.id || "7fb7ce1d-1054-46c8-9518-ef0049bffcd4", // Fallback for testing as per CURL
+        vendorId: vendorIdParam || data?.agencyName?.code || data?.agencyName?.id || userInfo?.uuid,
+        supervisorId: data?.reportingManager?.code || data?.reportingManager?.id || null,
         description: data?.description || "",
         additionalDetails: {
           serviceType: "ekyc",
@@ -64,10 +90,6 @@ const AddSurveyor = ({ parentUrl, heading }) => {
           mobileNumber: data?.mobileNumber,
           correspondenceAddress: data?.correspondenceAddress,
         },
-      },
-      RequestInfo: {
-        apiId: "Rainmaker",
-        msgId: "ekyc-surveyor-create",
       },
     };
 
