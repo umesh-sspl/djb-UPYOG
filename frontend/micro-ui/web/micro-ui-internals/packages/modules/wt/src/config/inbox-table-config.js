@@ -23,6 +23,26 @@ const getLocalityTranslation = (localityCode, tenantId, t) => {
   return t(`${prefix}_REVENUE_${localityCode}`);
 };
 
+const getVendorNameFromSearchData = (searchData) => searchData?.vendor?.name || searchData?.vendorName || "-";
+
+const getVehicleNameFromSearchData = (searchData) => {
+  const mappedVehicle =
+    searchData?.vehicle ||
+    searchData?.vendor?.vehicles?.find((vehicle) => vehicle?.id === searchData?.vehicleId);
+
+  return mappedVehicle?.registrationNumber || mappedVehicle?.name || mappedVehicle?.type || searchData?.vehicleName || searchData?.vehicleRegistrationNo || "-";
+};
+
+const getDriverNameFromSearchData = (searchData) => {
+  const mappedDriver =
+    searchData?.driver ||
+    searchData?.vendor?.drivers?.find(
+      (driver) => driver?.id === searchData?.driverId || driver?.ownerId === searchData?.driverId || driver?.owner?.uuid === searchData?.driverId
+    );
+
+  return mappedDriver?.name || mappedDriver?.owner?.name || searchData?.driverName || "-";
+};
+
 export const TableConfig = (t) => ({
   WT: {
     inboxColumns: (props) => [
@@ -100,6 +120,31 @@ export const TableConfig = (t) => ({
         },
         mobileCell: (original) => GetMobCell(t(`ES_WT_COMMON_STATUS_${original?.workflowData?.state?.["applicationStatus"]}`)),
       },
+      ...(window.location.href.includes("fixed-point")
+        ? [
+          {
+            Header: t("WT_VENDOR_NAME"),
+            id: "vendorName",
+            accessor: (row) => getVendorNameFromSearchData(row?.searchData),
+            Cell: ({ row }) => GetCell(getVendorNameFromSearchData(row?.original?.searchData)),
+            mobileCell: (original) => GetMobCell(getVendorNameFromSearchData(original?.searchData)),
+          },
+          {
+            Header: t("WT_VEHICLE_NO"),
+            id: "vehicleNumber",
+            accessor: (row) => getVehicleNameFromSearchData(row?.searchData),
+            Cell: ({ row }) => GetCell(getVehicleNameFromSearchData(row?.original?.searchData)),
+            mobileCell: (original) => GetMobCell(getVehicleNameFromSearchData(original?.searchData)),
+          },
+          {
+            Header: t("WT_DRIVER_NAME"),
+            id: "driverName",
+            accessor: (row) => getDriverNameFromSearchData(row?.searchData),
+            Cell: ({ row }) => GetCell(getDriverNameFromSearchData(row?.original?.searchData)),
+            mobileCell: (original) => GetMobCell(getDriverNameFromSearchData(original?.searchData)),
+          },
+        ]
+        : []),
     ],
     serviceRequestIdKey: (original) => original?.[t("WT_INBOX_UNIQUE_BOOKING_NO")]?.props?.children,
   },

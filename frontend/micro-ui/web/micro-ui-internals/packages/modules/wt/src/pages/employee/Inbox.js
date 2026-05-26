@@ -155,6 +155,22 @@ const Inbox = ({
       moduleSearchCriteria.bookingNo = searchParams.bookingNo;
     }
 
+    if (searchParams?.vendorName) {
+      moduleSearchCriteria.vendorName = searchParams.vendorName;
+    }
+
+    if (searchParams?.vehicleName) {
+      moduleSearchCriteria.vehicleName = searchParams.vehicleName;
+    }
+
+    if (searchParams?.driverName) {
+      moduleSearchCriteria.driverName = searchParams.driverName;
+    }
+
+    if (searchParams?.fillingPointId) {
+      moduleSearchCriteria.fillingPointId = searchParams.fillingPointId;
+    }
+
     if (Array.isArray(searchParams?.locality) && searchParams.locality.length > 0) {
       moduleSearchCriteria.locality = searchParams.locality
         .map((item) => String(item?.code || "").split("_").pop())
