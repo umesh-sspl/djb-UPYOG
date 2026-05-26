@@ -367,4 +367,14 @@ public class RequestServieRepositoryImpl implements RequestServiceRepository {
 
 		return statusCountMap;
 	}
+	@Override
+	public Integer getTotalApplicationsCount(WaterTankerBookingSearchCriteria criteria) {
+		List<Object> preparedStmtList = new ArrayList<>();
+		String query = queryBuilder.getWaterTankerTotalCountQuery(criteria, preparedStmtList);
+
+		log.info("Total count query: {} params: {}", query, preparedStmtList);
+
+		Integer count = jdbcTemplate.queryForObject(query, preparedStmtList.toArray(), Integer.class);
+		return count != null ? count : 0;
+	}
 }

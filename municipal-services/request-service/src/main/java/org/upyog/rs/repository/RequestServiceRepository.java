@@ -3,6 +3,7 @@ package org.upyog.rs.repository;
 import java.util.List;
 import java.util.Map;
 
+import org.egov.common.contract.request.RequestInfo;
 import org.upyog.rs.web.models.ApplicantDetail;
 import org.upyog.rs.web.models.RequestDetailsByDriverId;
 import org.upyog.rs.web.models.mobileToilet.MobileToiletBookingDetail;
@@ -49,4 +50,5 @@ public interface RequestServiceRepository {
 										  List<Object> preparedStmtList);
 	Map<String, Integer> getStatusCountsByApplicationType(
 			WaterTankerBookingSearchCriteria criteria);
+	Integer getTotalApplicationsCount(WaterTankerBookingSearchCriteria criteria);
 }

@@ -26,6 +26,7 @@ public class WaterTankerBookingSearchResponse {
 
     private Integer count;
 
+    private Integer totalCount;
     @JsonProperty("statusCounts")
     private Map<String, Integer> statusCounts;
 
