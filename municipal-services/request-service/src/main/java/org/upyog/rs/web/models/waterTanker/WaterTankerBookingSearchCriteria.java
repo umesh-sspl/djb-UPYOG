@@ -71,6 +71,11 @@ public class WaterTankerBookingSearchCriteria {
     @JsonProperty("driverIds")
     private List<String> driverIds;
 
+    private boolean countCall;
+
+    @JsonProperty("fillingPointId")
+    private String fillingPointId;
+
     public boolean isEmpty() {
         return (this.tenantId == null && this.status == null && this.bookingNo == null
                 && this.mobileNumber == null

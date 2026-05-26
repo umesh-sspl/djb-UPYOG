@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.upyog.rs.config.RequestServiceConfiguration;
 import org.upyog.rs.web.models.mobileToilet.MobileToiletBookingSearchCriteria;
 import org.upyog.rs.web.models.waterTanker.FixedFillingPointMapping;
@@ -236,6 +237,14 @@ public class RequestServiceQueryBuilder {
             query.append(" ursbd.driver_id IN (").append(placeholders).append(") ");
             preparedStmtList.addAll(criteria.getDriverIds());
         }
+
+        // FILTER BY FILLING POINT ID
+        if (!ObjectUtils.isEmpty(criteria.getFillingPointId())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.filling_point_id = ? ");
+            preparedStmtList.add(criteria.getFillingPointId());
+        }
+
         // Return count query directly without applying pagination
         if (criteria.isCountCall()) {
             return query.toString();
@@ -435,6 +444,27 @@ public class RequestServiceQueryBuilder {
         }
 
         query.append(" GROUP BY booking_status, application_type ORDER BY booking_status ");
+        return query.toString();
+    }
+
+    public String getWaterTankerTotalCountQuery(WaterTankerBookingSearchCriteria criteria,
+                                                List<Object> preparedStmtList) {
+
+        StringBuilder query = new StringBuilder(waterTankerBookingCount);
+        // waterTankerBookingCount = "SELECT count(ursbd.booking_id) FROM upyog_rs_water_tanker_booking_details ursbd"
+
+        if (!ObjectUtils.isEmpty(criteria.getTenantId())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.tenant_id LIKE ? ");
+            preparedStmtList.add("%" + criteria.getTenantId() + "%");
+        }
+
+        if (!ObjectUtils.isEmpty(criteria.getApplicationType())) {
+            addClauseIfRequired(query, preparedStmtList);
+            query.append(" ursbd.application_type = ? ");
+            preparedStmtList.add(criteria.getApplicationType());
+        }
+
         return query.toString();
     }
 

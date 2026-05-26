@@ -101,6 +101,8 @@ public class RequestServiceController {
 
 		List<WaterTankerBookingDetail> applications = null;
 		Integer count = 0;
+		WaterTankerBookingSearchCriteria totalCountCriteria =
+				buildTotalCountCriteria(waterTankerBookingSearchCriteria);
 
 		applications = waterTankerService.getWaterTankerBookingDetails(requestInfoWrapper.getRequestInfo(),
 				waterTankerBookingSearchCriteria);
@@ -110,6 +112,9 @@ public class RequestServiceController {
 		if (count == 0 && !applications.isEmpty()) {
 			count = applications.size();
 		}
+		Integer totalCount = waterTankerService.getTotalApplicationsCount(
+				totalCountCriteria, requestInfoWrapper.getRequestInfo());
+
 		Map<String, Integer> statusCounts = waterTankerService.getBookingStatusCounts(
 				waterTankerBookingSearchCriteria,
 				requestInfoWrapper.getRequestInfo()).getStatusCounts();
@@ -125,6 +130,7 @@ public class RequestServiceController {
 		 */
 		WaterTankerBookingSearchResponse response = WaterTankerBookingSearchResponse.builder()
 				.waterTankerBookingDetails(applications).responseInfo(responseInfo).count(count)
+				.totalCount(totalCount)
 				.statusCounts(statusCounts)
 				.applicationType(waterTankerBookingSearchCriteria.getApplicationType()).build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -373,5 +379,14 @@ public class RequestServiceController {
 				request.getRequestInfo()
 		);
 		return ResponseEntity.ok(response);
+	}
+	private WaterTankerBookingSearchCriteria buildTotalCountCriteria(
+			WaterTankerBookingSearchCriteria source) {
+
+		WaterTankerBookingSearchCriteria criteria = new WaterTankerBookingSearchCriteria();
+			criteria.setTenantId(source.getTenantId());
+		criteria.setApplicationType(source.getApplicationType());
+
+		return criteria;
 	}
 }

@@ -718,7 +718,21 @@ public class EnrichmentService {
 			criteria.setVendorIds(vendorIds);
 		}
 
-		// TODO: Duplicate above block for Driver and Vehicle
+		// CASE 2: Vehicle registration number search → find which vendor has this vehicle,
+		// then extract the vehicleId from vendor's vehicles list
+		if (!StringUtils.isEmpty(criteria.getVehicleName())) {
+			Object response = vendorUtil.searchVendor(requestInfo, tenantId, null, null);
+			List<String> vehicleIds = extractVehicleIdsByRegistrationNumber(response, criteria.getVehicleName());
+			criteria.setVehicleIds(vehicleIds);
+		}
+
+		// CASE 3: Driver name search → find which vendor has this driver,
+		// then extract the driverOwnerUuid (used as driverId in booking table)
+		if (!StringUtils.isEmpty(criteria.getDriverName())) {
+			Object response = vendorUtil.searchVendor(requestInfo, tenantId, null, null);
+			List<String> driverIds = extractDriverOwnerUuidsByName(response, criteria.getDriverName());
+			criteria.setDriverIds(driverIds);
+		}
 	}
 	public void enrichCrossServiceDetails(RequestInfo requestInfo, List<WaterTankerBookingDetail> bookings) {
 		if (CollectionUtils.isEmpty(bookings)) return;
@@ -779,5 +793,69 @@ public class EnrichmentService {
 			log.error("Error creating lookup map for enrichment", e);
 		}
 		return map;
+	}
+	/**
+	 * Searches through all vendors' vehicle lists and returns vehicleIds
+	 * where the registration number matches the search term (case-insensitive, partial match).
+	 */
+	private List<String> extractVehicleIdsByRegistrationNumber(Object response, String vehicleRegNumber) {
+		List<String> vehicleIds = new ArrayList<>();
+		try {
+			Map<String, Object> responseMap = mapper.convertValue(response, Map.class);
+			if (!responseMap.containsKey("vendor")) return vehicleIds;
+
+			List<Map<String, Object>> vendors = (List<Map<String, Object>>) responseMap.get("vendor");
+			for (Map<String, Object> vendor : vendors) {
+				if (!vendor.containsKey("vehicles")) continue;
+
+				List<Map<String, Object>> vehicles = (List<Map<String, Object>>) vendor.get("vehicles");
+				for (Map<String, Object> vehicle : vehicles) {
+					String regNumber = (String) vehicle.get("registrationNumber");
+					if (regNumber != null &&
+							regNumber.toLowerCase().contains(vehicleRegNumber.toLowerCase())) {
+						vehicleIds.add(vehicle.get("id").toString());
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error extracting vehicle IDs by registration number", e);
+		}
+		return vehicleIds;
+	}
+
+	/**
+	 * Searches through all vendors' drivers lists and returns the driver owner UUIDs
+	 * where the driver name matches the search term (case-insensitive, partial match).
+	 * NOTE: booking table stores driver owner UUID (from owner.uuid), not the driver entity id.
+	 */
+	private List<String> extractDriverOwnerUuidsByName(Object response, String driverName) {
+		List<String> driverOwnerUuids = new ArrayList<>();
+		try {
+			Map<String, Object> responseMap = mapper.convertValue(response, Map.class);
+			if (!responseMap.containsKey("vendor")) return driverOwnerUuids;
+
+			List<Map<String, Object>> vendors = (List<Map<String, Object>>) responseMap.get("vendor");
+			for (Map<String, Object> vendor : vendors) {
+				if (!vendor.containsKey("drivers")) continue;
+
+				List<Map<String, Object>> drivers = (List<Map<String, Object>>) vendor.get("drivers");
+				if (drivers == null) continue;
+
+				for (Map<String, Object> driver : drivers) {
+					String name = (String) driver.get("name");
+					if (name != null &&
+							name.toLowerCase().contains(driverName.toLowerCase())) {
+						// booking table stores owner.uuid as driverId, not driver entity id
+						Map<String, Object> owner = (Map<String, Object>) driver.get("owner");
+						if (owner != null && owner.get("uuid") != null) {
+							driverOwnerUuids.add(owner.get("uuid").toString());
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error extracting driver owner UUIDs by name", e);
+		}
+		return driverOwnerUuids;
 	}
 }

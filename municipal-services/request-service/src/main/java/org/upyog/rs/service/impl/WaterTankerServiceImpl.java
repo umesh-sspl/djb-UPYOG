@@ -525,4 +525,24 @@ public WaterTankerBookingDetail createNewWaterTankerBookingRequest(WaterTankerBo
 		requestServiceRepository.save(mapping);
 		return mapping;
 	}
+	@Override
+	public Integer getTotalApplicationsCount(WaterTankerBookingSearchCriteria waterTankerBookingSearchCriteria,
+											 RequestInfo requestInfo) {
+
+		WaterTankerBookingSearchCriteria totalCountCriteria = new WaterTankerBookingSearchCriteria();
+		totalCountCriteria.setTenantId(waterTankerBookingSearchCriteria.getTenantId());
+		totalCountCriteria.setApplicationType(waterTankerBookingSearchCriteria.getApplicationType());
+		totalCountCriteria.setStatus(waterTankerBookingSearchCriteria.getStatus());
+		totalCountCriteria.setFromDate(waterTankerBookingSearchCriteria.getFromDate());
+		totalCountCriteria.setToDate(waterTankerBookingSearchCriteria.getToDate());
+		totalCountCriteria.setMobileNumber(waterTankerBookingSearchCriteria.getMobileNumber());
+		totalCountCriteria.setBookingNo(waterTankerBookingSearchCriteria.getBookingNo());
+		totalCountCriteria.setLocalityCode(waterTankerBookingSearchCriteria.getLocalityCode());
+		totalCountCriteria.setDriverId(waterTankerBookingSearchCriteria.getDriverId());
+		totalCountCriteria.setVendorIds(waterTankerBookingSearchCriteria.getVendorIds());
+		totalCountCriteria.setVehicleIds(waterTankerBookingSearchCriteria.getVehicleIds());
+		totalCountCriteria.setDriverIds(waterTankerBookingSearchCriteria.getDriverIds());
+		totalCountCriteria.setFillingPointId(waterTankerBookingSearchCriteria.getFillingPointId());
+		return requestServiceRepository.getTotalApplicationsCount(totalCountCriteria);
+	}
 }
