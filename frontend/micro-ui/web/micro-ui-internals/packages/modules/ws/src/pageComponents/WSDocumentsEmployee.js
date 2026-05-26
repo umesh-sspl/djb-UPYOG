@@ -241,6 +241,9 @@ function SelectDocument({
       if (file) {
         if (file.size >= 5242880) {
           setError(t("CS_MAXIMUM_UPLOAD_SIZE_EXCEEDED"));
+        } else if (doc?.code === "OWNER.APPLICANTPHOTO" && !file.type.match(/image\/(jpeg|png)/i) && !file.name.match(/\.(jpg|jpeg|png)$/i)) {
+          setError(t("WS_ONLY_JPG_PNG_ALLOWED") || "Only JPG and PNG files are allowed for Applicant Photo");
+          setFile(null);
         } else {
           try {
             setUploadedFile(null);
@@ -317,7 +320,7 @@ function SelectDocument({
                 textStyles={{ width: "100%" }}
                 buttonType="button"
                 error={!uploadedFile}
-                accept="image/*, .pdf, .png, .jpeg, .jpg"
+                accept={doc?.code === "OWNER.APPLICANTPHOTO" ? "image/jpeg, image/png, .jpg, .jpeg, .png" : "image/*, .pdf, .png, .jpeg, .jpg"}
                 uploadedFiles={
                   uploadedFile && file && isCameraFile ? [[file?.name || "applicant_photo.jpg", { fileStoreId: uploadedFile }]] : undefined
                 }
