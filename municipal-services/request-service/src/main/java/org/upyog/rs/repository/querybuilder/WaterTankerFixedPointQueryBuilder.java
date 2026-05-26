@@ -1,6 +1,8 @@
 package org.upyog.rs.repository.querybuilder;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.upyog.rs.config.RequestServiceConfiguration;
 import org.upyog.rs.web.models.waterTanker.WaterTankerFixedPointBookingSearchCriteria;
 
 import java.util.List;
@@ -8,6 +10,8 @@ import java.util.List;
 @Component
 public class WaterTankerFixedPointQueryBuilder {
 
+    @Autowired
+    private RequestServiceConfiguration config;
 
     private static final String BASE_QUERY =
             " SELECT DISTINCT ON (ad.fixed_point_id)  " +
@@ -135,8 +139,8 @@ public class WaterTankerFixedPointQueryBuilder {
         query.append(" ORDER BY ad.fixed_point_id, ad.createdtime DESC ");
 
         int limit = (criteria.getLimit() != null && criteria.getLimit() > 0)
-                ? Math.min(criteria.getLimit(), 100)
-                : 10;
+                ? Math.min(criteria.getLimit(), config.getMaxSearchLimit())
+                : config.getDefaultLimit();
         query.append(" LIMIT ? ");
         preparedStmtList.add(limit);
 
