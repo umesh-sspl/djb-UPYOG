@@ -15,7 +15,9 @@ const SearchVendor = () => {
   const [driverIds, setDriverIds] = useState("");
   const [tableData, setTableData] = useState([]);
 
-  // const userInfo = Digit.UserService.getUser();
+  const userInfo = Digit.UserService.getUser();
+  const isCitizen = userInfo?.info?.type === "CITIZEN";
+  const loggedInVendorId = userInfo?.info?.uuid;
 
   const { data: allVendors } = Digit.Hooks.fsm.useDsoSearch(tenantId, { status: "ACTIVE" }, { staleTime: Infinity });
   const { data: allFillingPoints } = Digit.Hooks.wt.useFillPointSearch({ tenantId, filters: { limit: 1000 } }, { staleTime: Infinity });
@@ -31,7 +33,7 @@ const SearchVendor = () => {
             ...paginationParms,
             registrationNumber: searchParams?.registrationNumber,
             status: "ACTIVE,DISABLED",
-            vendorId: searchParams?.vendor?.id,
+            vendorId: isCitizen ? loggedInVendorId : searchParams?.vendor?.id,
             fillingPointId: searchParams?.fillingPoint?.id,
           },
           config: { enabled: false },
@@ -43,14 +45,32 @@ const SearchVendor = () => {
             ...paginationParms,
             name: searchParams?.name,
             status: "ACTIVE,DISABLED",
-            vendorId: searchParams?.vendor?.id,
+            vendorId: isCitizen ? loggedInVendorId : searchParams?.vendor?.id,
           },
           config: { enabled: false },
         })
       : tab === "SUPERVISOR"
-      ? Digit.Hooks.fsm.useSupervisorSearch(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
+      ? Digit.Hooks.fsm.useSupervisorSearch(
+          tenantId,
+          {
+            ...paginationParms,
+            status: "ACTIVE,DISABLED",
+            vendorId: isCitizen ? loggedInVendorId : searchParams?.vendor?.id,
+            name: searchParams?.name,
+          },
+          { enabled: false }
+        )
       : tab === "SURVEYOR"
-      ? Digit.Hooks.fsm.useSurveyorSearch(tenantId, { ...paginationParms, status: "ACTIVE,DISABLED" }, { enabled: false })
+      ? Digit.Hooks.fsm.useSurveyorSearch(
+          tenantId,
+          {
+            ...paginationParms,
+            status: "ACTIVE,DISABLED",
+            vendorId: isCitizen ? loggedInVendorId : searchParams?.vendor?.id,
+            name: searchParams?.name,
+          },
+          { enabled: false }
+        )
       : Digit.Hooks.fsm.useVendorSearch({
           tenantId,
           filters: {

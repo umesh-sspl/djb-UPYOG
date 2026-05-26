@@ -3,16 +3,30 @@ import { useTranslation } from "react-i18next";
 import { FormComposer, Toast, VerticalTimeline } from "@djb25/digit-ui-react-components";
 import { useQueryClient } from "react-query";
 import SupervisorConfig from "../../config/SupervisorConfig";
+import { useHistory, useLocation } from "react-router-dom";
 
 const AddSupervisor = ({ parentUrl, heading }) => {
-  const tenantId = Digit.ULBService.getCurrentTenantId();
   const { t } = useTranslation();
+  const history = useHistory();
+
+  // getCurrentTenantId() returns state-level 'dl' for CITIZEN users.
+  // ULB-level tenantId (e.g. 'dl.djb') is required by the supervisor API.
+  // If the id has no '.' it means it's state-level, so we append '.djb'.
+  const userInfo = Digit.UserService.getUser()?.info;
+  const rawTenantId = Digit.ULBService.getCurrentTenantId();
+  const tenantId = rawTenantId?.includes(".") ? rawTenantId : `${rawTenantId}.djb`;
 
   const [showToast, setShowToast] = useState(null);
   const queryClient = useQueryClient();
   const [canSubmit, setCanSubmit] = useState(false);
 
   const { mutate } = Digit.Hooks.fsm.useSupervisorCreate(tenantId);
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const vendorIdParam = queryParams.get("vendorId");
+
+  // Use the logged-in user's UUID as vendorId if not provided in URL
+  const vendorId = vendorIdParam || userInfo?.uuid;
 
   const Config = SupervisorConfig(t);
 
@@ -29,7 +43,9 @@ const AddSupervisor = ({ parentUrl, heading }) => {
       formData?.fatherOrHusbandName &&
       formData?.relationship &&
       formData?.dob &&
-      formData?.correspondenceAddress;
+      formData?.gender &&
+      formData?.correspondenceAddress &&
+      formData?.assignedZone;
 
     if (isBasicDetailsFilled) {
       setCanSubmit(true);
@@ -44,8 +60,28 @@ const AddSupervisor = ({ parentUrl, heading }) => {
 
   const onSubmit = (data) => {
     const formData = {
+      RequestInfo: {
+        apiId: "Rainmaker",
+        ver: "1.0",
+        ts: null,
+        action: "_create",
+        msgId: `${Date.now()}|en_IN`,
+        authToken: userInfo?.authToken,
+        userInfo: {
+          id: userInfo?.id,
+          uuid: userInfo?.uuid,
+          userName: userInfo?.userName,
+          name: userInfo?.name,
+          type: userInfo?.type,
+          tenantId: tenantId,
+          roles: userInfo?.roles,
+        },
+      },
       supervisor: {
         tenantId: tenantId,
+        vendorId: vendorId,
+        assignedZoneId: data?.assignedZone?.code || data?.assignedZone || null,
+        description: data?.description || "",
         owner: {
           tenantId: tenantId,
           name: data?.fullName,
@@ -58,11 +94,7 @@ const AddSupervisor = ({ parentUrl, heading }) => {
           correspondenceAddress: data?.correspondenceAddress,
         },
       },
-      RequestInfo: {
-        msgId: "ekyc-supervisor-create",
-      },
     };
-    console.log("DEBUG: Supervisor create payload:", formData);
 
     mutate(formData, {
       onError: (error) => {

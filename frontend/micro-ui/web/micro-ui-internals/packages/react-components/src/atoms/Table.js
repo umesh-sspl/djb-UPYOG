@@ -26,7 +26,6 @@ const getSearchableText = (obj) => {
 const VALID_TEXT_ALIGN = new Set(["left", "right", "center", "start", "end", "justify"]);
 const DEFAULT_TEXT_ALIGN = "left";
 const DEFAULT_ROW_HEIGHT = 52;
-const DEFAULT_TABLE_SCROLL_HEIGHT = "min(56vh, 520px)";
 
 const normalizeTextAlign = (value, fallback = DEFAULT_TEXT_ALIGN) => {
   if (!value || typeof value !== "string") return fallback;
@@ -277,7 +276,6 @@ const Table = ({
   csvExportColumns,
   csvExportButtonLabel,
   isLoading,
-  tableScrollHeight = DEFAULT_TABLE_SCROLL_HEIGHT,
 }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
   const [internalSearch, setInternalSearch] = useState("");
@@ -566,11 +564,8 @@ const Table = ({
         className={customTableWrapperClassName}
         style={{
           width: "100%",
-          maxHeight: tableScrollHeight,
           overflowX: "auto",
-          overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          position: "relative",
           ...(tref.current && tref.current.offsetWidth < tref.current.scrollWidth ? inboxStyles : {}),
         }}
       >
@@ -584,7 +579,6 @@ const Table = ({
             fontSize: 13.5,
             color: T.textPrimary,
             fontFamily: T.fontBody,
-            minWidth: "100%",
             ...styles,
           }}
           ref={tableRef}
@@ -608,10 +602,6 @@ const Table = ({
                       whiteSpace: "nowrap",
                       verticalAlign: "middle",
                       height: DEFAULT_ROW_HEIGHT,
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 3,
-                      background: T.surfaceAlt,
                     }}
                   >
                     {typeof showAutoSerialNo === "string" ? t(showAutoSerialNo) : t("TB_SNO")}
@@ -635,9 +625,6 @@ const Table = ({
                     transition: "background 0.15s",
                     textAlign,
                     height: DEFAULT_ROW_HEIGHT,
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 2,
                   };
 
                   return (

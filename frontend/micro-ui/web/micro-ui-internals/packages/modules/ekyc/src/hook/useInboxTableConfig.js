@@ -66,8 +66,16 @@ const useInboxTableConfig = ({
       },
     },
     {
-      Header: t("EKYC_ACTION"),
-      accessor: "status",
+      Header: t("EKYC_EKYC_STATUS"),
+      accessor: "ekycStatus",
+      Cell: ({ row }) => {
+        const ekycStatus = row.original?.ekycstatus || "NA";
+        return <span className={`ekyc-status-tag ${ekycStatus}`}>{t(`${ekycStatus}`)}</span>
+      }
+    },
+    {
+      Header: t("EKYC_REVIEW"),
+      accessor: "review",
       Cell: ({ row }) => {
         const kno = row.original?.kno || row.original?.applicationNumber || "NA";
         return (
