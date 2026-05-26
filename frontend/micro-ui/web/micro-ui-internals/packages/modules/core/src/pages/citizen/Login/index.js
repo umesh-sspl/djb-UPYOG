@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import axios from "axios";
 
-import { fetchUserDetails } from "../../../../../../libraries/src/services/elements/UserDetails";
-
 // Helper to set user details in localStorage
 const setUserDetail = (userObject, userType) => {
   const locale = JSON.parse(sessionStorage.getItem("Digit.locale"))?.value || "en_IN";
@@ -56,7 +54,7 @@ const Login = () => {
         }
 
         // Single API call: Fetch user details using fetchUserDetails
-        const userDetailsResponse = await fetchUserDetails(kc);
+        const userDetailsResponse = await await Digit.UserService.fetchUserDetails(kc);
 
         // Extract user info from API response
         const userInfoFromFirstCall = userDetailsResponse?.user || userDetailsResponse?.UserRequest || userDetailsResponse || {};
@@ -100,7 +98,6 @@ const Login = () => {
     if (!user?.info) return;
 
     try {
-      Digit.SessionStorage.set("User", user);
       Digit.UserService.setUser(user);
       Digit.UserService.setType("CITIZEN");
 
@@ -140,6 +137,7 @@ const Login = () => {
       console.error("Citizen session setup failed:", err);
       setError("Failed to setup user session");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, history]);
 
   if (error) {

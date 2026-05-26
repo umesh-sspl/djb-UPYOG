@@ -1,200 +1,263 @@
-import React, { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import "./analytics/styles/Dashboard.css";
+import React from "react";
+import { FaUsers, FaUserTie, FaMapMarkedAlt, FaCheckCircle, FaClock, FaExclamationTriangle, FaChartLine } from "react-icons/fa";
 
-// Components
-import DashboardLayout from "./analytics/components/DashboardLayout";
-import FilterBar from "./analytics/components/FilterBar";
-import SummaryCard from "./analytics/components/SummaryCard";
-import TaskStatusChart from "./analytics/charts/TaskStatusChart";
-import ClusterHeatmap from "./analytics/charts/ClusterHeatmap";
-import AnalyticsTable from "./analytics/components/AnalyticsTable";
-import SLAWidget from "./analytics/components/SLAWidget";
-import WorkflowTimeline from "./analytics/components/WorkflowTimeline";
-import NotificationPanel from "./analytics/components/NotificationPanel";
-import SkeletonLoader from "./analytics/components/SkeletonLoader";
-import ErrorBoundary from "./analytics/components/ErrorBoundary";
-import EmptyState from "./analytics/components/EmptyState";
+const vendors = [
+  {
+    id: 1,
+    name: "Vendor Alpha",
+    progress: 78,
+    supervisors: 12,
+    surveyors: 148,
+    completed: 154200,
+    pending: 43200,
+    rejected: 3200,
+  },
+  {
+    id: 2,
+    name: "Vendor Beta",
+    progress: 64,
+    supervisors: 10,
+    surveyors: 122,
+    completed: 121000,
+    pending: 68500,
+    rejected: 2800,
+  },
+  {
+    id: 3,
+    name: "Vendor Gamma",
+    progress: 91,
+    supervisors: 15,
+    surveyors: 182,
+    completed: 201500,
+    pending: 19800,
+    rejected: 1800,
+  },
+];
+
+const zones = [
+  {
+    zone: "North Delhi",
+    totalConnections: 220000,
+    ekycDone: 172000,
+    liveSurveyors: 58,
+    todayCompleted: 2800,
+  },
+  {
+    zone: "South Delhi",
+    totalConnections: 198000,
+    ekycDone: 154500,
+    liveSurveyors: 42,
+    todayCompleted: 2100,
+  },
+  {
+    zone: "East Delhi",
+    totalConnections: 175000,
+    ekycDone: 132800,
+    liveSurveyors: 37,
+    todayCompleted: 1740,
+  },
+  {
+    zone: "West Delhi",
+    totalConnections: 212000,
+    ekycDone: 188300,
+    liveSurveyors: 48,
+    todayCompleted: 2560,
+  },
+];
+
+const alerts = [
+  "15 Surveyors inactive for more than 2 hours",
+  "Vendor Beta completion dropped by 12% this week",
+  "North Delhi has highest pending backlog",
+  "2,843 eKYC applications rejected today",
+];
 
 const CeoDashboard = () => {
-  const { t } = useTranslation();
-  const { routeToInbox } = Digit.Hooks.ekyc.useInboxRouting();
-
-  // 1. Dashboard State
-  const [activeRole, setActiveRole] = useState("CEO");
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [filters, setFilters] = useState({
-    financialYear: "2025-26",
-    clusterId: "ALL",
-    agencyId: "ALL"
-  });
-
-  // 2. Fetch Config & Data
-  const { config, tenantId } = Digit.Hooks.ekyc.useEkycDashboardConfigs(activeRole);
-  const {
-    summary: kpiData, agencies: agencyData, heatmap: clusterData, workflow: workflowData,
-    isLoading, isError
-  } = Digit.Hooks.ekyc.useEkycDashboardData(activeRole, filters);
-
-  // 3. Handlers
-  const handleFilterChange = (id, value) => {
-    setFilters(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleReset = () => {
-    setFilters({ financialYear: "2025-26", clusterId: "ALL", agencyId: "ALL" });
-  };
-
-  const handleKpiClick = (kpi) => {
-    routeToInbox(kpi.targetRoute, { ...filters, status: kpi.status });
-  };
-
-  // Mock Notifications
-  const notifications = [
-    { title: "EKYC_SLA_BREACH_ALERT", message: "EKYC_ALERT_DESC_1", priority: "HIGH", time: "10m ago" },
-    { title: "EKYC_SYSTEM_UPDATE", message: "EKYC_ALERT_DESC_3", priority: "NORMAL", time: "5h ago" }
-  ];
-
-  // 4. Render Logic
-  if (isError) return <EmptyState message="EKYC_ERROR_FETCHING_DATA" />;
-
   return (
-    <DashboardLayout
-      header={config.title}
-      activeRole={activeRole}
-      onRoleChange={(role) => {
-        setActiveRole(role);
-        handleReset();
-      }}
-      onNotificationClick={() => setIsNotificationOpen(true)}
-      filters={
-        <FilterBar
-          filters={filters}
-          config={config.globalFilters}
-          onFilterChange={handleFilterChange}
-          onReset={handleReset}
-        />
-      }
-    >
-      <NotificationPanel
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-        notifications={notifications}
-      />
+    <div className="ekyc-dashboard-wrapper">
+      <div className="ceo-dashboard">
+        <main className="main-content">
+          <div className="kpi-grid">
+            <div className="kpi-card primary">
+              <div className="icon-box">
+                <FaUsers />
+              </div>
+              <div>
+                <h3>7,85,000</h3>
+                <p>Total Water Connections</p>
+              </div>
+            </div>
 
-      {/* KPI Section */}
-      <section style={{ marginBottom: "32px" }}>
-        {isLoading ? (
-          <SkeletonLoader type="card" count={4} />
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px" }}>
-            {config?.widgets?.summary?.map((kpiKey, idx) => {
-              const kpiMeta = config?.kpis?.[kpiKey];
-              if (!kpiMeta) return null;
+            <div className="kpi-card success">
+              <div className="icon-box">
+                <FaCheckCircle />
+              </div>
+              <div>
+                <h3>6,47,300</h3>
+                <p>eKYC Completed</p>
+              </div>
+            </div>
 
-              const value = kpiData?.[kpiKey] || 0;
-              return (
-                <ErrorBoundary key={kpiKey}>
-                  <div className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
-                    <SummaryCard
-                      label={kpiMeta.label}
-                      value={value}
-                      color={kpiMeta.color}
-                      icon={kpiMeta.icon}
-                      trend={kpiData?.[`${kpiKey}Trend`]}
-                      onClick={() => handleKpiClick(kpiMeta)}
-                    />
-                  </div>
-                </ErrorBoundary>
-              );
-            })}
+            <div className="kpi-card warning">
+              <div className="icon-box">
+                <FaClock />
+              </div>
+              <div>
+                <h3>1,31,500</h3>
+                <p>Pending eKYC</p>
+              </div>
+            </div>
+
+            <div className="kpi-card danger">
+              <div className="icon-box">
+                <FaExclamationTriangle />
+              </div>
+              <div>
+                <h3>7,200</h3>
+                <p>Rejected Applications</p>
+              </div>
+            </div>
           </div>
-        )}
-      </section>
+          <section className="dashboard-section">
+            <div className="section-header">
+              <h2>
+                <FaChartLine /> Vendor Performance Overview
+              </h2>
+              <button>View All</button>
+            </div>
 
-      {/* Main Analytics Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "24px" }}>
+            <div className="vendor-grid">
+              {vendors.map((vendor) => (
+                <div className="vendor-card" key={vendor.id}>
+                  <div className="vendor-top">
+                    <div>
+                      <h3>{vendor.name}</h3>
+                      <p>Jurisdiction Assigned Vendor</p>
+                    </div>
 
+                    <span>{vendor.progress}%</span>
+                  </div>
 
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${vendor.progress}%` }}></div>
+                  </div>
 
-        {/* Workflow Distribution */}
-        <div style={{ gridColumn: "span 12", background: "#FFF", padding: "24px", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
-          {isLoading ? (
-            <SkeletonLoader type="chart" />
-          ) : (
-            <ErrorBoundary>
-              <TaskStatusChart
-                title="EKYC_APPLICATION_STATUS"
-                data={workflowData?.stageBreakdown || []}
-              />
-            </ErrorBoundary>
-          )}
-        </div>
+                  <div className="vendor-stats">
+                    <div>
+                      <h4>{vendor.supervisors}</h4>
+                      <p>Supervisors</p>
+                    </div>
 
-        {/* SLA & Timeline Bottlenecks */}
-        <div style={{ gridColumn: "span 4" }}>
-          {isLoading ? (
-            <SkeletonLoader type="chart" />
-          ) : (
-            <ErrorBoundary>
-              <SLAWidget
-                slaPercentage={workflowData?.slaCompliance || 0}
-                avgTime={workflowData?.avgProcessingTimeHours || 0}
-                breachedCount={workflowData?.breachCount || 0}
-              />
-            </ErrorBoundary>
-          )}
-        </div>
+                    <div>
+                      <h4>{vendor.surveyors}</h4>
+                      <p>Surveyors</p>
+                    </div>
 
-        <div style={{ gridColumn: "span 8" }}>
-          {isLoading ? (
-            <SkeletonLoader type="chart" />
-          ) : (
-            <ErrorBoundary>
-              <WorkflowTimeline stages={workflowData?.stageBreakdown || []} />
-            </ErrorBoundary>
-          )}
-        </div>
+                    <div>
+                      <h4>{vendor.completed}</h4>
+                      <p>Completed</p>
+                    </div>
+                  </div>
 
-        {/* Spatial Cluster Analysis */}
-        <div style={{ gridColumn: "span 12", background: "#FFF", padding: "24px", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
-          {isLoading ? (
-            <SkeletonLoader type="chart" />
-          ) : (
-            <ErrorBoundary>
-              <ClusterHeatmap
-                title="EKYC_CLUSTER_WORKLOAD_HEATMAP"
-                data={clusterData || []}
-                onDrillDown={(cluster) => handleFilterChange("clusterId", cluster.clusterId)}
-              />
-            </ErrorBoundary>
-          )}
-        </div>
+                  <div className="vendor-footer">
+                    <span>Pending: {vendor.pending}</span>
+                    <span>Rejected: {vendor.rejected}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-        {/* Agency Performance Table */}
-        <div style={{ gridColumn: "span 12" }}>
-          {isLoading ? (
-            <SkeletonLoader type="table" />
-          ) : (
-            <ErrorBoundary>
-              <AnalyticsTable
-                title="EKYC_AGENCY_PERFORMANCE_METRICS"
-                filename="agency_performance_report.csv"
-                data={agencyData || []}
-                columns={[
-                  { id: "agencyName", label: "EKYC_AGENCY_NAME" },
-                  { id: "totalAssigned", label: "EKYC_TOTAL_ASSIGNED" },
-                  { id: "totalCompleted", label: "EKYC_TOTAL_COMPLETED" },
-                  { id: "pendingCount", label: "EKYC_PENDING" },
-                  { id: "slaCompliance", label: "EKYC_SLA_COMPLIANCE", isPercentage: true }
-                ]}
-              />
-            </ErrorBoundary>
-          )}
-        </div>
+          <section className="dashboard-section">
+            <div className="section-header">
+              <h2>
+                <FaMapMarkedAlt /> Jurisdiction Monitoring
+              </h2>
+              <button>Export Data</button>
+            </div>
 
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Zone</th>
+                    <th>Total Connections</th>
+                    <th>eKYC Done</th>
+                    <th>Live Surveyors</th>
+                    <th>Today's Completion</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {zones.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.zone}</td>
+                      <td>{item.totalConnections}</td>
+                      <td>{item.ekycDone}</td>
+                      <td>{item.liveSurveyors}</td>
+                      <td>{item.todayCompleted}</td>
+                      <td>
+                        <span className="status-badge success">Active</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div className="bottom-grid">
+            <section className="dashboard-section alerts-section">
+              <div className="section-header">
+                <h2>
+                  <FaExclamationTriangle /> Critical Alerts
+                </h2>
+              </div>
+
+              <div className="alerts-list">
+                {alerts.map((alert, index) => (
+                  <div className="alert-card" key={index}>
+                    <FaExclamationTriangle />
+                    <p>{alert}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="dashboard-section team-section">
+              <div className="section-header">
+                <h2>
+                  <FaUserTie /> Workforce Monitoring
+                </h2>
+              </div>
+
+              <div className="team-stats-grid">
+                <div className="team-box">
+                  <h3>37</h3>
+                  <p>Total Supervisors Online</p>
+                </div>
+
+                <div className="team-box">
+                  <h3>154</h3>
+                  <p>Surveyors Active</p>
+                </div>
+
+                <div className="team-box">
+                  <h3>12,430</h3>
+                  <p>Today's eKYC Completed</p>
+                </div>
+
+                <div className="team-box">
+                  <h3>92%</h3>
+                  <p>Operational Efficiency</p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
