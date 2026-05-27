@@ -860,7 +860,7 @@ export const WSSearch = {
 
     const djbEmployeeDetails = wsDataDetails?.additionalDetails?.isDjbEmployee
       ? {
-          title: "WS_DJB_EMPLOYEE_DETAILS",
+          title: "WS_DJB_EMPLOYEE",
           asSectionHeader: true,
           values: [
             { title: "WS_EMPLOYEE_ID", value: wsDataDetails?.additionalDetails?.employeeId || t("NA") },
@@ -1925,7 +1925,7 @@ export const WSSearch = {
 
     const djbEmployeeDetails = wsDataDetails?.additionalDetails?.isDjbEmployee
       ? {
-          title: "WS_DJB_EMPLOYEE_DETAILS",
+          title: "WS_DJB_EMPLOYEE",
           asSectionHeader: true,
           values: [
             { title: "WS_EMPLOYEE_ID", value: wsDataDetails?.additionalDetails?.employeeId || t("NA") },
@@ -2483,7 +2483,7 @@ export const WSSearch = {
     let details = [];
     const djbEmployeeDetails = wsDataDetails?.additionalDetails?.isDjbEmployee
       ? {
-          title: "WS_DJB_EMPLOYEE_DETAILS",
+          title: "WS_DJB_EMPLOYEE",
           asSectionHeader: true,
           values: [
             { title: "WS_EMPLOYEE_ID", value: wsDataDetails?.additionalDetails?.employeeId || t("NA") },
@@ -2870,7 +2870,7 @@ export const WSSearch = {
     let details = [];
     const djbEmployeeDetails = wsDataDetails?.additionalDetails?.isDjbEmployee
       ? {
-          title: "WS_DJB_EMPLOYEE_DETAILS",
+          title: "WS_DJB_EMPLOYEE",
           asSectionHeader: true,
           values: [
             { title: "WS_EMPLOYEE_ID", value: wsDataDetails?.additionalDetails?.employeeId || t("NA") },
