@@ -222,12 +222,27 @@ const EmployeeApp = ({ path }) => {
               {/* Booking Details */}
               <PrivateRoute
                 path={`${path}/fixed-point/booking-details/:id`}
-                component={(props) => <LayoutWrapper layoutClass="action"><ApplicationDetails {...props} parentRoute={path} /></LayoutWrapper>}
+                component={(props) => (
+                  <LayoutWrapper layoutClass="action">
+                    <ApplicationDetails {...props} parentRoute={path} />
+                  </LayoutWrapper>
+                )}
               />
-              <PrivateRoute path={`${path}/booking-details/:id`} component={(props) => <LayoutWrapper layoutClass="normal"><ApplicationDetails {...props} parentRoute={path} /></LayoutWrapper>} />
+              <PrivateRoute
+                path={`${path}/booking-details/:id`}
+                component={(props) => (
+                  <LayoutWrapper layoutClass="action">
+                    <ApplicationDetails {...props} parentRoute={path} />
+                  </LayoutWrapper>
+                )}
+              />
               <PrivateRoute
                 path={`${path}/bookingsearch/booking-details/:id`}
-                component={(props) => <LayoutWrapper layoutClass="normal"><ApplicationDetails {...props} parentRoute={path} /></LayoutWrapper>}
+                component={(props) => (
+                  <LayoutWrapper layoutClass="normal">
+                    <ApplicationDetails {...props} parentRoute={path} />
+                  </LayoutWrapper>
+                )}
               />
               {/* My Bookings */}
               <PrivateRoute path={`${path}/my-bookings`} component={(props) => <SearchApp {...props} parentRoute={path} moduleCode="WT" />} />
