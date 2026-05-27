@@ -14,6 +14,7 @@ import SortAction from "../../molecules/SortAction";
 import DetailsCard from "../../molecules/DetailsCard";
 import PopUp from "../../atoms/PopUp";
 import MobileComponentDirectory from "./MobileComponentDirectory";
+import SummaryCards from "./SummaryCards";
 
 const InboxComposer = ({
   isInboxLoading,
@@ -34,7 +35,8 @@ const InboxComposer = ({
   sortFormDefaultValues,
   onSortFormReset,
   formState: inboxFormState,
-  className,
+  cards,
+  searchParams,
 }) => {
   const { t } = useTranslation();
 
@@ -198,6 +200,16 @@ const InboxComposer = ({
           </div>
         </div>
         <div style={propsForInboxTable?.tableStyle ? { flex: 1, ...propsForInboxTable?.tableStyle } : { flex: 1 }}>
+          {Array.isArray(cards) && cards.length && (
+            <SummaryCards
+              cards={cards}
+              searchParams={searchParams}
+              t={t}
+              onCardClick={(card) => {
+                /* your filter handler */
+              }}
+            />
+          )}
           <SearchForm onSubmit={onSearchFormSubmit} handleSubmit={handleSearchFormSubmit} id="search-form" className="search-complaint-container">
             <div className="formcomposer-section-grid">
               <SearchFormFields
@@ -248,6 +260,16 @@ const InboxComposer = ({
           </FilterForm>
         </div>
         <div className="employee-form-content">
+          {Array.isArray(cards) && cards.length && (
+            <SummaryCards
+              cards={cards}
+              searchParams={searchParams}
+              t={t}
+              onCardClick={(card) => {
+                /* your filter handler */
+              }}
+            />
+          )}
           <SearchForm onSubmit={onSearchFormSubmit} handleSubmit={handleSearchFormSubmit} id="search-form" className="search-complaint-container">
             <div className="formcomposer-section-grid">
               <SearchFormFields registerRef={registerSearchFormField} searchFormState={searchFormState} {...{ controlSearchForm }} />
@@ -294,6 +316,16 @@ const InboxComposer = ({
         </FilterForm>
       </div>
       <div className="employee-form-content">
+        {Array.isArray(cards) && cards.length && (
+          <SummaryCards
+            cards={cards}
+            searchParams={searchParams}
+            t={t}
+            onCardClick={(card) => {
+              /* your filter handler */
+            }}
+          />
+        )}
         <SearchForm onSubmit={onSearchFormSubmit} handleSubmit={handleSearchFormSubmit} id="search-form" className="search-complaint-container">
           <div className="formcomposer-section-grid">
             <SearchFormFields registerRef={registerSearchFormField} searchFormState={searchFormState} {...{ controlSearchForm }} />
@@ -307,16 +339,12 @@ const InboxComposer = ({
         </SearchForm>
         {isInboxLoading ? (
           <Loader />
+        ) : propsForInboxTable?.data?.length < 1 ? (
+          <Card className="margin-unset text-align-center">
+            {propsForInboxTable.noResultsMessage ? t(propsForInboxTable.noResultsMessage) : t("CS_MYAPPLICATIONS_NO_APPLICATION")}
+          </Card>
         ) : (
-          <div>
-            {propsForInboxTable?.data?.length < 1 ? (
-              <Card className="margin-unset text-align-center">
-                {propsForInboxTable.noResultsMessage ? t(propsForInboxTable.noResultsMessage) : t("CS_MYAPPLICATIONS_NO_APPLICATION")}
-              </Card>
-            ) : (
-              <Table t={t} {...propsForInboxTable} />
-            )}
-          </div>
+          <Table t={t} {...propsForInboxTable} />
         )}
       </div>
     </div>

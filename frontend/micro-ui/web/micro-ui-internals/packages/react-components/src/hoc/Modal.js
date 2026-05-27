@@ -34,24 +34,8 @@ const Modal = ({
    */
   const mobileView = Digit.Utils.browser.isMobile() ? true : false;
 
-  const basePopupStyles = {
-    width: mobileView ? "calc(100vw - 16px)" : "min(92vw, 920px)",
-    maxHeight: "92vh",
-    margin: "0 auto",
-    borderRadius: mobileView ? "16px" : "22px",
-    overflow: "hidden",
-    background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
-    border: "1px solid rgba(15, 23, 42, 0.08)",
-    boxShadow: "0 24px 60px rgba(15, 23, 42, 0.2), 0 6px 14px rgba(15, 23, 42, 0.09)",
-    display: "flex",
-    flexDirection: "column",
-    animation: "digit-modal-appear 220ms ease-out",
-  };
-
   const baseMainStyles = {
     padding: mobileView ? "12px 12px 16px" : "16px 20px 20px",
-    overflowY: "auto",
-    maxHeight: mobileView ? "calc(92vh - 64px)" : "calc(92vh - 72px)",
   };
 
   const legacyActionBarStyle = isOBPSFlow
@@ -91,7 +75,10 @@ const Modal = ({
           }
         }
       `}</style>
-      <div className="popup-module" style={{ ...basePopupStyles, ...(popupStyles || {}) }}>
+      <div
+        className="popup-module"
+        style={{ height: "inherit", overflowY: "scroll", borderRadius: "12px", display: "flex", flexDirection: "column" }}
+      >
         <HeaderBar
           main={headerBarMain}
           end={headerBarEnd}
@@ -102,12 +89,9 @@ const Modal = ({
             ...(headerBarMainStyle || {}),
           }}
         />
-        <div className="popup-module-main" style={{ ...baseMainStyles, ...(popupModuleMianStyles || {}) }}>
+        <div className="popup-module-main" style={{ ...baseMainStyles, ...(popupModuleMianStyles || {}), flex: 1, overflowY: "scroll" }}>
           {children}
-          <div
-            className="popup-module-action-bar"
-            style={{ ...baseActionBarStyle, ...legacyActionBarStyle }}
-          >
+          <div className="popup-module-action-bar" style={{ ...baseActionBarStyle, ...legacyActionBarStyle }}>
             {actionCancelLabel ? <ButtonSelector theme="border" label={actionCancelLabel} onSubmit={actionCancelOnSubmit} style={style} /> : null}
             {!hideSubmit ? (
               <ButtonSelector label={actionSaveLabel} onSubmit={actionSaveOnSubmit} formId={formId} isDisabled={isDisabled} style={style} />

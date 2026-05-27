@@ -153,21 +153,6 @@
   }
 }
 
-.header-wrap {
-  @apply flex mb-md;
-
-  .header-start {
-    margin-right: auto;
-  }
-
-  .header-content {
-  }
-
-  .header-end {
-    margin-left: auto;
-  }
-}
-
 .card-emp {
   @extend .card;
   padding-right: 0;
@@ -323,9 +308,6 @@
 
     .header-start {
       margin-right: auto;
-    }
-
-    .header-content {
     }
 
     .header-end {

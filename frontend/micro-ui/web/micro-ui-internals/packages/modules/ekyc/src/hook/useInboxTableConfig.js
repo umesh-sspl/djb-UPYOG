@@ -3,7 +3,6 @@ import { useHistory } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const useInboxTableConfig = ({
-  parentRoute,
   onPageSizeChange,
   formState,
   totalCount,

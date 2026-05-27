@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import {
   Card,
-  CardHeader,
   CardSubHeader,
   StatusTable,
   Row,
@@ -16,7 +15,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 
-
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const ActionButton = ({ jumpTo, state }) => {
@@ -25,11 +23,7 @@ const ActionButton = ({ jumpTo, state }) => {
     history.push(jumpTo, { ...state, isEditing: true });
   }
   return (
-    <LinkButton
-      label={<EditIcon style={{ width: "20px", height: "20px", fill: "#F47738" }} />}
-      style={{ margin: 0, padding: 0 }}
-      onClick={routeTo}
-    />
+    <LinkButton label={<EditIcon style={{ width: "20px", height: "20px", fill: "#F47738" }} />} style={{ margin: 0, padding: 0 }} onClick={routeTo} />
   );
 };
 
@@ -56,14 +50,26 @@ const extractReviewData = (searchData, flowState) => {
 
   return {
     newData: applicationData?.newData || applicationData,
-    oldData: applicationData?.oldData || null
+    oldData: applicationData?.oldData || null,
   };
 };
 
 const ReviewSection = ({ title, fields, newData, oldData, t, jumpTo, state }) => {
   return (
-    <div className="review-section-wrapper" style={{ marginBottom: "48px", background: "#fff", borderRadius: "12px", border: "1px solid #EAECF0", overflow: "hidden" }}>
-      <div style={{ padding: "20px 24px", background: "#F9FAFB", borderBottom: "1px solid #EAECF0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div
+      className="review-section-wrapper"
+      style={{ marginBottom: "48px", background: "#fff", borderRadius: "12px", border: "1px solid #EAECF0", overflow: "hidden" }}
+    >
+      <div
+        style={{
+          padding: "20px 24px",
+          background: "#F9FAFB",
+          borderBottom: "1px solid #EAECF0",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <CardSubHeader style={{ margin: 0, fontSize: "18px", color: "#101828", fontWeight: "700" }}>{title}</CardSubHeader>
         {jumpTo && <ActionButton jumpTo={jumpTo} state={state} />}
       </div>
@@ -72,9 +78,45 @@ const ReviewSection = ({ title, fields, newData, oldData, t, jumpTo, state }) =>
         <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
           <thead>
             <tr>
-              <th style={{ padding: "16px 0", textAlign: "left", color: "#667085", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", width: "30%" }}>{t("EKYC_FIELD_NAME")}</th>
-              <th style={{ padding: "16px 0", textAlign: "left", color: "#667085", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", width: "35%" }}>{t("EKYC_EXISTING_INFORMATION")}</th>
-              <th style={{ padding: "16px 0", textAlign: "left", color: "#667085", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", width: "35%" }}>{t("EKYC_PROPOSED_UPDATES")}</th>
+              <th
+                style={{
+                  padding: "16px 0",
+                  textAlign: "left",
+                  color: "#667085",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  width: "30%",
+                }}
+              >
+                {t("EKYC_FIELD_NAME")}
+              </th>
+              <th
+                style={{
+                  padding: "16px 0",
+                  textAlign: "left",
+                  color: "#667085",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  width: "35%",
+                }}
+              >
+                {t("EKYC_EXISTING_INFORMATION")}
+              </th>
+              <th
+                style={{
+                  padding: "16px 0",
+                  textAlign: "left",
+                  color: "#667085",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  textTransform: "uppercase",
+                  width: "35%",
+                }}
+              >
+                {t("EKYC_PROPOSED_UPDATES")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -85,17 +127,26 @@ const ReviewSection = ({ title, fields, newData, oldData, t, jumpTo, state }) =>
 
               return (
                 <tr key={idx} style={{ borderTop: "1px solid #F2F4F7" }}>
-                  <td style={{ padding: "16px 0", fontSize: "14px", color: "#344054", fontWeight: "500" }}>
-                    {t(field.label)}
-                  </td>
+                  <td style={{ padding: "16px 0", fontSize: "14px", color: "#344054", fontWeight: "500" }}>{t(field.label)}</td>
                   <td style={{ padding: "16px 0", fontSize: "14px", color: "#667085" }}>
                     {field.isBool ? boolToYesNo(valOld, t) : checkForNA(valOld)}
                   </td>
-                  <td style={{ padding: "16px 0", fontSize: "14px", color: isChanged ? "#1B8B32" : "#101828", fontWeight: isChanged ? "700" : "400" }}>
+                  <td
+                    style={{ padding: "16px 0", fontSize: "14px", color: isChanged ? "#1B8B32" : "#101828", fontWeight: isChanged ? "700" : "400" }}
+                  >
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       {field.isBool ? boolToYesNo(valNew, t) : checkForNA(valNew)}
                       {isChanged && (
-                        <span style={{ background: "#ECFDF3", color: "#067647", padding: "2px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: "600" }}>
+                        <span
+                          style={{
+                            background: "#ECFDF3",
+                            color: "#067647",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "10px",
+                            fontWeight: "600",
+                          }}
+                        >
                           {t("EKYC_CHANGED")}
                         </span>
                       )}
@@ -112,7 +163,6 @@ const ReviewSection = ({ title, fields, newData, oldData, t, jumpTo, state }) =>
 };
 
 const Review = () => {
-
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
@@ -148,7 +198,8 @@ const Review = () => {
 
     return {
       connection: {
-        consumerName: apiConn?.consumerName || (apiConn?.firstName ? [apiConn.firstName, apiConn.middleName, apiConn.lastName].filter(Boolean).join(" ") : null),
+        consumerName:
+          apiConn?.consumerName || (apiConn?.firstName ? [apiConn.firstName, apiConn.middleName, apiConn.lastName].filter(Boolean).join(" ") : null),
         address: apiConn?.address || apiConn?.addressRaw,
         connectionType: apiConn?.connectionType || apiConn?.connectionCategory,
         meterNumber: apiConn?.meterNumber || apiConn?.meterNo,
@@ -201,7 +252,7 @@ const Review = () => {
         lastBillRaised: apiMeter?.lastBillRaised,
         systemMeterId: apiMeter?.systemMeterId,
         meterPhotoFileStoreId: apiMeter?.meterPhotoFileStoreId,
-      }
+      },
     };
   };
 
@@ -400,20 +451,8 @@ const Review = () => {
   const baseUrl = "/digit-ui/employee/ekyc";
 
   return (
-    <div className="employeeCard overflow-y-scroll">
-      <Card style={{ padding: "32px" }}>
-        {/* ── Header ───────────────────────────────────────────────────── */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "40px", borderBottom: "1px solid #EAECF0", paddingBottom: "20px" }}>
-          <CardHeader style={{ margin: 0, fontSize: "28px" }}>{t("EKYC_REVIEW_APPLICATION")}</CardHeader>
-          <div style={{
-            background: "#F9FAFB", border: "1px solid #EAECF0",
-            borderRadius: "24px", padding: "8px 20px",
-            fontSize: "14px", color: "#475467", fontWeight: "500"
-          }}>
-            {t("EKYC_K_NUMBER")}: <span style={{ color: "#101828", fontWeight: "700" }}>{activeKno}</span>
-          </div>
-        </div>
-
+    <Fragment>
+      <Card className="overflow-y-scroll">
         {/* ── 1. Connection Details ────────────────────────────────────── */}
         <ReviewSection
           title={t("EKYC_CONNECTION_DETAILS")}
@@ -465,38 +504,46 @@ const Review = () => {
             <Row
               label={t("EKYC_DOOR_PHOTO")}
               text={addressData.doorPhotoFilestoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
-              actionButton={addressData.doorPhotoFilestoreId && (
-                <div onClick={() => handleViewDocument(addressData.doorPhotoFilestoreId)}>
-                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
-                </div>
-              )}
+              actionButton={
+                addressData.doorPhotoFilestoreId && (
+                  <div onClick={() => handleViewDocument(addressData.doorPhotoFilestoreId)}>
+                    <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                  </div>
+                )
+              }
             />
             <Row
               label={t("EKYC_METER_PHOTO")}
               text={meterData.meterPhotoFileStoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
-              actionButton={meterData.meterPhotoFileStoreId && (
-                <div onClick={() => handleViewDocument(meterData.meterPhotoFileStoreId)}>
-                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
-                </div>
-              )}
+              actionButton={
+                meterData.meterPhotoFileStoreId && (
+                  <div onClick={() => handleViewDocument(meterData.meterPhotoFileStoreId)}>
+                    <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                  </div>
+                )
+              }
             />
             <Row
               label={t("EKYC_BUILDING_IMAGE")}
               text={propertyData.buildingImageFileStoreId ? t("EKYC_PHOTO_AVAILABLE") : t("CS_NA")}
-              actionButton={propertyData.buildingImageFileStoreId && (
-                <div onClick={() => handleViewDocument(propertyData.buildingImageFileStoreId)}>
-                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
-                </div>
-              )}
+              actionButton={
+                propertyData.buildingImageFileStoreId && (
+                  <div onClick={() => handleViewDocument(propertyData.buildingImageFileStoreId)}>
+                    <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                  </div>
+                )
+              }
             />
             <Row
               label={t("EKYC_PROPERTY_DOCUMENTS")}
               text={propertyData.propertyDocumentFileStoreId ? t("EKYC_DOCS_AVAILABLE") : t("CS_NA")}
-              actionButton={propertyData.propertyDocumentFileStoreId && (
-                <div onClick={() => handleViewDocument(propertyData.propertyDocumentFileStoreId)}>
-                  <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
-                </div>
-              )}
+              actionButton={
+                propertyData.propertyDocumentFileStoreId && (
+                  <div onClick={() => handleViewDocument(propertyData.propertyDocumentFileStoreId)}>
+                    <GenericFileIcon style={{ cursor: "pointer", fill: "#F47738" }} />
+                  </div>
+                )
+              }
             />
           </StatusTable>
         </div>
@@ -510,41 +557,60 @@ const Review = () => {
             checked={agree}
           />
         </div>
-      </Card>
 
-      <ActionBar style={{ position: "static", marginTop: "32px", display: "flex", justifyContent: "flex-end" }}>
-        <SubmitBar
-          label={t("EKYC_REJECT")}
-          onSubmit={handleReject}
-          disabled={!agree}
-        />
-        <SubmitBar
-          label={t("EKYC_APPROVE")}
-          onSubmit={handleApprove}
-          disabled={!agree}
-        />
-        <SubmitBar label={t("EKYC_SUBMIT_APPLICATION")} onSubmit={handleFinalSubmit} disabled={!agree} />
-      </ActionBar>
+        <ActionBar>
+          <SubmitBar label={t("EKYC_REJECT")} onSubmit={handleReject} disabled={!agree} />
+          <SubmitBar label={t("EKYC_APPROVE")} onSubmit={handleApprove} disabled={!agree} />
+          <SubmitBar label={t("EKYC_SUBMIT_APPLICATION")} onSubmit={handleFinalSubmit} disabled={!agree} />
+        </ActionBar>
+      </Card>
 
       {/* ── Document Preview Modal ────────────────────────────────────── */}
       {showPreview && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-          backgroundColor: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center",
-          alignItems: "center", zIndex: 10000
-        }}>
-          <div style={{
-            position: "relative", backgroundColor: "#fff", padding: "30px",
-            borderRadius: "12px", maxWidth: "600px", width: "100%", maxHeight: "70vh", overflow: "auto",
-            boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-          }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 10000,
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              backgroundColor: "#fff",
+              padding: "30px",
+              borderRadius: "12px",
+              maxWidth: "600px",
+              width: "100%",
+              maxHeight: "70vh",
+              overflow: "auto",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+            }}
+          >
             <div
               onClick={() => setShowPreview(false)}
               style={{
-                position: "absolute", top: "10px", right: "10px", cursor: "pointer",
-                fontWeight: "bold", fontSize: "20px", color: "#333", background: "#eee",
-                width: "30px", height: "30px", display: "flex", justifyContent: "center",
-                alignItems: "center", borderRadius: "50%"
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                cursor: "pointer",
+                fontWeight: "bold",
+                fontSize: "20px",
+                color: "#333",
+                background: "#eee",
+                width: "30px",
+                height: "30px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "50%",
               }}
             >
               ×
@@ -565,7 +631,7 @@ const Review = () => {
           </div>
         </div>
       )}
-    </div>
+    </Fragment>
   );
 };
 
