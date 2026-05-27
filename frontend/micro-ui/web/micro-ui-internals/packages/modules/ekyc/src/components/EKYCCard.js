@@ -34,11 +34,15 @@ const EKYCCard = () => {
       // },
       {
         label: t("CEO_M.F_DOR_FINANCE_VIEW"),
-        link: `/digit-ui/employee/ekyc/ceo-dashboard`
+        link: `/digit-ui/employee/ekyc/ceo-dashboard`,
       },
       {
         label: t("EKYC_MAPPING"),
         link: `/digit-ui/employee/ekyc/mapping`,
+      },
+      {
+        label: t("EKYC_ASSIGN"),
+        link: `/digit-ui/employee/ekyc/assign`,
       },
     ],
   };

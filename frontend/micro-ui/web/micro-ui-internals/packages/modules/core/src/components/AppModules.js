@@ -1,12 +1,9 @@
-import React, { useContext, useEffect } from "react";
+import React from "react";
 import { Route, Switch, useRouteMatch, Redirect, useLocation } from "react-router-dom";
 
 import { AppHome } from "./Home";
-import Login from "../pages/citizen/Login";
-import EmployeeLogin from "../pages/employee/Login/index";
 import ChangePassword from "../pages/employee/ChangePassword/index";
 import ForgotPassword from "../pages/employee/ForgotPassword/index";
-import LanguageSelection from "../pages/employee/LanguageSelection";
 import { ExpandedViewContext, ExpandedViewPage } from "@djb25/digit-ui-react-components";
 // import UserProfile from "./userProfile";
 

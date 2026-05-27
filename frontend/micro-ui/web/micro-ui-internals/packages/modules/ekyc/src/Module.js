@@ -13,13 +13,12 @@ import PropertyInfo from "./components/PropertyInfo";
 import MeterDetails from "./components/MeterDetails";
 import AadhaarVerification from "./components/AadhaarVerification";
 import AddressDetails from "./components/AddressDetails";
-import CeoDashboard from "./components/CeoDashboard";
-export const EkycModule = ({ stateCode, userType, tenants }) => {
 
+export const EkycModule = ({ stateCode, userType, tenants }) => {
   const { path, url } = useRouteMatch();
   const moduleCode = "EKYC";
   const language = Digit.StoreData.getCurrentLanguage();
-  const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
+  const { isLoading } = Digit.Services.useStore({ stateCode, moduleCode, language });
 
   Digit.SessionStorage.set("EKYC_TENANTS", tenants);
 
@@ -70,8 +69,6 @@ const componentsToRegister = {
   AddressDetails,
   PropertyInfo,
   MeterDetails,
-  CeoDashboard,
-  
 };
 
 export const initEkycComponents = () => {

@@ -22,6 +22,7 @@ import {
   VendorIcon,
   WaterIcon,
   SurveyIconComp,
+  ArrowForward,
 } from "./svgindex";
 import ExpandedViewContext from "./ExpandedViewContext";
 import ModuleLinksView from "./ModuleLinksView";
@@ -194,7 +195,12 @@ const EmployeeModuleCard = ({ Icon, moduleName, kpis = [], links = [], className
       onDetailsClick();
       return;
     }
-    history.push("/digit-ui/employee/module/details", {
+    Digit.SessionStorage.set("MODULE_DETAILS", {
+      moduleName,
+      links,
+    });
+
+    history.push(`/digit-ui/employee/module/details`, {
       moduleName,
       links,
     });
@@ -206,7 +212,7 @@ const EmployeeModuleCard = ({ Icon, moduleName, kpis = [], links = [], className
 
   if (isModuleSidebar) {
     return (
-      <>
+      <Fragment>
         {/*
           MobileModuleTabBar uses position:fixed so it floats above the page.
           It is completely invisible to the parent flex layout — cannot push
@@ -221,7 +227,7 @@ const EmployeeModuleCard = ({ Icon, moduleName, kpis = [], links = [], className
           On desktop it renders normally.
         */}
         <CollapsibleModuleSidebar links={links} moduleName={moduleName} Icon={Icon} />
-      </>
+      </Fragment>
     );
   }
 
@@ -282,20 +288,8 @@ const EmployeeModuleCard = ({ Icon, moduleName, kpis = [], links = [], className
           <div className="footer-links">
             <span className="pill-link" style={{ cursor: "pointer" }} onClick={(e) => e.stopPropagation()}>
               {t("View Reports")}
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginLeft: "4px" }}
-              >
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
+
+              <ArrowForward />
             </span>
             <span className="pill-link" style={{ cursor: "pointer" }} onClick={(e) => e.stopPropagation()}>
               +
@@ -342,10 +336,10 @@ const ModuleCardFullWidth = ({ Icon, moduleName, kpis = [], links = [], classNam
       <div className="card-body-row">
         <div className="main-kpi-section">
           {mainKpi && (
-            <>
+            <Fragment>
               <span className="main-kpi-number">{mainKpi.count || "0"}</span>
               <span className="main-kpi-label">{mainKpi.label}</span>
-            </>
+            </Fragment>
           )}
         </div>
 
@@ -385,20 +379,7 @@ const ModuleCardFullWidth = ({ Icon, moduleName, kpis = [], links = [], classNam
         <div className="footer-links">
           <span className="pill-link" style={{ cursor: "pointer" }}>
             {t("View Reports")}
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ marginLeft: "4px" }}
-            >
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
+            <ArrowForward />
           </span>
           <span className="pill-link" style={{ cursor: "pointer" }}>
             + {getNewButtonText(moduleName, kpis, links)}

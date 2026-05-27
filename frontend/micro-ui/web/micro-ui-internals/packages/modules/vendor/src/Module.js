@@ -72,6 +72,7 @@ export const VENDORModule = ({ stateCode, userType, tenants }) => {
   const { path, url } = useRouteMatch();
   const moduleCode = "VENDOR";
   const language = Digit.StoreData.getCurrentLanguage();
+  // Dont remove this it is requiored for Localization
   const { isLoading, data: store } = Digit.Services.useStore({ stateCode, moduleCode, language });
   addComponentsToRegistry();
 
@@ -85,6 +86,7 @@ export const VENDORModule = ({ stateCode, userType, tenants }) => {
         locale: Digit.StoreData.getCurrentLanguage(),
         tenantId: Digit.ULBService.getCurrentTenantId(),
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
