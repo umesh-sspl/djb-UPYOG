@@ -52,13 +52,17 @@ const SurveyorDetails = (props) => {
   const [vendors, setVendors] = useState([]);
   const [selectedOption, setSelectedOption] = useState({});
   const { data: vendorData } = Digit.Hooks.fsm.useDsoSearch(tenantId, { sortBy: "name", sortOrder: "ASC", status: "ACTIVE" }, {});
-  const { data: surveyorSearchResponse, isLoading, refetch } = Digit.Hooks.fsm.useSurveyorSearch(tenantId, { ids: surveyorId }, { staleTime: Infinity });
+  const { data: surveyorSearchResponse, isLoading, refetch } = Digit.Hooks.fsm.useSurveyorSearch(
+    tenantId,
+    { ids: surveyorId },
+    { staleTime: Infinity }
+  );
 
   const surveyorData = React.useMemo(() => {
     if (!surveyorSearchResponse?.surveyors?.length) return [];
-    
+
     return surveyorSearchResponse.surveyors.map((data) => {
-      const mappedVendor = vendorData?.find(v => v.dsoDetails?.id === data.vendorId || v.dsoDetails?.vendorId === data.vendorId);
+      const mappedVendor = vendorData?.find((v) => v.dsoDetails?.id === data.vendorId || v.dsoDetails?.vendorId === data.vendorId);
       const vendorName = mappedVendor?.dsoDetails?.name || data.vendorId || "ES_FSM_REGISTRY_DETAILS_ADD_VENDOR";
 
       return {
@@ -79,8 +83,8 @@ const SurveyorDetails = (props) => {
                 type: "custom",
               },
             ],
-          }
-        ]
+          },
+        ],
       };
     });
   }, [surveyorSearchResponse, vendorData]);
@@ -290,11 +294,11 @@ const SurveyorDetails = (props) => {
   return (
     <React.Fragment>
       <div className="employee-form-content">
-        <Card style={{ position: "relative", backgroundColor: "#fff" }}>
+        <Card>
           {surveyorData?.[0]?.employeeResponse?.map((detail, index) => (
             <React.Fragment key={index}>
               {index > 0 && <CardSectionHeader style={{ marginBottom: "16px", marginTop: "32px" }}>{t(detail.title)}</CardSectionHeader>}
-              <Card className="card-with-background" style={{ margin: "10px 16px", padding: "20px" }}>
+              <Card className="card-with-background">
                 <div className="additional-grid">
                   {detail?.values?.map((value, index) => {
                     return value?.type === "custom" ? (

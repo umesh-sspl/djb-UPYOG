@@ -1467,8 +1467,6 @@ const VendorInbox = (props) => {
     wt: matchedWtRoles,
   };
 
-  console.log(matchedRoles);
-
   return (
     <div className="inbox-container">
       {props.userRole !== "FSM_EMP_FSTPO" && props.userRole !== "FSM_ADMIN" && !props.isSearch && (
