@@ -8,9 +8,10 @@ import VendorDetails from "../../components/VendorDetails.jsx";
 import Inbox from "./Inbox";
 import Mapping from "./Mapping";
 import Create from "./Create";
-
 import Review from "../../components/Review";
 import EKYCForm from "./EKYCForm";
+import SurveyorDetailsCard from "../../components/SurveyorDetailsCard.js";
+import AssignEkyc from "../../components/AssignEkyc.js";
 
 const EmployeeApp = ({ path }) => {
   const { t } = useTranslation();
@@ -50,93 +51,119 @@ const EmployeeApp = ({ path }) => {
         />
 
         <div className="employee-form">
-          <div className="employee-form-content">
-            <Switch>
-              <PrivateRoute
-                path={`${path}/dashboard`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <Dashboard parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />
-                  </LayoutWrapper>
-                )}
-              />
-              <PrivateRoute
-                path={`${path}/inbox`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <Inbox parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />
-                  </LayoutWrapper>
-                )}
-              />
+          <Switch>
+            <PrivateRoute
+              path={`${path}/dashboard`}
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <Dashboard parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />
+                </LayoutWrapper>
+              )}
+            />
+            <PrivateRoute
+              path={`${path}/inbox`}
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <Inbox parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />
+                </LayoutWrapper>
+              )}
+            />
 
-              <PrivateRoute
-                path={`${path}/create-kyc`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <Create />
-                  </LayoutWrapper>
-                )}
-              />
+            <PrivateRoute
+              path={`${path}/create-kyc`}
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <Create />
+                </LayoutWrapper>
+              )}
+            />
 
-              <PrivateRoute
-                path={`${path}/mapping`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <Mapping />
-                  </LayoutWrapper>
-                )}
-              />
-              <PrivateRoute
-                path={`${path}/assign`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <Mapping />
-                  </LayoutWrapper>
-                )}
-              />
+            <PrivateRoute
+              path={`${path}/mapping`}
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <Mapping />
+                </LayoutWrapper>
+              )}
+            />
+            <PrivateRoute
+              path={`${path}/assign`}
+              exact
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <AssignEkyc />
+                </LayoutWrapper>
+              )}
+            />
+            <PrivateRoute
+              path={`${path}/assign/surveyor-details/:id`}
+              exact
+              component={() => (
+                <LayoutWrapper layoutClass="action">
+                  <SurveyorDetailsCard
+                    surveyor={{
+                      name: "Rahul Sharma",
+                      designation: "Field Surveyor",
+                      employeeId: "SURV-1023",
+                      mobile: "9876543210",
+                      email: "rahul@upyog.gov.in",
+                      zone: "South Zone",
+                      ward: "Ward 12",
+                      assignedCases: 45,
+                      completedCases: 32,
+                      pendingCases: 13,
+                      rejectedCases: 2,
+                      todayCompleted: 5,
+                      weekCompleted: 28,
+                      monthCompleted: 110,
+                      lastActive: "Today 11:30 AM",
+                    }}
+                  />
+                </LayoutWrapper>
+              )}
+            />
 
-              <PrivateRoute
-                path={formStepRoutes.map((route) => `${path}/${route}`)}
-                component={(props) => (
-                  <LayoutWrapper layoutClass="normal">
-                    <EKYCForm {...props} path={path} />
-                  </LayoutWrapper>
-                )}
-              />
+            <PrivateRoute
+              path={formStepRoutes.map((route) => `${path}/${route}`)}
+              component={(props) => (
+                <LayoutWrapper layoutClass="normal">
+                  <EKYCForm {...props} path={path} />
+                </LayoutWrapper>
+              )}
+            />
 
-              <PrivateRoute
-                path={`${path}/review`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <Review />
-                  </LayoutWrapper>
-                )}
-              />
+            <PrivateRoute
+              path={`${path}/review`}
+              component={() => (
+                <LayoutWrapper layoutClass="action">
+                  <Review />
+                </LayoutWrapper>
+              )}
+            />
 
-              <PrivateRoute
-                path={`${path}/ceo-dashboard`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <CeoDashboard />
-                  </LayoutWrapper>
-                )}
-              />
+            <PrivateRoute
+              path={`${path}/ceo-dashboard`}
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <CeoDashboard />
+                </LayoutWrapper>
+              )}
+            />
 
-              <PrivateRoute
-                path={`${path}/vendors/:vendorId`}
-                component={() => (
-                  <LayoutWrapper layoutClass="normal">
-                    <VendorDetails />
-                  </LayoutWrapper>
-                )}
-              />
+            <PrivateRoute
+              path={`${path}/vendors/:vendorId`}
+              component={() => (
+                <LayoutWrapper layoutClass="normal">
+                  <VendorDetails />
+                </LayoutWrapper>
+              )}
+            />
 
-              {/* <PrivateRoute
+            {/* <PrivateRoute
                 path={`${path}/`}
                 component={() => <Inbox parentRoute={path} businessService="EKYC" moduleCode="EKYC" isInbox={true} />}
               /> */}
-            </Switch>
-          </div>
+          </Switch>
         </div>
       </div>
     </AppContainer>
