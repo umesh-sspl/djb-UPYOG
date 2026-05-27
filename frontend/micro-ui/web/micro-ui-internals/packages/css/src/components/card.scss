@@ -148,7 +148,7 @@
 }
 
 .header-wrap {
-  @apply flex mb-md;
+  @apply flex;
 
   .header-start {
     margin-right: auto;
@@ -426,7 +426,7 @@
   }
 
   .header-wrap {
-    @apply flex mb-md;
+    @apply flex;
 
     .header-start {
       margin-right: auto;
@@ -1112,6 +1112,7 @@
   cursor: pointer;
   transition: all 0.25s ease;
   overflow: hidden;
+  gap: 12px;
 }
 
 .module-link-card::before {
@@ -1168,6 +1169,7 @@
   font-weight: 700;
   color: #0f172a;
   transition: color 0.25s ease;
+  word-wrap: anywhere;
 }
 
 .link-card-sublabel {
