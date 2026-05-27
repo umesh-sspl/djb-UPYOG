@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.upyog.rs.wt.scheduler.model.FixedPointSchedulerRunRequest;
 import org.upyog.rs.wt.scheduler.model.FixedPointSchedulerRunResponse;
 import org.upyog.rs.wt.scheduler.service.FixedPointBookingSchedulerService;
+import org.upyog.rs.wt.scheduler.service.WaterTankerCancellationService;
 
 import javax.annotation.processing.Generated;
 
@@ -59,10 +60,14 @@ public class RequestServiceController {
 	@Autowired
 	private ValidatorService validatorService;
 
+	@Autowired
+	private WaterTankerCancellationService cancellationService;
+
 	private final FixedPointBookingSchedulerService schedulerService;
 
-    public RequestServiceController(FixedPointBookingSchedulerService schedulerService) {
+    public RequestServiceController(FixedPointBookingSchedulerService schedulerService, WaterTankerCancellationService cancellationService) {
         this.schedulerService = schedulerService;
+		this.cancellationService=cancellationService;
     }
 
     @PostMapping("/water-tanker/v1/_create")
@@ -380,6 +385,15 @@ public class RequestServiceController {
 		);
 		return ResponseEntity.ok(response);
 	}
+
+	@PostMapping("/water-tanker/fixed_point/_cancel-scheduled")
+	public ResponseEntity<String> manuallyTriggerCancellations(@RequestBody RequestInfoWrapper requestInfoWrapper) {
+
+		cancellationService.cancelScheduledBookings(requestInfoWrapper.getRequestInfo());
+
+		return new ResponseEntity<>("Cancellation process initiated successfully", HttpStatus.OK);
+	}
+
 	private WaterTankerBookingSearchCriteria buildTotalCountCriteria(
 			WaterTankerBookingSearchCriteria source) {
 
