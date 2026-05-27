@@ -85,8 +85,8 @@ const OLDApplication = () => {
           "WSDjbEmployee",
           "WSActivationPlumberDetails",
           "WSRoadCuttingDetails",
-          "WSDocumentsEmployee",
           "WSBankDetails",
+          "WSDocumentsEmployee",
           "WSDeclaration",
         ];
 
@@ -197,7 +197,6 @@ const OLDApplication = () => {
     setSessionFormData({ ...sessionFormData, cpt: { details: propertyDetails?.Properties?.[0] } });
   }, [propertyDetails]);
 
-
   const {
     isLoading: creatingWaterApplicationLoading,
     isError: createWaterApplicationError,
@@ -294,7 +293,8 @@ const OLDApplication = () => {
       const srvUpper = srvCode?.toUpperCase() || "";
       data.ConnectionDetails[0].water = srvUpper.includes("WATER") || srvUpper === "BOTH";
       data.ConnectionDetails[0].sewerage = srvUpper.includes("SEWERAGE") || srvUpper === "BOTH";
-      data.ConnectionDetails[0].service = srvUpper.includes("WATER") && srvUpper.includes("SEWERAGE") ? "Water And Sewerage" : srvUpper.includes("SEWERAGE") ? "Sewerage" : "Water";
+      data.ConnectionDetails[0].service =
+        srvUpper.includes("WATER") && srvUpper.includes("SEWERAGE") ? "Water And Sewerage" : srvUpper.includes("SEWERAGE") ? "Sewerage" : "Water";
       if (typeof srv !== "object") {
         data.ConnectionDetails[0].serviceType = { code: srvCode };
       }
@@ -357,7 +357,8 @@ const OLDApplication = () => {
       const declarations = data.declarationData?.agree ? true : false;
       data.declaration = {
         ...data.declarationData,
-        submittedBy: typeof data.declarationData?.submittedBy === "object" ? data.declarationData?.submittedBy?.code : data.declarationData?.submittedBy,
+        submittedBy:
+          typeof data.declarationData?.submittedBy === "object" ? data.declarationData?.submittedBy?.code : data.declarationData?.submittedBy,
         agree: declarations,
         declarations: data.declarationData?.declarations || Array(9).fill(declarations),
       };
@@ -586,9 +587,9 @@ const OLDApplication = () => {
           onFormValueChange={onFormValueChange}
           label={
             creatingWaterApplicationLoading ||
-              creatingSewerageApplicationLoading ||
-              updatingWaterApplicationLoading ||
-              updatingSewerageApplicationLoading
+            creatingSewerageApplicationLoading ||
+            updatingWaterApplicationLoading ||
+            updatingSewerageApplicationLoading
               ? t("CS_COMMON_SUBMITTING")
               : t("CS_COMMON_SUBMIT")
           }

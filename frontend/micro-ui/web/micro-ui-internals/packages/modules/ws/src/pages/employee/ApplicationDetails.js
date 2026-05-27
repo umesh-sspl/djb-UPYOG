@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import WorkflowTimeline from "../../components/WorkflowTimeline";
 import { Toast } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import ApplicationDetailsTemplate from "../../../../templates/ApplicationDetails";
@@ -21,6 +22,7 @@ const ApplicationDetails = () => {
   const applicationNumber = filters?.applicationNumber;
   const serviceType = filters?.service;
   const menuRef = useRef();
+  const [hideTimeline, setHideTimeline] = React.useState(typeof window !== "undefined" ? window.innerWidth < 768 : false);
 
   sessionStorage.removeItem("Digit.PT_CREATE_EMP_WS_NEW_FORM");
   sessionStorage.removeItem("IsDetailsExists");
@@ -448,35 +450,44 @@ const ApplicationDetails = () => {
 
   return (
     <React.Fragment>
-      <div className={"employee-main-application-details"}>
-        <ApplicationDetailsTemplate
-          applicationDetails={applicationDetails}
-          isLoading={isLoading || isBillingServiceLoading || isCommonmastersLoading || isServicesMasterLoading}
-          isDataLoading={isLoading || isBillingServiceLoading || isCommonmastersLoading || isServicesMasterLoading}
-          applicationData={applicationDetails?.applicationData}
-          mutate={mutate}
-          id={"timeline"}
-          workflowDetails={workflowDetails}
-          businessService={applicationDetails?.processInstancesDetails?.[0]?.businessService?.toUpperCase()}
-          moduleCode="WS"
-          showToast={showToast}
-          setShowToast={setShowToast}
-          closeToast={closeToast}
-          timelineStatusPrefix={`WF_${applicationDetails?.processInstancesDetails?.[0]?.businessService?.toUpperCase()}_`}
-          oldValue={res}
-          isInfoLabel={checkforPrivacyenablement()}
-          clearDataDetails={clearDataDetails}
-        />
-        {showWaringToast && (
-          <Toast
-            style={{ zIndex: "10000" }}
-            warning={showWaringToast?.isWarning}
-            error={showWaringToast?.isWarning ? false : true}
-            label={t(showWaringToast?.message)}
-            onClose={() => setShowWaringToast(null)}
-            isDleteBtn={true}
+      <div className={"employee-main-application-details"} style={{ display: "flex", gap: "20px" }}>
+        {/* Left Column: Workflow Timeline */}
+        <div className={`workflow-timeline-wrapper no-scrollbar ${hideTimeline ? "hide-workflow" : ""}`} style={{ flex: "1 1 300px", maxWidth: hideTimeline ? "fit-content" : "400px", transition: "max-width 0.3s" }}>
+          <WorkflowTimeline workflowDetails={workflowDetails} hideTimeline={hideTimeline} setHideTimeline={setHideTimeline} />
+        </div>
+
+        {/* Right Column: Application Details */}
+        <div style={{ flex: "2 1 500px", minWidth: "300px", overflowY: "auto" }}>
+          <ApplicationDetailsTemplate
+            applicationDetails={applicationDetails}
+            isLoading={isLoading || isBillingServiceLoading || isCommonmastersLoading || isServicesMasterLoading}
+            isDataLoading={isLoading || isBillingServiceLoading || isCommonmastersLoading || isServicesMasterLoading}
+            applicationData={applicationDetails?.applicationData}
+            mutate={mutate}
+            id={"timeline"}
+            workflowDetails={workflowDetails}
+            businessService={applicationDetails?.processInstancesDetails?.[0]?.businessService?.toUpperCase()}
+            moduleCode="WS"
+            showToast={showToast}
+            setShowToast={setShowToast}
+            closeToast={closeToast}
+            timelineStatusPrefix={`WF_${applicationDetails?.processInstancesDetails?.[0]?.businessService?.toUpperCase()}_`}
+            oldValue={res}
+            isInfoLabel={checkforPrivacyenablement()}
+            clearDataDetails={clearDataDetails}
+            showTimeLine={false}
           />
-        )}
+          {showWaringToast && (
+            <Toast
+              style={{ zIndex: "10000" }}
+              warning={showWaringToast?.isWarning}
+              error={showWaringToast?.isWarning ? false : true}
+              label={t(showWaringToast?.message)}
+              onClose={() => setShowWaringToast(null)}
+              isDleteBtn={true}
+            />
+          )}
+        </div>
       </div>
     </React.Fragment>
   );

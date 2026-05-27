@@ -25,7 +25,7 @@ export const setAddressDetailsLW = (data) => {
     assembly: address?.assembly || address?.Assembly,
     block: address?.block,
     zone: address?.zone,
-    zro: address?.zro?.code || address?.zro,
+    zroLocation: address?.zro?.code || address?.zro,
     addressType: address?.addressType?.code || address?.addressType,
   };
 

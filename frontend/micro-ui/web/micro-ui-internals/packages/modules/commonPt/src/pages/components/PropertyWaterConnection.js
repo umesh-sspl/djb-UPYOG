@@ -40,7 +40,7 @@ const PropertyWaterConnection = ({ t, config, onSelect, formData, formState, set
   ]);
 
 
-  const isPropertyFound = !!formData?.cpt?.details?.propertyId;
+  const isPropertyFound = window.location.href.includes("ws/old-application");
 
   const formValue = watch();
   const watchPropertyType = watch("useDetails.propertyType");

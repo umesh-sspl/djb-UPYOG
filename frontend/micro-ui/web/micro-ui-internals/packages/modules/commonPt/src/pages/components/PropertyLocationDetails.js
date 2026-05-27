@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { AddressDetails, CollapsibleCardPage } from "@djb25/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
 
-const Heading = ({ t }) => <h1 className="heading-m">{t("FILL_ADDRESS_DETAILS")}</h1>;
-/**
- * AddressDetailss component renders a  popup for capturing and submitting user address details.
- * It utilizes Digit's UI components and services to present a form and update the user's profile address.
- * Using the `AddressDetails` component to handle all address-related input fields such as pincode, city, locality, street name, house number, landmark, and address lines.
- * - Displaying success or error toasts based on the response.
- */
 const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSelect, config, formData: formDataProp, ...props }) => {
   const { t } = useTranslation();
-  const { data: allCities } = Digit.Hooks.useTenants();
-  const { handleSubmit } = useForm();
   const [showToast, setShowToast] = useState(null);
   const [formData, setFormData] = useState({
     addressType: address?.addressType || "",
@@ -31,10 +21,10 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
     assembly: address?.assembly || "",
     block: address?.block || "",
     zone: address?.zone || "",
-    zro: address?.zro || "",
+    zroLocation: address?.zroLocation || "",
   });
 
-  const isPropertyFound = !!formDataProp?.cpt?.details?.propertyId;
+  const isPropertyFound = window.location.href.includes("ws/old-application");
 
   useEffect(() => {
     if (formDataProp?.cpt?.details) {
@@ -52,6 +42,11 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
           ? addressData.geoLocation.longitude
           : addressData.locality?.longitude || addressData.longitude || "";
 
+      // Read zroLocation from address object first (where API returns it), then fallback to additionalDetails
+      const zroCode = addressData.zroLocation || additionalDetails.zroLocation || addressData.additionalDetails?.zroLocation || "";
+      // Convert to dropdown-compatible object so AddressDetails Dropdown can match it
+      const zroValue = zroCode ? { code: zroCode, name: zroCode, i18nKey: zroCode } : "";
+
       setFormData({
         pincode: addressData.pincode || "",
         city: addressData.city || "",
@@ -64,7 +59,8 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
         assembly: additionalDetails.assembly || addressData.additionalDetails?.assembly || "",
         block: additionalDetails.block || addressData.additionalDetails?.block || "",
         zone: additionalDetails.zone || addressData.additionalDetails?.zone || "",
-        zro: additionalDetails.zro || addressData.additionalDetails?.zro || "",
+        zroLocation: zroCode,
+        zro: zroValue,
         address: {
           ...addressData,
           city: addressData.city || "",
@@ -75,7 +71,8 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
           addressLine1: addressData.street || "",
           latitude: lat,
           longitude: lng,
-          zro: additionalDetails.zro || addressData.additionalDetails?.zro || "",
+          zroLocation: zroCode,
+          zro: zroValue,
           assembly: additionalDetails.assembly || addressData.additionalDetails?.assembly || "",
           block: additionalDetails.block || addressData.additionalDetails?.block || "",
           zone: additionalDetails.zone || addressData.additionalDetails?.zone || "",
@@ -83,14 +80,7 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
       });
     }
   }, [formDataProp?.cpt?.details]);
-  /*
-   * This component renders a modal for capturing and updating user address details.
-   * - Manages form state for address fields like pincode, city, locality, etc., using `useState`.
-   * - Uses `updateProfile` to send updated address details to the backend via `Digit.UserService.createAddressV2`.
-   * - Displays success or error toasts based on the API response.
-   * - Renders a form inside a modal using `AddressDetails` for input fields and React Hook Form for submission handling.
-   */
-  // timer for toast
+
   useEffect(() => {
     if (showToast) {
       const timer = setTimeout(() => {
@@ -99,138 +89,6 @@ const PropertyLocationDetails = ({ address, actionCancelOnSubmit, isEdit, onSele
       return () => clearTimeout(timer);
     }
   }, [showToast]);
-
-  const { createAddress, updateAddress: updateAddressMutation } = Digit.Hooks.useAddress(null, Digit.ULBService.getCurrentTenantId());
-
-  const updateProfile = async () => {
-    try {
-      const stateCode = Digit.ULBService.getStateId();
-      const tenantId = Digit.ULBService.getCurrentTenantId();
-      const user = Digit.UserService.getUser();
-      const userInfo = user?.info;
-      const userUuid = userInfo?.uuid || userInfo?.userUuid || "";
-
-      if (!userInfo) {
-        throw new Error("User session not found");
-      }
-
-      const requestData = {
-        pinCode: formData.pincode,
-        city: formData.city?.name || formData.city,
-        address: formData.addressLine1,
-        type: formData.addressType?.code || formData.addressType,
-        tenantId: stateCode,
-        userId: userInfo?.id,
-        addressType:
-          (formData.addressType?.code || formData.addressType) === "CORRESPONDENCE"
-            ? "COPONDENCE"
-            : formData.addressType?.code || formData.addressType,
-        address2: formData.addressLine2,
-        houseNumber: formData.houseNo,
-        houseName: formData.houseName || formData.city?.name || formData.city,
-        streetName: formData.streetName,
-        landmark: formData.landmark,
-        locality: formData.locality?.code || formData.locality,
-        zro: formData.zro?.code || formData.zro,
-      };
-
-      createAddress.mutate(
-        { address: requestData, userUuid },
-        {
-          onSuccess: (data) => {
-            actionCancelOnSubmit();
-          },
-          onError: (error) => {
-            let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
-            try {
-              const errorObj = typeof error === "string" ? JSON.parse(error) : error;
-              message = errorObj?.message || message;
-            } catch (e) {}
-            setShowToast({
-              error: true,
-              label: message,
-            });
-          },
-        }
-      );
-    } catch (error) {
-      let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
-      try {
-        const errorObj = JSON.parse(error);
-        message = errorObj?.message || message;
-      } catch (e) {}
-      setShowToast({
-        error: true,
-        label: message,
-      });
-    }
-  };
-
-  const updateAddress = async () => {
-    try {
-      const stateCode = Digit.ULBService.getStateId();
-      const tenantId = Digit.ULBService.getCurrentTenantId();
-      const user = Digit.UserService.getUser();
-      const userInfo = user?.info;
-      const userUuid = userInfo?.uuid || userInfo?.userUuid || "";
-
-      if (!userInfo) {
-        throw new Error("User session not found");
-      }
-
-      const requestUpdatedData = {
-        pinCode: formData.pincode,
-        city: formData.city?.name || formData.city,
-        address: formData.addressLine1,
-        type: formData.addressType?.code || formData.addressType,
-        tenantId: stateCode,
-        userId: address?.userId || userInfo?.id || userInfo?.userId || null,
-        addressType:
-          (formData.addressType?.code || formData.addressType) === "CORRESPONDENCE"
-            ? "COPONDENCE"
-            : formData.addressType?.code || formData.addressType,
-        address2: formData.addressLine2,
-        houseNumber: formData.houseNo,
-        houseName: formData.houseName || formData.city?.name || formData.city,
-        streetName: formData.streetName,
-        landmark: formData.landmark,
-        locality: formData.locality?.code || formData.locality,
-        zro: formData.zro?.code || formData.zro,
-
-        id: address?.id,
-      };
-
-      updateAddressMutation.mutate(
-        { address: requestUpdatedData, userUuid },
-        {
-          onSuccess: (data) => {
-            actionCancelOnSubmit();
-          },
-          onError: (error) => {
-            let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
-            try {
-              const errorObj = typeof error === "string" ? JSON.parse(error) : error;
-              message = errorObj?.message || message;
-            } catch (e) {}
-            setShowToast({
-              error: true,
-              label: message,
-            });
-          },
-        }
-      );
-    } catch (error) {
-      let message = t("CORE_COMMON_PROFILE_UPDATE_ERROR");
-      try {
-        const errorObj = JSON.parse(error);
-        message = errorObj?.message || message;
-      } catch (e) {}
-      setShowToast({
-        error: true,
-        label: message,
-      });
-    }
-  };
 
   return (
     <CollapsibleCardPage title={t("PT_LOCATION_DETAILS")} defaultOpen={true}>
