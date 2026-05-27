@@ -159,7 +159,7 @@ const OLDApplication = () => {
             });
           } else if (compName === "WSDjbEmployee") {
             reorderedBody.push({
-              // head: "WS_DJB_EMPLOYEE_DETAILS",
+              // head: "WS_DJB_EMPLOYEE",
               isCreateConnection: true,
               body: [
                 {
